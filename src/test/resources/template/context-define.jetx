@@ -1,0 +1,3 @@
+#define(int a)
+#define(Long b, String s)
+#define(List<String> list, List<?> list2, List<Map<String, ?>> listmap)

@@ -1,0 +1,6 @@
+#define(User user, User notFoundUser)
+${user.name}
+${user.status}
+${user.locked}
+${user.bookList[0].name}
+${notFoundUser?.none?.name}

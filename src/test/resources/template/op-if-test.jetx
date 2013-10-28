@@ -1,0 +1,27 @@
+#if(true)
+    true = true
+#end
+#if(123)
+    123 = true
+#end
+#if("abc")
+    "abc" = true
+#end
+#if([1,2,3])
+    [1,2,3] = true
+#end
+#if(!false)
+    !false = true
+#end
+#if(!0)
+    !0 = true
+#end
+#if(!"")
+    !"" = true
+#end
+#if(![1,2,3])
+    ![1,2,3] = true
+#end
+#if(1>2 || "abc")
+    1>2 || "abc" = true
+#end

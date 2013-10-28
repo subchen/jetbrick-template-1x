@@ -1,0 +1,7 @@
+#define (String[] items)
+#set (List<String> list = ["a","b","c","d"])
+#set (int i=1)
+${list[0]}
+${list[i+1]}
+${items[0]}
+${items[i+1]}

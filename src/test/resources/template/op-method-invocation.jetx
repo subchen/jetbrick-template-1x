@@ -1,0 +1,5 @@
+#define(User user, User notFoundUser)
+${user.getName().toString()}
+${user.find("bbb").getName()}
+${notFoundUser?.notFind("bbb")?.toString()}
+${"aaa".toString()}

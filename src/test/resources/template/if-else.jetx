@@ -1,0 +1,5 @@
+#if (1+2>3*4)
+    print true
+#else
+    print false
+#end
