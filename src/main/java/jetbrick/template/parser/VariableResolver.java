@@ -208,7 +208,7 @@ public class VariableResolver {
             targetParameterTypes[i + 1] = parameterTypes[i];
         }
 
-        String key = getPrivateCacheKeyName(null, methodName, parameterTypes);
+        String key = getPrivateCacheKeyName(null, methodName, targetParameterTypes);
 
         // lookup cache
         Method method = static_method_cache.get(key);
