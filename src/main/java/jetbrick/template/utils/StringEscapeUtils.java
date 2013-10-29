@@ -313,4 +313,8 @@ public final class StringEscapeUtils {
     public static String escapeJavaScript(String value) {
         return escapeJava(value);
     }
+
+    public static String unescapeJavaScript(String value) {
+        return unescapeJava(value);
+    }
 }

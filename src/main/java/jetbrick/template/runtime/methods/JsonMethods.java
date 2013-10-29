@@ -5,9 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import jetbrick.template.utils.StringEscapeUtils;
 
-public class JSONUtils {
+public final class JsonMethods {
 
-    public static String toJSONString(Object object) {
+    public static String asJSON(Object object) {
         if (object == null) return "null";
         if (object instanceof Number) return ((Number) object).toString();
         if (object instanceof Boolean) return ((Boolean) object).toString();
@@ -36,7 +36,7 @@ public class JSONUtils {
         sb.append('[');
         while (it.hasNext()) {
             if (sb.length() > 1) sb.append(',');
-            sb.append(toJSONString(it.next()));
+            sb.append(asJSON(it.next()));
         }
         sb.append(']');
         return sb.toString();
@@ -51,7 +51,7 @@ public class JSONUtils {
             if (sb.length() > 1) sb.append(',');
             sb.append(stringToJSONString(entry.getKey().toString()));
             sb.append(':');
-            sb.append(toJSONString(entry.getValue()));
+            sb.append(asJSON(entry.getValue()));
         }
         sb.append('}');
         return sb.toString();
