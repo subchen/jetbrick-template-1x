@@ -8,6 +8,10 @@ import jetbrick.template.utils.StringEscapeUtils;
 public final class JsonMethods {
 
     public static String asJSON(Object object) {
+        return toJSONString(object);
+    }
+
+    private static String toJSONString(Object object) {
         if (object == null) return "null";
         if (object instanceof Number) return ((Number) object).toString();
         if (object instanceof Boolean) return ((Boolean) object).toString();
@@ -36,7 +40,7 @@ public final class JsonMethods {
         sb.append('[');
         while (it.hasNext()) {
             if (sb.length() > 1) sb.append(',');
-            sb.append(asJSON(it.next()));
+            sb.append(toJSONString(it.next()));
         }
         sb.append(']');
         return sb.toString();
@@ -51,7 +55,7 @@ public final class JsonMethods {
             if (sb.length() > 1) sb.append(',');
             sb.append(stringToJSONString(entry.getKey().toString()));
             sb.append(':');
-            sb.append(asJSON(entry.getValue()));
+            sb.append(toJSONString(entry.getValue()));
         }
         sb.append('}');
         return sb.toString();
