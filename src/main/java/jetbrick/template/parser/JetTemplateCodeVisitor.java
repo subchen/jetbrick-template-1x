@@ -233,10 +233,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         if ("null".equals(source)) {
             // 防止编译出错 (也可以生成一个空行)
-            return scope.createLineCode("$out.print((Object)" + source + ");");
-        } else {
-            return scope.createLineCode("$out.print(" + source + ");");
+            source = "(Object)null";
         }
+        return scope.createLineCode("$out.print(" + source + "); // line: " + ctx.getStart().getLine());
     }
 
     @Override
@@ -268,7 +267,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         String typeName = code.getTypedKlass().asBoxedTypedKlass().getSource();
-        return scope.createLineCode(typeName + " " + name + " = (" + typeName + ") context.get(\"" + name + "\");");
+        return scope.createLineCode(typeName + " " + name + " = (" + typeName + ") context.get(\"" + name + "\"); // line: " + ctx.getStart().getLine());
     }
 
     @Override
@@ -313,7 +312,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("Type mismatch: cannot convert from " + code.getTypedKlass().getSource() + " to " + lhs.getSource(), ctx);
         }
 
-        String source = lhs.getSource() + " " + name + " = (" + lhs.getSource() + ") " + code.getSource() + ";";
+        String source = lhs.getSource() + " " + name + " = (" + lhs.getSource() + ") " + code.getSource() + "; // line: " + ctx.getStart().getLine();
         return scope.createLineCode(source);
     }
 
@@ -331,7 +330,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The first parameter type is not String.class for #put directive", ctx);
         }
 
-        return scope.createLineCode("context.put(" + name.getSource() + ", " + value.getSource() + ");");
+        return scope.createLineCode("context.put(" + name.getSource() + ", " + value.getSource() + "); // line: " + ctx.getStart().getLine());
     }
 
     @Override
@@ -339,7 +338,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         BlockCode code = scope.createBlockCode(16);
 
         SegmentCode expr_code = (SegmentCode) ctx.expression().accept(this);
-        code.addLine("if (" + get_if_expression_source(expr_code) + ") {");
+        code.addLine("if (" + get_if_expression_source(expr_code) + ") { // line: " + ctx.getStart().getLine());
         scope = scope.push();
 
         Code block_code = ctx.block().accept(this);
@@ -369,7 +368,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         BlockCode code = scope.createBlockCode(16);
 
         SegmentCode expr_code = (SegmentCode) ctx.expression().accept(this);
-        code.addLine("else if (" + get_if_expression_source(expr_code) + ") {");
+        code.addLine("else if (" + get_if_expression_source(expr_code) + ") { // line: " + ctx.getStart().getLine());
         scope = scope.push();
 
         Code block_code = ctx.block().accept(this);
@@ -385,7 +384,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         BlockCode code = scope.createBlockCode(16);
 
         if (ctx.getParent() instanceof If_directiveContext) {
-            code.addLine("else {");
+            code.addLine("else { // line: " + ctx.getStart().getLine());
         }
 
         scope = scope.push();
@@ -425,7 +424,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             code.addLine("JetForStatus " + id_for + " = new JetForStatus();");
         }
         code.addLine("Iterator<?> " + id_it + " = JetUtils.asIterator(" + for_expr_code.getSource() + ");");
-        code.addLine("while (" + id_it + ".hasNext()) {");
+        code.addLine("while (" + id_it + ".hasNext()) { // line: " + ctx.getStart().getLine());
 
         // class item = (class) it.next() ...
         String typeName = for_expr_code.getKlassName();
@@ -438,7 +437,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // for else ...
         if (for_else_block != null) {
-            code.addLine("if (" + id_for + ".empty()) {");
+            code.addLine("if (" + id_for + ".empty()) { // line: " + ctx.getStart().getLine());
             code.addChild(for_else_block);
             code.addLine("}");
         }
@@ -493,10 +492,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = "if (" + get_if_expression_source(c) + ") break;";
+            source = get_if_expression_source(c);
         } else {
-            source = "if (true) break;"; // 防止 javac 报告后面的代码不可达，导致编译出错。
+            source = "true";
         }
+        source = "if (" + source + ") break; // line: " + ctx.getStart().getLine();
         return scope.createLineCode(source);
     }
 
@@ -508,10 +508,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = "if (" + get_if_expression_source(c) + ") continue;";
+            source = get_if_expression_source(c);
         } else {
-            source = "if (true) continue;"; // 防止 javac 报告后面的代码不可达，导致编译出错。
+            source = "true";
         }
+        source = "if (" + source + ") continue; // line: " + ctx.getStart().getLine();
         return scope.createLineCode(source);
     }
 
@@ -521,10 +522,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = "if (" + get_if_expression_source(c) + ") return;";
+            source = get_if_expression_source(c);
         } else {
-            source = "if (true) return;"; // 防止 javac 报告后面的代码不可达，导致编译出错。
+            source = "true";
         }
+        source = "if (" + source + ") return; // line: " + ctx.getStart().getLine();
         return scope.createLineCode(source);
     }
 
@@ -571,7 +573,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             source.append(", ");
             source.append(encodingCode.getSource());
         }
-        source.append(");");
+        source.append("); // line: ");
+        source.append(ctx.getStart().getLine());
         return scope.createLineCode(source.toString());
     }
 
