@@ -919,9 +919,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 查找对应的构造函数
         Class<?> beanClass = code.getKlass();
-        Class<?> parameterTypes[] = new Class<?>[expr_list_code.size()];
-        for (int i = 0; i < expr_list_code.size(); i++) {
-            parameterTypes[i] = expr_list_code.getChild(i).getKlass();
+        Class<?> parameterTypes[] = EMPTY_CLASS_ARRAY;
+        if (expr_list_code != null) {
+            parameterTypes = new Class<?>[expr_list_code.size()];
+            for (int i = 0; i < expr_list_code.size(); i++) {
+                parameterTypes[i] = expr_list_code.getChild(i).getKlass();
+            }
         }
         Constructor<?> constructor = resolver.resolveConstructor(beanClass, parameterTypes);
         if (constructor == null) {
