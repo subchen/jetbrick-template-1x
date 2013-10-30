@@ -1,0 +1,29 @@
+${"123".asByte()}
+${"123".asShort()}
+${"123".asInt()}
+${"1234567890123456".asLong()}
+${"123.456".asFloat()}
+${"123.456".asDouble()}
+${"true".asBoolean()}
+${123.asFloat()}
+${(-123.99).asFloat()}
+${"2000-01-01 12:00:00".asDate()}
+${"12:00:00".asDate("HH:mm:ss")}
+${[1,2,3].asList()}
+${"abc".asJSON()}
+${[1,2,3].asJSON()}
+${{"name": "Jack", "pass": "1234567890"}.asJSON()}
+
+${new Float(0.888888f).format("##,##0.##")}
+${new Double(99999.555).format("##,##0.##")}
+${10.format("##,##0")}
+${new Date().format("yyyy-MM-dd HH:mm:ss,SSS")}
+
+${"<hahah>".escapeXml()}
+${"&lt;hahah&gt;".unescapeXml()}
+${"<hahah>".escapeUrl()}
+
+${"UserName".toUnderlineName()}
+${"user_name".toCamelCase()}
+${"user_name".toCapitalizeCamelCase()}
+

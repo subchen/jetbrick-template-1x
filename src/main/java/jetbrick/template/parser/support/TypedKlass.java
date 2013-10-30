@@ -66,13 +66,25 @@ public class TypedKlass {
         return klass != null && klass.isPrimitive();
     }
 
+    // 注意： 如果已经是 Object, 那么直接返回 this
     public TypedKlass asBoxedTypedKlass() {
         if (isPrimitive()) {
             Class<?> toklass = PrimitiveUtils.asBoxedClass(klass);
-            return create(toklass);
+            return create(toklass, EMPTY_TYPE_ARGS);
         } else {
             return this;
         }
+    }
+
+    // 注意： 如果不能进行转换，那么就返回 null
+    public TypedKlass asUnboxedTypedKlass() {
+        if (klass != null) {
+            Class<?> toklass = PrimitiveUtils.asUnboxedClass(klass);
+            if (toklass != null) {
+                return create(toklass, EMPTY_TYPE_ARGS);
+            }
+        }
+        return null;
     }
 
     public String getSource() {
@@ -88,14 +100,7 @@ public class TypedKlass {
         }
 
         // 使用短名字
-        String name = toklass.getName();
-        if (name.startsWith("java.lang.")) {
-            name = name.substring("java.lang.".length());
-        } else if (name.startsWith("java.util.")) {
-            name = name.substring("java.util.".length());
-        }
-        name = name.replace('$', '.'); // 转换内部类名字
-        sb.append(name);
+        sb.append(ClassUtils.getShortClassName(toklass));
 
         // 处理泛型内容
         if (typeArgs != null && typeArgs.length > 0) {

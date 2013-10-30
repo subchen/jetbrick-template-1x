@@ -1,6 +1,7 @@
-package jetbrick.template.runtime.functions;
+package jetbrick.template.runtime.methods;
 
 import java.util.*;
+import jetbrick.template.utils.ArrayUtils;
 
 public final class SystemFunctions {
     private static final Random RANDOM = new Random();
@@ -15,5 +16,13 @@ public final class SystemFunctions {
 
     public static UUID uuid() {
         return UUID.randomUUID();
+    }
+
+    public static int[] step(int start, int stop) {
+        return ArrayUtils.step(start, stop, 1);
+    }
+
+    public static int[] step(int start, int stop, int step) {
+        return ArrayUtils.step(start, stop, step);
     }
 }

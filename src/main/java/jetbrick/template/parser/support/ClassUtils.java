@@ -1,10 +1,10 @@
 package jetbrick.template.parser.support;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ClassUtils {
     private static final Map<String, String> abbreviation_map;
+    private static final Set<String> default_package_set;
 
     /**
      * Returns current thread's context class loader
@@ -127,6 +127,24 @@ public class ClassUtils {
         return false;
     }
 
+    // 使用短名字
+    public static String getShortClassName(Class<?> klass) {
+        if (klass.isPrimitive()) {
+            return klass.getName();
+        } else {
+            String pkg = klass.getPackage().getName();
+            if (default_package_set.contains(pkg)) {
+                if (klass.isMemberClass()) {
+                    // 内部类
+                    return klass.getEnclosingClass().getSimpleName() + "." + klass.getSimpleName();
+                } else {
+                    return klass.getSimpleName();
+                }
+            }
+            return klass.getName();
+        }
+    }
+
     static {
         abbreviation_map = new HashMap<String, String>(8);
         abbreviation_map.put("boolean", "Z");
@@ -137,5 +155,11 @@ public class ClassUtils {
         abbreviation_map.put("long", "J");
         abbreviation_map.put("float", "F");
         abbreviation_map.put("double", "D");
+
+        default_package_set = new HashSet<String>();
+        default_package_set.add("java.lang");
+        default_package_set.add("java.util");
+        default_package_set.add("jetbrick.template.runtime");
+        default_package_set.add("jetbrick.template.runtime.methods");
     }
 }

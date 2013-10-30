@@ -114,7 +114,7 @@ expression  :   '(' expression ')'                                           # e
             |   '!' <assoc=right> expression                                 # expr_compare_not
             |   '(' type ')'      expression                                 # expr_class_cast
             |   'new' type '(' expression_list? ')'                          # expr_new_object
-            |   'new' type '[' expression ']'                                # expr_new_array
+            |   'new' type ('[' expression ']')+                             # expr_new_array
             |   expression ('*'|'/'|'%')  expression                         # expr_math_binary_basic
             |   expression ('+'|'-')      expression                         # expr_math_binary_basic
             |   expression ('<<'|'>' '>'|'>' '>' '>') expression             # expr_math_binary_shift

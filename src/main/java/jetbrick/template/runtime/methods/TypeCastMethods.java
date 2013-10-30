@@ -156,7 +156,7 @@ public final class TypeCastMethods {
         return list;
     }
 
-    public Date asDate(String value) {
+    public static Date asDate(String value) {
         value = (value != null) ? value.trim() : null;
         ParsePosition pp = null;
         Date d = null;
@@ -176,7 +176,7 @@ public final class TypeCastMethods {
         return d;
     }
 
-    public Date asDate(String value, String format) {
+    public static Date asDate(String value, String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         sdf.setLenient(false);
         try {

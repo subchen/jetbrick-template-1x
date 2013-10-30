@@ -38,6 +38,66 @@ public class SegmentCode implements Code {
         return typedKlass == null ? null : typedKlass.getSource();
     }
 
+    public SegmentCode asBoxedSegmentCode() {
+        Class<?> klass = getKlass();
+        String newSource = null;
+        if (klass == null) {
+            return this;
+        } else if (Byte.TYPE.equals(klass)) {
+            newSource = "Byte.valueOf(" + source + ")";
+        } else if (Short.TYPE.equals(klass)) {
+            newSource = "Short.valueOf(" + source + ")";
+        } else if (Integer.TYPE.equals(klass)) {
+            newSource = "Integer.valueOf(" + source + ")";
+        } else if (Long.TYPE.equals(klass)) {
+            newSource = "Long.valueOf(" + source + ")";
+        } else if (Float.TYPE.equals(klass)) {
+            newSource = "Float.valueOf(" + source + ")";
+        } else if (Double.TYPE.equals(klass)) {
+            newSource = "Double.valueOf(" + source + ")";
+        } else if (Boolean.TYPE.equals(klass)) {
+            newSource = "Boolean.valueOf(" + source + ")";
+        } else if (Character.TYPE.equals(klass)) {
+            newSource = "Character.valueOf(" + source + ")";
+        }
+
+        if (newSource == null) {
+            return this;
+        } else {
+            return new SegmentCode(typedKlass.asBoxedTypedKlass(), newSource);
+        }
+    }
+
+    public SegmentCode asUnboxedSegmentCode() {
+        Class<?> klass = getKlass();
+        String newSource = null;
+        if (klass == null) {
+            return this;
+        } else if (Byte.class.equals(klass)) {
+            newSource = "(" + source + "==null ? (byte) 0 : " + source + ".byteValue())";
+        } else if (Short.class.equals(klass)) {
+            newSource = "(" + source + "==null ? (short) 0 : " + source + ".shortValue())";
+        } else if (Integer.class.equals(klass)) {
+            newSource = "(" + source + "==null ? 0 : " + source + ".intValue())";
+        } else if (Long.class.equals(klass)) {
+            newSource = "(" + source + "==null ? 0L : " + source + ".longValue())";
+        } else if (Float.class.equals(klass)) {
+            newSource = "(" + source + "==null ? 0.0F : " + source + ".floatValue())";
+        } else if (Double.class.equals(klass)) {
+            newSource = "(" + source + "==null ? 0.0D : " + source + ".doubleValue())";
+        } else if (Boolean.class.equals(klass)) {
+            newSource = "(" + source + "==null ? false : " + source + ".booleanValue())";
+        } else if (Character.class.equals(klass)) {
+            newSource = "(" + source + "==null ? '\0' : " + source + ".charValue())";
+        }
+
+        if (newSource == null) {
+            return this;
+        } else {
+            return new SegmentCode(typedKlass.asUnboxedTypedKlass(), newSource);
+        }
+    }
+
     @Override
     public String getSource() {
         return source;

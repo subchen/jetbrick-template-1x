@@ -3,7 +3,6 @@ package jetbrick.template.parser;
 import java.lang.reflect.*;
 import java.util.*;
 import jetbrick.template.parser.support.*;
-import jetbrick.template.runtime.functions.SystemFunctions;
 import jetbrick.template.runtime.methods.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
