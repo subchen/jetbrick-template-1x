@@ -3,3 +3,6 @@ ${user.getName().toString()}
 ${user.find("bbb").getName()}
 ${notFoundUser?.notFind("bbb")?.toString()}
 ${"aaa".toString()}
+
+#set(int n = 123)
+${n.toString()}
