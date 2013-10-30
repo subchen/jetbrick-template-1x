@@ -869,7 +869,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitExpr_array_get(Expr_array_getContext ctx) {
         ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
         ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-
         SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
         SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
         Class<?> lhsKlass = lhs.getKlass();
@@ -1003,9 +1002,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitExpr_math_unary_suffix(Expr_math_unary_suffixContext ctx) {
-        ExpressionContext expression = ctx.expression();
-        get_not_null_constantContext(expression);
-
+        ExpressionContext expression = get_not_null_constantContext(ctx.expression());
         SegmentCode code = (SegmentCode) expression.accept(this);
         String op = ctx.getChild(1).getText();
 
@@ -1026,9 +1023,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitExpr_math_unary_prefix(Expr_math_unary_prefixContext ctx) {
-        ExpressionContext expression = ctx.expression();
-        get_not_null_constantContext(expression);
-
+        ExpressionContext expression = get_not_null_constantContext(ctx.expression());
         SegmentCode code = (SegmentCode) expression.accept(this);
         String op = ctx.getChild(0).getText();
 
@@ -1119,7 +1114,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitExpr_compare_equality(Expr_compare_equalityContext ctx) {
         ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
         ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-
         SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
         SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
         TerminalNode op = (TerminalNode) ctx.getChild(1);
@@ -1137,7 +1131,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitExpr_compare_relational(Expr_compare_relationalContext ctx) {
         ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
         ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-
         SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
         SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
         TerminalNode op = (TerminalNode) ctx.getChild(1);
@@ -1190,7 +1183,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitExpr_compare_condition(Expr_compare_conditionContext ctx) {
         ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
         ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-
         SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
         SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
         String op = ctx.getChild(1).getText();
