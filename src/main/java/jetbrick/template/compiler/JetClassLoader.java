@@ -5,11 +5,13 @@ import java.net.*;
 import jetbrick.template.utils.ExceptionUtils;
 
 public class JetClassLoader {
+    private final String classpath;
     private final URL[] urls;
     private final ClassLoader classloader;
     private final boolean reloadable;
 
     public JetClassLoader(String classpath, boolean reloadable) {
+        this.classpath = classpath;
         this.urls = new URL[] { toURL(classpath) };
         this.classloader = new URLClassLoader(urls);
         this.reloadable = reloadable;
@@ -22,6 +24,10 @@ public class JetClassLoader {
         } else {
             return classloader.loadClass(qualifiedClassName);
         }
+    }
+
+    public String getClasspath() {
+        return classpath;
     }
 
     private static URL toURL(String url) {

@@ -54,4 +54,29 @@ public final class StringUtils {
         sb.append('}');
         return sb.toString();
     }
+
+    public static CharSequence getPrettyError(String[] sourceLines, int line, int column, int start, int stop, int show_lines) {
+        StringBuilder sb = new StringBuilder(128);
+        for (int i = line - show_lines; i < line; i++) {
+            if (i >= 0) {
+                sb.append(String.format("%4d: %s%n", i + 1, sourceLines[i]));
+            }
+        }
+        if (start > stop) {
+            // <EOF>
+            sb.append("      <EOF>\n");
+            sb.append("      ^^^^^");
+        } else {
+            sb.append("      "); // padding
+            for (int i = 0; i < column - 1; i++) {
+                sb.append(' ');
+            }
+            for (int i = start; i <= stop; i++) {
+                sb.append('^');
+            }
+        }
+        sb.append('\n');
+        return sb;
+    }
+
 }

@@ -1,4 +1,4 @@
-package jetbrick.template.compiler.jdk;
+package jetbrick.template.compiler.spi.memory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +8,7 @@ import javax.tools.JavaFileObject;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.utils.IoUtils;
 
-/** {@link ClassLoader}的一个实现，它map类名和JavaFileObjectImpl的实例。本类在{@link JdkCompiler}和{@link FileManagerImpl}中被使用。 */
+/** {@link ClassLoader}的一个实现，它map类名和JavaFileObjectImpl的实例。本类在{@link MemoryJdkCompiler}和{@link FileManagerImpl}中被使用。 */
 final class ClassLoaderImpl extends ClassLoader {
     private final Map<String, JavaFileObjectImpl> classes = new HashMap<String, JavaFileObjectImpl>();
 

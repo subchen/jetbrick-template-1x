@@ -1,5 +1,6 @@
 package jetbrick.template.parser;
 
+import jetbrick.template.utils.StringUtils;
 import org.antlr.v4.runtime.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +10,21 @@ public class JetTemplateErrorListener extends BaseErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-        StringBuilder error = underlineError(recognizer, (Token) offendingSymbol, line, charPositionInLine, msg);
-        log.error(error.toString());
+        CommonTokenStream tokens = (CommonTokenStream) recognizer.getInputStream();
+        String input = tokens.getTokenSource().getInputStream().toString();
+        String[] sourceLines = input.split("\r?\n", -1);
+        Token offendingToken = (Token) offendingSymbol;
+
+        StringBuilder sb = new StringBuilder(128);
+        sb.append("Template parse failed:\n");
+        sb.append(recognizer.getInputStream().getSourceName());
+        sb.append(':');
+        sb.append(line);
+        sb.append("\nmessage: ");
+        sb.append(msg);
+        sb.append('\n');
+        sb.append(StringUtils.getPrettyError(sourceLines, line, charPositionInLine + 1, offendingToken.getStartIndex(), offendingToken.getStopIndex(), 5));
+        log.error(sb.toString());
 
         if (e != null) {
             throw e;

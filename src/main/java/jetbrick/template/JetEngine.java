@@ -1,8 +1,8 @@
 package jetbrick.template;
 
 import java.util.Properties;
+import jetbrick.template.compiler.JdkCompiler;
 import jetbrick.template.compiler.JetClassLoader;
-import jetbrick.template.compiler.JetJdkCompiler;
 import jetbrick.template.parser.VariableResolver;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.SourceCodeResource;
@@ -14,7 +14,7 @@ public class JetEngine {
     private final ResourceLoader resourceLoader;
     private final VariableResolver resolver;
     private final JetClassLoader classLoader;
-    private final JetJdkCompiler javaCompiler;
+    private final JdkCompiler jdkCompiler;
     private final ConcurrentTemplateCache templateCache;
 
     public JetEngine(Properties properties) {
@@ -22,7 +22,7 @@ public class JetEngine {
         this.resolver = createVariableResolver();
         this.resourceLoader = createResourceLoader();
         this.classLoader = new JetClassLoader(config.getCompilePath(), config.isTemplateReloadable());
-        this.javaCompiler = new JetJdkCompiler(config.getCompilePath(), this.classLoader);
+        this.jdkCompiler = JdkCompiler.create(this.classLoader);
         this.templateCache = new ConcurrentTemplateCache(this);
     }
 
@@ -54,8 +54,8 @@ public class JetEngine {
         return classLoader;
     }
 
-    protected JetJdkCompiler getJavaCompiler() {
-        return javaCompiler;
+    protected JdkCompiler getJdkCompiler() {
+        return jdkCompiler;
     }
 
     public JetConfig getConfig() {

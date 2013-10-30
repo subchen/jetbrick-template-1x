@@ -1,4 +1,4 @@
-package jetbrick.template.compiler.jdk;
+package jetbrick.template.compiler.spi.memory;
 
 import java.io.IOException;
 import javax.tools.*;

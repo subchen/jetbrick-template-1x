@@ -30,8 +30,8 @@ public class JetTemplate {
         this.resource = resource;
         this.encoding = engine.getConfig().getOutputEncoding();
         this.reloadable = engine.getConfig().isTemplateReloadable();
-        this.javaSourceFile = engine.getJavaCompiler().getGenerateJavaSourceFile(resource.getQualifiedClassName());
-        this.javaClassFile = engine.getJavaCompiler().getGenerateJavaClassFile(resource.getQualifiedClassName());
+        this.javaSourceFile = engine.getJdkCompiler().getGenerateJavaSourceFile(resource.getQualifiedClassName());
+        this.javaClassFile = engine.getJdkCompiler().getGenerateJavaClassFile(resource.getQualifiedClassName());
 
         // compile and load
         if (javaClassFile.lastModified() > resource.lastModified()) {
@@ -81,7 +81,7 @@ public class JetTemplate {
             log.info(sb.toString());
         }
         // compile
-        Class<?> cls = engine.getJavaCompiler().compile(resource.getQualifiedClassName(), source);
+        Class<?> cls = engine.getJdkCompiler().compile(resource.getQualifiedClassName(), source);
         log.debug("generateJavaClass: " + javaClassFile.getAbsolutePath());
         try {
             pageObject = (JetPage) cls.newInstance();
