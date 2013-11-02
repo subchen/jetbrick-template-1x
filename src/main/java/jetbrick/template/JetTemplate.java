@@ -107,16 +107,20 @@ public class JetTemplate {
 
     public void render(Map<String, Object> context, Writer out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetContext(engine, context, writer));
+        render(new JetContext(this, context, writer));
     }
 
     public void render(Map<String, Object> context, OutputStream out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetContext(engine, context, writer));
+        render(new JetContext(this, context, writer));
     }
 
-    // 给 JetUtils.include 开的后门
-    public void render(JetContext context) {
+    // 给 #include 和 include 函数用。
+    public void render(JetContext parentContext, JetWriter out) {
+        render(new JetContext(this, parentContext, out));
+    }
+
+    private void render(JetContext context) {
         try {
             pageObject.render(context);
         } catch (Throwable e) {

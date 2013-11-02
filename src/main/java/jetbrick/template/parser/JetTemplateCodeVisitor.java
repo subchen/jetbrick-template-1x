@@ -6,7 +6,59 @@ import javax.lang.model.SourceVersion;
 import jetbrick.template.JetEngine;
 import jetbrick.template.parser.code.*;
 import jetbrick.template.parser.grammer.*;
-import jetbrick.template.parser.grammer.JetTemplateParser.*;
+import jetbrick.template.parser.grammer.JetTemplateParser.BlockContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Break_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.ConstantContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Continue_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Debug_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Define_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Define_expressionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.DirectiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Else_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Elseif_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_array_getContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_array_listContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_class_castContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_compare_conditionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_compare_equalityContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_compare_notContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_compare_relationalContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_conditional_ternaryContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_constantContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_field_accessContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_function_callContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_groupContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_hash_mapContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_identifierContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_instanceofContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_math_binary_basicContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_math_binary_bitwiseContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_math_binary_shiftContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_math_unary_prefixContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_math_unary_suffixContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_method_invocationContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_new_arrayContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_new_objectContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.ExpressionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expression_listContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.For_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.For_expressionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Hash_map_entry_listContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.If_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Include_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Invalid_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Put_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Set_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Set_expressionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Stop_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.TemplateContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.TextContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.TypeContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Type_argumentsContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Type_array_suffixContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Type_listContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Type_nameContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.ValueContext;
 import jetbrick.template.parser.support.*;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.runtime.JetContext;
@@ -747,9 +799,14 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         code = code.asBoxedSegmentCode();
         Class<?> beanClass = code.getKlass();
         String name = ctx.IDENTIFIER().getText();
-        Method method1 = resolver.resolveMethod(beanClass, name, parameterTypes);
-        Method method2 = (method1 != null) ? null : resolver.resolveToolMethod(beanClass, name, parameterTypes);
-        if (method1 == null && method2 == null) {
+        Method bean_method = resolver.resolveMethod(beanClass, name, parameterTypes);
+        Method tool_method = (bean_method != null) ? null : resolver.resolveToolMethod(beanClass, name, parameterTypes);
+        boolean tool_advanced = false;
+        if (tool_method == null) {
+            tool_method = resolver.resolveToolMethod_advanced(beanClass, name, parameterTypes);
+            tool_advanced = true;
+        }
+        if (bean_method == null && tool_method == null) {
             // reportError
             StringBuilder err = new StringBuilder(128);
             err.append("The method ");
@@ -768,13 +825,16 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 生成code
         StringBuilder source = new StringBuilder();
         String op = ctx.getChild(1).getText();
-        if (method2 != null) {
+        if (tool_method != null) {
             // tool method
-            source.append(ClassUtils.getShortClassName(method2.getDeclaringClass()));
+            source.append(ClassUtils.getShortClassName(tool_method.getDeclaringClass()));
             source.append('.');
             source.append(name);
             source.append('(');
             source.append(code.getSource());
+            if (tool_advanced) {
+                source.append(",context");
+            }
             if (expr_list_code != null) {
                 source.append(',');
             }
@@ -804,7 +864,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         // 得到方法的返回类型
-        Method method = (method1 == null) ? method2 : method1;
+        Method method = (bean_method == null) ? tool_method : bean_method;
         TypedKlass typedKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
         return new SegmentCode(typedKlass, source.toString());
     }
@@ -822,9 +882,15 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 parameterTypes[i] = expr_list_code.getChild(i).getKlass();
             }
         }
+
         // 查找方法
         String name = ctx.IDENTIFIER().getText();
+        boolean advanced = false;
         Method method = resolver.resolveFunction(name, parameterTypes);
+        if (method == null) {
+            method = resolver.resolveFunction_advanced(name, parameterTypes);
+            advanced = true;
+        }
         if (method == null) {
             throw reportError("Undefined function " + name + "(...).", ctx.IDENTIFIER());
         }
@@ -835,7 +901,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         source.append('.');
         source.append(name);
         source.append('(');
+        if (advanced) {
+            source.append("context");
+        }
         if (expr_list_code != null) {
+            if (advanced) source.append(',');
             source.append(expr_list_code.getSource());
         }
         source.append(')');

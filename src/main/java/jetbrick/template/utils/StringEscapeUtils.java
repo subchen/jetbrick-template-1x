@@ -321,7 +321,7 @@ public final class StringEscapeUtils {
     public static String unescapeJavaScript(String value) {
         return unescapeJava(value);
     }
-    
+
     public static String escapeUrl(String value) {
         return escapeUrl(value, "UTF-8");
     }

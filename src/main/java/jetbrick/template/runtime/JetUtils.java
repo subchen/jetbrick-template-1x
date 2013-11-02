@@ -131,7 +131,7 @@ public final class JetUtils {
             if (template == null) {
                 throw new RuntimeException("FileNotFoundException: " + file);
             }
-            template.render(context);
+            template.render(context, context.getWriter());
         }
     }
 

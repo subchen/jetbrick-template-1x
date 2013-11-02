@@ -3,22 +3,36 @@ package jetbrick.template.runtime;
 import java.util.HashMap;
 import java.util.Map;
 import jetbrick.template.JetEngine;
+import jetbrick.template.JetTemplate;
 
+/**
+ * 父子模板数据共享的 Context
+ */
 public class JetContext {
-    private final JetEngine engine;
+    private final JetTemplate template;
     private final JetWriter out;
     private final Map<String, Object> context;
 
-    public JetContext(JetEngine engine, Map<String, Object> context, JetWriter out) {
-        this.engine = engine;
+    public JetContext(JetTemplate template, Map<String, Object> context, JetWriter out) {
+        this.template = template;
         this.out = out;
 
         this.context = new HashMap<String, Object>(context.size() + 8);
         this.context.putAll(context);
     }
 
+    public JetContext(JetTemplate template, JetContext parentContext, JetWriter out) {
+        this.template = template;
+        this.out = out;
+        this.context = parentContext.context; // 全局共享 context
+    }
+
     public JetEngine getEngine() {
-        return engine;
+        return template.getEngine();
+    }
+
+    public JetTemplate getTemplate() {
+        return template;
     }
 
     public JetWriter getWriter() {

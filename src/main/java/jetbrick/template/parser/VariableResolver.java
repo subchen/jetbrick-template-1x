@@ -3,8 +3,7 @@ package jetbrick.template.parser;
 import java.lang.reflect.*;
 import java.util.*;
 import jetbrick.template.parser.support.*;
-import jetbrick.template.runtime.JetFunctions;
-import jetbrick.template.runtime.JetMethods;
+import jetbrick.template.runtime.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,6 +230,33 @@ public class VariableResolver {
         return method;
     }
 
+    // 找到对应的方法 Tool.method(bean, JetContext, ...)
+    public Method resolveToolMethod_advanced(Class<?> beanClass, String methodName, Class<?>[] parameterTypes) {
+        Class<?>[] targetParameterTypes = new Class<?>[2 + parameterTypes.length];
+        targetParameterTypes[0] = beanClass;
+        targetParameterTypes[1] = JetContext.class;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            targetParameterTypes[i + 2] = parameterTypes[i];
+        }
+
+        String key = getPrivateCacheKeyName(null, methodName, targetParameterTypes);
+
+        // lookup cache
+        Method method = static_method_cache.get(key);
+        if (method == null) {
+            synchronized (static_method_cache) {
+                List<Method> methods = methodMap.get(methodName);
+                if (methods != null) {
+                    method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
+                    if (method != null) {
+                        static_method_cache.put(key, method);
+                    }
+                }
+            }
+        }
+        return method;
+    }
+
     // 找到对应的方法 function(...)
     public Method resolveFunction(String methodName, Class<?>[] parameterTypes) {
         String key = getPrivateCacheKeyName(null, methodName, parameterTypes);
@@ -242,6 +268,32 @@ public class VariableResolver {
                 List<Method> methods = functionMap.get(methodName);
                 if (methods != null) {
                     method = MethodFinderUtils.lookupBestMethod(methods, methodName, parameterTypes);
+                    if (method != null) {
+                        static_function_cache.put(key, method);
+                    }
+                }
+            }
+        }
+        return method;
+    }
+
+    // 找到对应的方法 function(JetContext, ...)
+    public Method resolveFunction_advanced(String methodName, Class<?>[] parameterTypes) {
+        Class<?>[] targetParameterTypes = new Class<?>[1 + parameterTypes.length];
+        targetParameterTypes[0] = JetContext.class;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            targetParameterTypes[i + 1] = parameterTypes[i];
+        }
+
+        String key = getPrivateCacheKeyName(null, methodName, targetParameterTypes);
+
+        // lookup cache
+        Method method = static_function_cache.get(key);
+        if (method == null) {
+            synchronized (static_function_cache) {
+                List<Method> methods = functionMap.get(methodName);
+                if (methods != null) {
+                    method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
                     if (method != null) {
                         static_function_cache.put(key, method);
                     }

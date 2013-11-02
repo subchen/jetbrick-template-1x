@@ -28,7 +28,7 @@ public final class StringUtils {
         }
         return buf.toString();
     }
-    
+
     public static String deleteWhitespace(String str) {
         if (str == null || str.length() == 0) return str;
         int sz = str.length();
