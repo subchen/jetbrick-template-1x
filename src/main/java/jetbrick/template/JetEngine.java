@@ -15,6 +15,7 @@ public class JetEngine {
     private final VariableResolver resolver;
     private final JetClassLoader classLoader;
     private final JdkCompiler jdkCompiler;
+    private final ConcurrentResourceCache resourceCache;
     private final ConcurrentTemplateCache templateCache;
 
     public JetEngine(Properties properties) {
@@ -23,12 +24,13 @@ public class JetEngine {
         this.resourceLoader = createResourceLoader();
         this.classLoader = new JetClassLoader(config.getCompilePath(), config.isTemplateReloadable());
         this.jdkCompiler = JdkCompiler.create(this.classLoader);
-        this.templateCache = new ConcurrentTemplateCache(this);
+        this.resourceCache = new ConcurrentResourceCache();
+        this.templateCache = new ConcurrentTemplateCache();
     }
 
     public Resource getResource(String name) {
         name = PathUtils.getStandardizedName(name);
-        return resourceLoader.load(name);
+        return resourceCache.get(name);
     }
 
     public JetTemplate getTemplate(String name) {
@@ -96,18 +98,19 @@ public class JetEngine {
         }
     }
 
-    static class ConcurrentTemplateCache extends ConcurrentCache<String, JetTemplate> {
-        private final JetEngine engine;
-
-        public ConcurrentTemplateCache(JetEngine engine) {
-            this.engine = engine;
+    private class ConcurrentResourceCache extends ConcurrentCache<String, Resource> {
+        @Override
+        public Resource doGetValue(String name) {
+            return JetEngine.this.resourceLoader.load(name);
         }
+    }
 
+    private class ConcurrentTemplateCache extends ConcurrentCache<String, JetTemplate> {
         @Override
         public JetTemplate doGetValue(String name) {
-            Resource resource = engine.getResource(name);
+            Resource resource = JetEngine.this.getResource(name);
             if (resource == null) return null;
-            return new JetTemplate(engine, resource);
+            return new JetTemplate(JetEngine.this, resource);
         }
     }
 }
