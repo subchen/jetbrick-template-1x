@@ -156,7 +156,7 @@ public class ClassUtils {
         abbreviation_map.put("float", "F");
         abbreviation_map.put("double", "D");
 
-        default_package_set = new HashSet<String>();
+        default_package_set = new HashSet<String>(3);
         default_package_set.add("java.lang");
         default_package_set.add("java.util");
         default_package_set.add("jetbrick.template.runtime");
