@@ -1,7 +1,6 @@
 package jetbrick.template.runtime;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 import jetbrick.template.JetTemplate;
@@ -111,16 +110,16 @@ public final class JetUtils {
         return StringEscapeUtils.escapeXml(value);
     }
 
-    public static void asInclude(JetContext context, String baseFile, String relativeName, boolean isPlainText, String encoding) throws IOException {
+    public static void asInclude(JetContext context, String relativeName, boolean isPlainText, String encoding) throws IOException {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
-        String file = PathUtils.relativePath(baseFile, relativeName);
+        String file = PathUtils.relativePath(context.getTemplate().getName(), relativeName);
 
         if (isPlainText) {
             Resource resource = context.getEngine().getResource(file);
             if (resource == null) {
-                throw new RuntimeException("FileNotFoundException: " + file);
+                throw new IllegalAccessError("FileNotFoundException: " + file);
             }
             if (encoding == null) {
                 encoding = context.getEngine().getConfig().getInputEncoding();
@@ -129,10 +128,26 @@ public final class JetUtils {
         } else {
             JetTemplate template = context.getEngine().getTemplate(file);
             if (template == null) {
-                throw new RuntimeException("FileNotFoundException: " + file);
+                throw new IllegalAccessError("TemplateNotFound: " + file);
             }
             template.render(context, context.getWriter());
         }
+    }
+
+    // redner 子模板， 并返回生成的内容
+    public static String include(JetContext context, String relativeName) {
+        if (relativeName == null || relativeName.length() == 0) {
+            throw new IllegalArgumentException("argument relativeName is null or empty.");
+        }
+        String file = PathUtils.relativePath(context.getTemplate().getName(), relativeName);
+        JetTemplate template = context.getEngine().getTemplate(file);
+        if (template == null) {
+            throw new IllegalAccessError("TemplateNotFound: " + file);
+        }
+        StringWriter os = new StringWriter();
+        JetWriter out = JetWriter.create(os, context.getEngine().getConfig().getOutputEncoding());
+        template.render(context, out);
+        return os.toString();
     }
 
     public static void debug(String format, Object... args) {
