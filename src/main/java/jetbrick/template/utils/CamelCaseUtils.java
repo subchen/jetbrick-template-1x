@@ -1,6 +1,6 @@
-package jetbrick.template.runtime.methods;
+package jetbrick.template.utils;
 
-public final class CamelCaseMethods {
+public final class CamelCaseUtils {
     private static final char SEPARATOR = '_';
 
     public static String toUnderlineName(String s) {
@@ -10,6 +10,7 @@ public final class CamelCaseMethods {
         boolean upperCase = false;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
+
             boolean nextUpperCase = true;
             if (i < (s.length() - 1)) {
                 nextUpperCase = Character.isUpperCase(s.charAt(i + 1));
@@ -25,13 +26,14 @@ public final class CamelCaseMethods {
             }
             sb.append(Character.toLowerCase(c));
         }
+
         return sb.toString();
     }
 
     public static String toCamelCase(String s) {
         if (s == null || s.length() == 0) return s;
-
         s = s.toLowerCase();
+
         StringBuilder sb = new StringBuilder(s.length());
         boolean upperCase = false;
         for (int i = 0; i < s.length(); i++) {

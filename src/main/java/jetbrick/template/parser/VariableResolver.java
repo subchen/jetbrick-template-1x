@@ -3,7 +3,8 @@ package jetbrick.template.parser;
 import java.lang.reflect.*;
 import java.util.*;
 import jetbrick.template.parser.support.*;
-import jetbrick.template.runtime.methods.*;
+import jetbrick.template.runtime.JetFunctions;
+import jetbrick.template.runtime.JetMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +26,8 @@ public class VariableResolver {
         addImportPackage("java.lang");
         addImportPackage("java.util");
         //
-        addMethodClass(StringMethods.class.getName());
-        addMethodClass(StringEscapeMethods.class.getName());
-        addMethodClass(CamelCaseMethods.class.getName());
-        addMethodClass(FormatMethods.class.getName());
-        addMethodClass(JsonMethods.class.getName());
-        addMethodClass(MathMethods.class.getName());
-        addMethodClass(TypeCastMethods.class.getName());
-        //
-        addFunctionClass(SystemFunctions.class.getName());
+        addMethodClass(JetMethods.class.getName());
+        addFunctionClass(JetFunctions.class.getName());
     }
 
     public void addImportPackage(String pkg) {

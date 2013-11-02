@@ -1,6 +1,6 @@
 package jetbrick.template.utils;
 
-public class PathUtils {
+public final class PathUtils {
     private static final boolean IS_WINDOW = System.getProperty("os.name").toUpperCase().indexOf("WINDOWS") >= 0;
 
     // 获得一个规范化的模板文件名称. like: /folder/file.jetx

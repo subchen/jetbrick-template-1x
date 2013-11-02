@@ -1,5 +1,9 @@
 package jetbrick.template.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 public final class StringEscapeUtils {
 
     public static String asCanonicalJavaString(String s) {
@@ -316,5 +320,29 @@ public final class StringEscapeUtils {
 
     public static String unescapeJavaScript(String value) {
         return unescapeJava(value);
+    }
+    
+    public static String escapeUrl(String value) {
+        return escapeUrl(value, "UTF-8");
+    }
+
+    public static String escapeUrl(String value, String encoding) {
+        try {
+            return value == null ? null : URLEncoder.encode(value, encoding);
+        } catch (UnsupportedEncodingException e) {
+            return value;
+        }
+    }
+
+    public static String unescapeUrl(String value) {
+        return unescapeUrl(value, "UTF-8");
+    }
+
+    public static String unescapeUrl(String value, String encoding) {
+        try {
+            return value == null ? null : URLDecoder.decode(value, encoding);
+        } catch (UnsupportedEncodingException e) {
+            return value;
+        }
     }
 }

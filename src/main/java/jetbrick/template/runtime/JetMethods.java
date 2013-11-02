@@ -1,18 +1,11 @@
-package jetbrick.template.runtime.methods;
+package jetbrick.template.runtime;
 
-import java.text.*;
 import java.util.*;
+import jetbrick.template.utils.*;
 
-public final class TypeCastMethods {
-    //@formatter:off
-    private static final String[] DATE_PATTERNS = new String[] { 
-        "yyyy-MM-dd HH:mm:ss.SSS", 
-        "yyyy-MM-dd HH:mm:ss", 
-        "yyyy-MM-dd", 
-        "HH:mm:ss"
-    };
-    //@formatter:on
+public final class JetMethods {
 
+    //---- type cast -------------------------------------------------------
     public static Boolean asBoolean(Object value) {
         if (value == null) return null;
         if (value instanceof Boolean) return (Boolean) value;
@@ -157,42 +150,137 @@ public final class TypeCastMethods {
     }
 
     public static Date asDate(String value) {
-        value = (value != null) ? value.trim() : null;
-        ParsePosition pp = null;
-        Date d = null;
-        for (int i = 0; d == null && i < DATE_PATTERNS.length; i++) {
-            DateFormat df = new SimpleDateFormat(DATE_PATTERNS[i]);
-            df.setLenient(false);
-            try {
-                pp = new ParsePosition(0);
-                d = df.parse(value, pp);
-                if (pp.getIndex() != value.length()) {
-                    d = null;
-                }
-            } catch (Exception e) {
-                // try next pattern
-            }
-        }
-        return d;
+        return DateUtils.asDate(value);
     }
 
     public static Date asDate(String value, String format) {
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
-        sdf.setLenient(false);
-        try {
-            ParsePosition pp = new ParsePosition(0);
-            Date d = sdf.parse(value, pp);
-            if (pp.getIndex() != value.length()) {
-                d = null;
-            }
-            return d;
-        } catch (Exception e) {
-            return null;
-        }
+        return DateUtils.asDate(value, format);
     }
 
     public String asString(Object value) {
         if (value == null) return null;
         return value.toString();
+    }
+
+    //---- json -------------------------------------------------------
+    public static String asJSON(Object object) {
+        return JSONUtils.toJSONString(object);
+    }
+
+    //---- format -------------------------------------------------------
+    public static String format(byte value, String format) {
+        return NumberUtils.format(Byte.valueOf(value), format);
+    }
+
+    public static String format(short value, String format) {
+        return NumberUtils.format(Short.valueOf(value), format);
+    }
+
+    public static String format(int value, String format) {
+        return NumberUtils.format(Integer.valueOf(value), format);
+    }
+
+    public static String format(long value, String format) {
+        return NumberUtils.format(Long.valueOf(value), format);
+    }
+
+    public static String format(float value, String format) {
+        return NumberUtils.format(Float.valueOf(value), format);
+    }
+
+    public static String format(double value, String format) {
+        return NumberUtils.format(Double.valueOf(value), format);
+    }
+
+    public static String format(Number value, String format) {
+        return NumberUtils.format(value, format);
+    }
+
+    public static String format(Number value) {
+        return NumberUtils.format(value);
+    }
+
+    public static String format(Date value, String format) {
+        return DateUtils.format(value, format);
+    }
+
+    public static String format(Date value) {
+        return DateUtils.format(value);
+    }
+
+    //---- String -------------------------------------------------------
+    public static String toUnderlineName(String s) {
+        return CamelCaseUtils.toUnderlineName(s);
+    }
+
+    public static String toCamelCase(String s) {
+        return CamelCaseUtils.toCamelCase(s);
+    }
+
+    public static String toCapitalizeCamelCase(String s) {
+        return CamelCaseUtils.toCapitalizeCamelCase(s);
+    }
+
+    public static String repeat(String value, int count) {
+        return StringUtils.repeat(value, count);
+    }
+
+    //---- String escape -------------------------------------------------------
+
+    public static String escapeJava(String value) {
+        return StringEscapeUtils.escapeJava(value);
+    }
+
+    public static String unescapeJava(String value) {
+        return StringEscapeUtils.unescapeJava(value);
+    }
+
+    public static String escapeJavaScript(String value) {
+        return StringEscapeUtils.escapeJavaScript(value);
+    }
+
+    public static String unescapeJavaScript(String value) {
+        return StringEscapeUtils.unescapeJavaScript(value);
+    }
+
+    public static String escapeXml(String value) {
+        return StringEscapeUtils.escapeXml(value);
+    }
+
+    public static String unescapeXml(String value) {
+        return StringEscapeUtils.unescapeXml(value);
+    }
+
+    public static String escapeUrl(String value) {
+        return StringEscapeUtils.escapeUrl(value);
+    }
+
+    public static String escapeUrl(String value, String encoding) {
+        return StringEscapeUtils.escapeUrl(value, encoding);
+    }
+
+    public static String unescapeUrl(String value) {
+        return StringEscapeUtils.unescapeUrl(value);
+    }
+
+    public static String unescapeUrl(String value, String encoding) {
+        return StringEscapeUtils.unescapeUrl(value, encoding);
+    }
+
+    //---- math -------------------------------------------------------
+    public static int sum(int[] values) {
+        return NumberUtils.sum(values);
+    }
+
+    public static int avg(int[] values) {
+        return NumberUtils.avg(values);
+    }
+
+    public static int max(int[] values) {
+        return NumberUtils.max(values);
+    }
+
+    public static int min(int[] values) {
+        return NumberUtils.min(values);
     }
 }

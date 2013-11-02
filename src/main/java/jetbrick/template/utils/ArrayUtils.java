@@ -1,6 +1,6 @@
 package jetbrick.template.utils;
 
-public class ArrayUtils {
+public final class ArrayUtils {
     public static final int[] EMPTY_INTEGER_ARRAY = new int[0];
     public static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
 
@@ -23,5 +23,4 @@ public class ArrayUtils {
         }
         return results;
     }
-
 }

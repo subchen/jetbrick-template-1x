@@ -1,17 +1,12 @@
-package jetbrick.template.runtime.methods;
+package jetbrick.template.utils;
 
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import jetbrick.template.utils.StringEscapeUtils;
 
-public final class JsonMethods {
+public final class JSONUtils {
 
-    public static String asJSON(Object object) {
-        return toJSONString(object);
-    }
-
-    private static String toJSONString(Object object) {
+    public static String toJSONString(Object object) {
         if (object == null) return "null";
         if (object instanceof Number) return ((Number) object).toString();
         if (object instanceof Boolean) return ((Boolean) object).toString();

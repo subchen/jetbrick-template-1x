@@ -1,6 +1,17 @@
-package jetbrick.template.runtime.methods;
+package jetbrick.template.utils;
 
-public final class MathMethods {
+import java.text.DecimalFormat;
+
+public final class NumberUtils {
+    private static final String DEFAULT_NUMBER_FORMAT = "###,##0.##";
+
+    public static String format(Number value, String format) {
+        return value == null ? null : new DecimalFormat(format).format(value);
+    }
+
+    public static String format(Number value) {
+        return format(value, DEFAULT_NUMBER_FORMAT);
+    }
 
     public static int sum(int[] values) {
         if (values == null || values.length == 0) {
@@ -45,5 +56,4 @@ public final class MathMethods {
         }
         return min;
     }
-
 }

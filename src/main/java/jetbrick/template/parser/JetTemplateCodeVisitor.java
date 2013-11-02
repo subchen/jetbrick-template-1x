@@ -107,7 +107,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
         code.addLine("import java.util.*;");
         code.addLine("import jetbrick.template.runtime.*;");
-        code.addLine("import jetbrick.template.runtime.methods.*;");
         code.addLine("");
 
         code.addLine("public class " + resource.getClassName() + " extends JetPage {");

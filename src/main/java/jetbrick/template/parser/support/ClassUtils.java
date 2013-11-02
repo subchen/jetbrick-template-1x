@@ -160,6 +160,5 @@ public class ClassUtils {
         default_package_set.add("java.lang");
         default_package_set.add("java.util");
         default_package_set.add("jetbrick.template.runtime");
-        default_package_set.add("jetbrick.template.runtime.methods");
     }
 }

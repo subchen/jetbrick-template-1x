@@ -1,9 +1,9 @@
-package jetbrick.template.runtime.methods;
+package jetbrick.template.runtime;
 
 import java.util.*;
 import jetbrick.template.utils.ArrayUtils;
 
-public final class SystemFunctions {
+public final class JetFunctions {
     private static final Random RANDOM = new Random();
 
     public static Date now() {

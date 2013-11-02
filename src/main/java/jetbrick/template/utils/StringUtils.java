@@ -10,14 +10,25 @@ public final class StringUtils {
         return cs != null && cs.length() > 0;
     }
 
-    public static String repeat(char ch, int repeat) {
-        char[] buf = new char[repeat];
-        for (int i = repeat - 1; i >= 0; --i) {
+    public static String repeat(char ch, int count) {
+        char[] buf = new char[count];
+        for (int i = count - 1; i >= 0; --i) {
             buf[i] = ch;
         }
         return new String(buf);
     }
 
+    public static String repeat(String value, int count) {
+        if (value == null || value.length() == 0) return value;
+        if (count <= 0) return value;
+
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            buf.append(value);
+        }
+        return buf.toString();
+    }
+    
     public static String deleteWhitespace(String str) {
         if (str == null || str.length() == 0) return str;
         int sz = str.length();
