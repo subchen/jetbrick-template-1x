@@ -20,8 +20,8 @@
     </patternset>
 
     <target name="compile.clean">
-        <delete>
-            <fileset dir="${basedir}/bin" includes="*.*" />
+        <delete includeemptydirs="true">
+            <fileset dir="${basedir}/bin" includes="**" />
         </delete>
     </target>
 
