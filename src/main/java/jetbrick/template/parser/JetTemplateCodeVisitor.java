@@ -1139,9 +1139,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 类型校验
         boolean pass = true;
-        if (NumberUtils.isNumbericClass(c1)) {
-            pass = NumberUtils.isNumbericClass(c2);
-        } else if (NumberUtils.isNumbericClass(c2)) {
+        if (NumberClassUtils.isNumbericClass(c1)) {
+            pass = NumberClassUtils.isNumbericClass(c2);
+        } else if (NumberClassUtils.isNumbericClass(c2)) {
             pass = false;
         } else {
             pass = c1.isAssignableFrom(c2) || c2.isAssignableFrom(c1);

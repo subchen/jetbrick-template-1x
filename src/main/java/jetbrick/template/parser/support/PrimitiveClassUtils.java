@@ -2,7 +2,7 @@ package jetbrick.template.parser.support;
 
 import java.util.*;
 
-public class PrimitiveUtils {
+public class PrimitiveClassUtils {
     private static final Set<Class<?>> boxed_class_set;
     private static final Map<Class<?>, Class<?>> boxed_class_map;
     private static final Map<Class<?>, Class<?>> unboxed_class_map;

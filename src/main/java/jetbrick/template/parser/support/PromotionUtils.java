@@ -46,7 +46,7 @@ public class PromotionUtils {
         case '-':
             return unary_promotion_map.get(klass);
         case '~':
-            if (NumberUtils.isIntegerClass(klass)) {
+            if (NumberClassUtils.isIntegerClass(klass)) {
                 return unary_promotion_map.get(klass);
             }
         }
@@ -59,8 +59,8 @@ public class PromotionUtils {
         switch (op.charAt(0)) {
         case '+':
         case '-':
-            if (NumberUtils.isNumbericClass(klass)) {
-                return PrimitiveUtils.asUnboxedClass(klass);
+            if (NumberClassUtils.isNumbericClass(klass)) {
+                return PrimitiveClassUtils.asUnboxedClass(klass);
             }
         }
         return null;
@@ -88,8 +88,8 @@ public class PromotionUtils {
     // <<, >>, >>>
     public static Class<?> get_binary_shift(Class<?> lhs, Class<?> rhs, String op) {
         // http://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.19
-        if (NumberUtils.isIntegerClass(lhs) && NumberUtils.isIntegerClass(rhs)) {
-            return PrimitiveUtils.asUnboxedClass(lhs);
+        if (NumberClassUtils.isIntegerClass(lhs) && NumberClassUtils.isIntegerClass(rhs)) {
+            return PrimitiveClassUtils.asUnboxedClass(lhs);
         }
         return null;
     }
@@ -105,7 +105,7 @@ public class PromotionUtils {
                 return Boolean.TYPE;
             }
             // http://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.22.1
-            if (NumberUtils.isIntegerClass(lhs) && NumberUtils.isIntegerClass(rhs)) {
+            if (NumberClassUtils.isIntegerClass(lhs) && NumberClassUtils.isIntegerClass(rhs)) {
                 return to_binary_promotion(lhs, rhs);
             }
         }
@@ -115,7 +115,7 @@ public class PromotionUtils {
     // <, <=, >, >=
     public static Class<?> get_binary_compare(Class<?> lhs, Class<?> rhs, String op) {
         // http://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.20.1
-        if (NumberUtils.isNumbericClass(lhs) || NumberUtils.isNumbericClass(rhs)) {
+        if (NumberClassUtils.isNumbericClass(lhs) || NumberClassUtils.isNumbericClass(rhs)) {
             return Boolean.TYPE;
         }
         return null;
@@ -123,15 +123,15 @@ public class PromotionUtils {
 
     // http://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html#jls-5.6.2
     private static Class<?> to_binary_promotion(Class<?> lhs, Class<?> rhs) {
-        if (!NumberUtils.isNumbericClass(lhs)) {
+        if (!NumberClassUtils.isNumbericClass(lhs)) {
             return null;
         }
-        if (!NumberUtils.isNumbericClass(rhs)) {
+        if (!NumberClassUtils.isNumbericClass(rhs)) {
             return null;
         }
 
-        lhs = PrimitiveUtils.asUnboxedClass(lhs);
-        rhs = PrimitiveUtils.asUnboxedClass(rhs);
+        lhs = PrimitiveClassUtils.asUnboxedClass(lhs);
+        rhs = PrimitiveClassUtils.asUnboxedClass(rhs);
 
         if (Double.TYPE.equals(lhs) || Double.TYPE.equals(rhs)) {
             return Double.TYPE;
@@ -154,20 +154,20 @@ public class PromotionUtils {
 
         if (c1 == null) {
             if (c2.isPrimitive()) {
-                return TypedKlass.create(PrimitiveUtils.asBoxedClass(c2));
+                return TypedKlass.create(PrimitiveClassUtils.asBoxedClass(c2));
             }
             return k2;
         }
         if (c2 == null) {
             if (c1.isPrimitive()) {
-                return TypedKlass.create(PrimitiveUtils.asBoxedClass(c1));
+                return TypedKlass.create(PrimitiveClassUtils.asBoxedClass(c1));
             }
             return k1;
         }
 
-        if (NumberUtils.isNumbericClass(c1) && NumberUtils.isNumbericClass(c2)) {
-            c1 = PrimitiveUtils.asUnboxedClass(c1);
-            c2 = PrimitiveUtils.asUnboxedClass(c2);
+        if (NumberClassUtils.isNumbericClass(c1) && NumberClassUtils.isNumbericClass(c2)) {
+            c1 = PrimitiveClassUtils.asUnboxedClass(c1);
+            c2 = PrimitiveClassUtils.asUnboxedClass(c2);
             return TypedKlass.create(to_binary_promotion(c1, c2));
         }
 

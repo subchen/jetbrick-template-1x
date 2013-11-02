@@ -89,14 +89,14 @@ public class ClassUtils {
         if (lhs == null) return false;
         if (rhs == null) return (!(lhs.isPrimitive()));
 
-        lhs = PrimitiveUtils.asBoxedClass(lhs, true);
-        rhs = PrimitiveUtils.asBoxedClass(rhs, true);
+        lhs = PrimitiveClassUtils.asBoxedClass(lhs, true);
+        rhs = PrimitiveClassUtils.asBoxedClass(rhs, true);
         if (lhs.isAssignableFrom(rhs)) {
             return true;
         }
 
-        lhs = PrimitiveUtils.asUnboxedClass(lhs);
-        rhs = PrimitiveUtils.asUnboxedClass(rhs);
+        lhs = PrimitiveClassUtils.asUnboxedClass(lhs);
+        rhs = PrimitiveClassUtils.asUnboxedClass(rhs);
         if (lhs == null || rhs == null) {
             return false;
         }

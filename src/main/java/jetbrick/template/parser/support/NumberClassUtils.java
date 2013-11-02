@@ -3,7 +3,7 @@ package jetbrick.template.parser.support;
 import java.util.HashSet;
 import java.util.Set;
 
-public class NumberUtils {
+public class NumberClassUtils {
     private static final Set<Class<?>> numeric_class_set; // 数字类型
     private static final Set<Class<?>> integer_class_set; // 整数类型
 

@@ -69,7 +69,7 @@ public class TypedKlass {
     // 注意： 如果已经是 Object, 那么直接返回 this
     public TypedKlass asBoxedTypedKlass() {
         if (isPrimitive()) {
-            Class<?> toklass = PrimitiveUtils.asBoxedClass(klass);
+            Class<?> toklass = PrimitiveClassUtils.asBoxedClass(klass);
             return create(toklass, EMPTY_TYPE_ARGS);
         } else {
             return this;
@@ -79,7 +79,7 @@ public class TypedKlass {
     // 注意： 如果不能进行转换，那么就返回 null
     public TypedKlass asUnboxedTypedKlass() {
         if (klass != null) {
-            Class<?> toklass = PrimitiveUtils.asUnboxedClass(klass);
+            Class<?> toklass = PrimitiveClassUtils.asUnboxedClass(klass);
             if (toklass != null) {
                 return create(toklass, EMPTY_TYPE_ARGS);
             }
