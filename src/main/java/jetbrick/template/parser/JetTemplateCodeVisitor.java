@@ -578,7 +578,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 生成代码
         StringBuilder source = new StringBuilder();
-        source.append("JetUtils.asInclude(context, getName(), ");
+        source.append("JetUtils.asInclude(context, ");
         source.append(fileCode.getSource());
         source.append(", ");
         source.append((isPlainTextCode != null) ? isPlainTextCode.getSource() : "false");
