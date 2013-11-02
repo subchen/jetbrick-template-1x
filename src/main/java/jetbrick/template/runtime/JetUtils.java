@@ -7,8 +7,12 @@ import java.util.*;
 import jetbrick.template.JetTemplate;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.utils.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class JetUtils {
+    private static final Logger log = LoggerFactory.getLogger(JetUtils.class);
+
     public static boolean asBoolean(Object value) {
         if (value == null) return false;
 
@@ -128,6 +132,13 @@ public final class JetUtils {
                 throw new RuntimeException("FileNotFoundException: " + file);
             }
             template.render(context);
+        }
+    }
+
+    public static void debug(String format, Object... args) {
+        if (log.isDebugEnabled()) {
+            format = "template debug: " + format;
+            log.debug(format, args);
         }
     }
 }

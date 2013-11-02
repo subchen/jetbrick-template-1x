@@ -34,6 +34,7 @@ directive   :   define_directive
             |   continue_directive
             |   stop_directive
             |   include_directive
+            |   debug_directive
             |   invalid_directive
             ;
 
@@ -88,6 +89,10 @@ include_directive
             :   DIRECTIVE_OPEN_INCLUDE expression_list ')'
             ;
 
+debug_directive
+            :   DIRECTIVE_OPEN_DEBUG expression_list ')'
+            ;
+
 invalid_directive
             :   DIRECTIVE_DEFINE
             |   DIRECTIVE_SET
@@ -96,6 +101,7 @@ invalid_directive
             |   DIRECTIVE_ELSEIF
             |   DIRECTIVE_FOR
             |   DIRECTIVE_INCLUDE
+            |   DIRECTIVE_DEBUG
             ;
 
 expression  :   '(' expression ')'                                           # expr_group

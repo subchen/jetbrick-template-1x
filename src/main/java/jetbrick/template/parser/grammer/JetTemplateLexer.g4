@@ -28,6 +28,7 @@ DIRECTIVE_OPEN_BREAK    : '#break'    ARGUMENT_START      -> pushMode(INSIDE) ;
 DIRECTIVE_OPEN_CONTINUE : '#continue' ARGUMENT_START      -> pushMode(INSIDE) ;
 DIRECTIVE_OPEN_STOP     : '#stop'     ARGUMENT_START      -> pushMode(INSIDE) ;
 DIRECTIVE_OPEN_INCLUDE  : '#include'  ARGUMENT_START      -> pushMode(INSIDE) ;
+DIRECTIVE_OPEN_DEBUG    : '#debug'    ARGUMENT_START      -> pushMode(INSIDE) ;
 
 DIRECTIVE_DEFINE        : '#define'                       ;
 DIRECTIVE_SET           : '#set'                          ;
@@ -39,6 +40,8 @@ DIRECTIVE_INCLUDE       : '#include'                      ;
 DIRECTIVE_BREAK         : '#break'                        ;
 DIRECTIVE_CONTINUE      : '#continue'                     ;
 DIRECTIVE_STOP          : '#stop'                         ;
+DIRECTIVE_DEBUG         : '#debug'                        ;
+
 DIRECTIVE_ELSE          : '#else'     ARGUMENT_EMPTY?     ;
 DIRECTIVE_END           : '#end'      ARGUMENT_EMPTY?     ;
 

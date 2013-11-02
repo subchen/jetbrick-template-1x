@@ -1,0 +1,2 @@
+#debug("aaa")
+#debug("aaa = %s, %d", "aaa", 123)
