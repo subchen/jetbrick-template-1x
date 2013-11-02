@@ -107,10 +107,6 @@ public final class JetUtils {
         return StringEscapeUtils.escapeXml(value);
     }
 
-    public static void asInclude(JetContext context, String baseFile, String relativeName, boolean isPlainText) throws IOException {
-        asInclude(context, baseFile, relativeName, isPlainText, context.getEngine().getConfig().getInputEncoding());
-    }
-
     public static void asInclude(JetContext context, String baseFile, String relativeName, boolean isPlainText, String encoding) throws IOException {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
@@ -121,6 +117,9 @@ public final class JetUtils {
             Resource resource = context.getEngine().getResource(file);
             if (resource == null) {
                 throw new RuntimeException("FileNotFoundException: " + file);
+            }
+            if (encoding == null) {
+                encoding = context.getEngine().getConfig().getInputEncoding();
             }
             context.getWriter().print(resource.getSource(encoding));
         } else {

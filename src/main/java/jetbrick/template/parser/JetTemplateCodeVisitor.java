@@ -61,8 +61,7 @@ import jetbrick.template.parser.grammer.JetTemplateParser.ValueContext;
 import jetbrick.template.parser.support.*;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.runtime.JetContext;
-import jetbrick.template.utils.ArrayUtils;
-import jetbrick.template.utils.StringEscapeUtils;
+import jetbrick.template.utils.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.*;
@@ -73,6 +72,7 @@ import org.slf4j.LoggerFactory;
 public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> implements JetTemplateParserVisitor<Code> {
     private static final Logger log = LoggerFactory.getLogger(JetTemplateCodeVisitor.class);
 
+    private final JetEngine engine;
     private final JetTemplateParser parser;
     private final VariableResolver resolver;
     private final Resource resource;
@@ -88,6 +88,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private int uuid = 1;
 
     public JetTemplateCodeVisitor(JetEngine engine, VariableResolver resolver, JetTemplateParser parser, Resource resource) {
+        this.engine = engine;
         this.parser = parser;
         this.resolver = resolver;
         this.resource = resource;
@@ -540,8 +541,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // argument 1: file
         SegmentCode fileCode = childrenCode.getChild(0);
+        ExpressionContext fileExpression = expression_list.expression(0);
         if (!String.class.equals(fileCode.getKlass())) {
-            throw reportError("Type mismatch: the first argument cannot convert from " + fileCode.getKlassName() + " to String", expression_list.expression(0));
+            throw reportError("Type mismatch: the first argument cannot convert from " + fileCode.getKlassName() + " to String", fileExpression);
         }
 
         // argument 2: isPlainText
@@ -562,17 +564,25 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         }
 
+        // 如果 file 是常量，那么进行 file.exists() 校验
+        if (fileExpression instanceof Expr_constantContext) {
+            String file = fileCode.getSource();
+            file = file.substring(1, file.length() - 1);
+            file = StringEscapeUtils.unescapeJava(file);
+            file = PathUtils.relativePath(resource.getName(), file);
+            if (engine.getResource(file) == null) {
+                throw reportError("FileNotFoundException: " + file, fileExpression);
+            }
+        }
+
         // 生成代码
         StringBuilder source = new StringBuilder();
         source.append("JetUtils.asInclude(context, getName(), ");
         source.append(fileCode.getSource());
         source.append(", ");
         source.append((isPlainTextCode != null) ? isPlainTextCode.getSource() : "false");
-        // 第三个参数允许为空
-        if (encodingCode != null) {
-            source.append(", ");
-            source.append(encodingCode.getSource());
-        }
+        source.append(", ");
+        source.append((encodingCode != null) ? encodingCode.getSource() : "null");
         source.append("); // line: ");
         source.append(ctx.getStart().getLine());
         return scope.createLineCode(source.toString());
