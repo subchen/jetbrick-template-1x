@@ -12,13 +12,13 @@ import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.*;
 
 public class JetEngine {
-    protected final JetConfig config;
-    protected final ResourceLoader resourceLoader;
-    protected final VariableResolver resolver;
-    protected final JetClassLoader classLoader;
-    protected final JdkCompiler jdkCompiler;
-    protected final ConcurrentResourceCache resourceCache;
-    protected final ConcurrentTemplateCache templateCache;
+    private final JetConfig config;
+    private final ResourceLoader resourceLoader;
+    private final VariableResolver resolver;
+    private final JetClassLoader classLoader;
+    private final JdkCompiler jdkCompiler;
+    private final ConcurrentResourceCache resourceCache;
+    private final ConcurrentTemplateCache templateCache;
 
     public JetEngine() {
         this(PropertiesUtils.load(ClassUtils.getContextClassLoader().getResourceAsStream(JetConfig.DEFAULT_CONFIG_FILE)));
