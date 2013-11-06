@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class VariableResolver {
-    private static final Logger log = LoggerFactory.getLogger(VariableResolver.class);
+    private final Logger log = LoggerFactory.getLogger(VariableResolver.class);
 
     private Set<String> importedPackageList = new HashSet<String>(); // 全局 import 的包
     private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(); // 全局定义的变量

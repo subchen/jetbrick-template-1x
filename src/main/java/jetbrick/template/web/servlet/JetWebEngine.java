@@ -10,7 +10,7 @@ public class JetWebEngine extends JetEngine {
         super(config);
 
         VariableResolver resolver = getVariableResolver();
-        resolver .addGlobalVariable("javax.servlet.ServletContext", "application");
+        resolver.addGlobalVariable("javax.servlet.ServletContext", "application");
         resolver.addGlobalVariable("javax.servlet.http.HttpSession", "session");
         resolver.addGlobalVariable("javax.servlet.http.HttpServletRequest", "request");
         resolver.addGlobalVariable("javax.servlet.http.HttpServletResponse", "response");

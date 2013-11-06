@@ -1,61 +1,49 @@
 package jetbrick.template.utils;
 
 import java.security.CodeSource;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * 根据 class 所在的 jar 包，查找 MANIFEST.MF 来识别版本号。
+ */
 public final class Version {
-    private static final String VERSION = getVersion(Version.class, "1.0.0");
-
-    private Version() {
-    }
-
-    public static String getVersion() {
-        return VERSION;
-    }
+    private static final String DEFAULT_VERSION = "1.0.0";
 
     public static String getVersion(Class<?> cls) {
-        return getVersion(cls, getVersion());
+        return getVersion(cls, DEFAULT_VERSION);
     }
 
     public static String getVersion(Class<?> cls, String defaultVersion) {
         try {
             // look up version from MANIFEST.MF
             String version = cls.getPackage().getImplementationVersion();
-            if (StringUtils.isEmpty(version)) {
+            if (version == null || version.length() == 0) {
                 version = cls.getPackage().getSpecificationVersion();
             }
-            if (StringUtils.isEmpty(version)) {
+            if (version == null || version.length() == 0) {
                 // look up version from jar file name
                 // sample: jetbrick-template-1.0.2.jar
                 CodeSource codeSource = cls.getProtectionDomain().getCodeSource();
                 if (codeSource != null) {
                     String file = codeSource.getLocation().getFile();
-                    if (StringUtils.isNotEmpty(file) && file.endsWith(".jar")) {
-                        file = file.substring(0, file.length() - 4);
-                        int i = file.lastIndexOf('/');
-                        if (i >= 0) {
-                            file = file.substring(i + 1);
+                    if (file != null) {
+                        Matcher matcher = Pattern.compile("[\\-\\._][vV]?(\\d+([\\-\\._]\\d+)*)\\.jar$").matcher(file);
+                        if (matcher.find()) {
+                            version = matcher.group(1);
+                            version = version.replaceAll("[\\-_]", ".");
                         }
-                        i = file.indexOf('-');
-                        if (i >= 0) {
-                            file = file.substring(i + 1);
-                        }
-                        while (file.length() > 0 && !Character.isDigit(file.charAt(0))) {
-                            i = file.indexOf('-');
-                            if (i >= 0) {
-                                file = file.substring(i + 1);
-                            } else {
-                                break;
-                            }
-                        }
-                        version = file;
                     }
                 }
             }
 
-            return StringUtils.isEmpty(version) ? defaultVersion : version;
+            if (version == null || version.length() == 0) {
+                version = defaultVersion;
+            }
+            return version;
+
         } catch (Throwable e) {
             return defaultVersion;
         }
     }
-
 }

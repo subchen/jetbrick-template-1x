@@ -12,6 +12,8 @@ import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.*;
 
 public class JetEngine {
+    public static final String VERSION = Version.getVersion(JetEngine.class);
+
     private final JetConfig config;
     private final ResourceLoader resourceLoader;
     private final VariableResolver resolver;
@@ -75,7 +77,7 @@ public class JetEngine {
     }
 
     public String getVersion() {
-        return Version.getVersion(getClass());
+        return VERSION;
     }
 
     private VariableResolver createVariableResolver() {

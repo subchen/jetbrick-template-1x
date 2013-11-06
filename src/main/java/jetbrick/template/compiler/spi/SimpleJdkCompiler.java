@@ -46,6 +46,7 @@ public class SimpleJdkCompiler extends JdkCompiler {
 
             // compile
             generateJavaClass(qualifiedJavaFile, source);
+
             // load class
             return classloader.loadClass(qualifiedClassName);
 

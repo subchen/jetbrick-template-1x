@@ -29,7 +29,7 @@ public abstract class Resource {
 
     public abstract String getAbsolutePath();
 
-    public abstract long lastModified();
+    public abstract long lastModified(); // 读取文件最后修改时间
 
     public abstract char[] getSource(); // 读取模板内容
 
@@ -46,6 +46,10 @@ public abstract class Resource {
                 cs[i] = '_';
             }
         }
-        return "jetx" + new String(cs);
+        if (cs.length > 0 && cs[0] == '.') {
+            return new String(cs, 1, cs.length - 1); // 去掉第一个 "."
+        } else {
+            return new String(cs);
+        }
     }
 }
