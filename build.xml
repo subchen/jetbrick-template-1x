@@ -22,9 +22,13 @@
     </patternset>
 
     <target name="compile.clean">
+    	<!--
         <delete includeemptydirs="true">
             <fileset dir="${basedir}/bin" includes="**" />
         </delete>
+        -->
+    	<delete dir="${basedir}/bin" />
+    	<mkdir dir="${basedir}/bin" />
     </target>
 
     <target name="compile.grammer">
