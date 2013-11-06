@@ -10,16 +10,18 @@ import org.slf4j.LoggerFactory;
 public class VariableResolver {
     private final Logger log = LoggerFactory.getLogger(VariableResolver.class);
 
-    private Set<String> importedPackageList = new HashSet<String>(); // 全局 import 的包
-    private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(); // 全局定义的变量
-    private Map<String, List<Method>> methodMap = new HashMap<String, List<Method>>(); // 全局导入的 method 类
-    private Map<String, List<Method>> functionMap = new HashMap<String, List<Method>>(); // 全局导入的 function 类
+    private Set<String> importedPackageList = new HashSet<String>(8); // 全局 import 的包
+    private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(16); // 全局定义的变量
+    private Map<String, List<Method>> methodMap1 = new HashMap<String, List<Method>>(64); // 全局导入的 method 类
+    private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetContext）
+    private Map<String, List<Method>> functionMap1 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类
+    private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类 （带 JetContext）
 
-    private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>();
-    private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>();
-    private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>();
-    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>();
-    private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>();
+    private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(32);
+    private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>(128);
+    private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>(128);
+    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(32);
+    private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>(16);
 
     public VariableResolver() {
         addImportPackage("java.lang");
@@ -55,16 +57,27 @@ public class VariableResolver {
             throw new RuntimeException("ClassNotFoundException: " + klassName);
         }
         for (Method method : klass.getMethods()) {
-            if (method.getParameterTypes().length == 0) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length == 0) {
                 continue;
             }
             int modifiers = method.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
                 String name = method.getName();
-                List<Method> list = methodMap.get(name);
-                if (list == null) {
-                    list = new ArrayList<Method>();
-                    methodMap.put(name, list);
+
+                List<Method> list;
+                if (parameterTypes.length > 1 && JetContext.class.equals(parameterTypes[1])) {
+                    list = methodMap2.get(name);
+                    if (list == null) {
+                        list = new ArrayList<Method>(4);
+                        methodMap2.put(name, list);
+                    }
+                } else {
+                    list = methodMap1.get(name);
+                    if (list == null) {
+                        list = new ArrayList<Method>(4);
+                        methodMap1.put(name, list);
+                    }
                 }
                 list.add(method);
             }
@@ -81,10 +94,21 @@ public class VariableResolver {
             int modifiers = method.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
                 String name = method.getName();
-                List<Method> list = functionMap.get(name);
-                if (list == null) {
-                    list = new ArrayList<Method>();
-                    functionMap.put(name, list);
+
+                List<Method> list;
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length > 0 && JetContext.class.equals(parameterTypes[0])) {
+                    list = functionMap2.get(name);
+                    if (list == null) {
+                        list = new ArrayList<Method>(4);
+                        functionMap2.put(name, list);
+                    }
+                } else {
+                    list = functionMap1.get(name);
+                    if (list == null) {
+                        list = new ArrayList<Method>(4);
+                        functionMap1.put(name, list);
+                    }
                 }
                 list.add(method);
             }
@@ -206,6 +230,9 @@ public class VariableResolver {
 
     // 找到对应的方法 Tool.method(bean, ...)
     public Method resolveToolMethod(Class<?> beanClass, String methodName, Class<?>[] parameterTypes) {
+        List<Method> methods = methodMap1.get(methodName);
+        if (methods == null) return null;
+
         Class<?>[] targetParameterTypes = new Class<?>[1 + parameterTypes.length];
         targetParameterTypes[0] = beanClass;
         for (int i = 0; i < parameterTypes.length; i++) {
@@ -218,12 +245,9 @@ public class VariableResolver {
         Method method = static_method_cache.get(key);
         if (method == null) {
             synchronized (static_method_cache) {
-                List<Method> methods = methodMap.get(methodName);
-                if (methods != null) {
-                    method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
-                    if (method != null) {
-                        static_method_cache.put(key, method);
-                    }
+                method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
+                if (method != null) {
+                    static_method_cache.put(key, method);
                 }
             }
         }
@@ -232,6 +256,9 @@ public class VariableResolver {
 
     // 找到对应的方法 Tool.method(bean, JetContext, ...)
     public Method resolveToolMethod_advanced(Class<?> beanClass, String methodName, Class<?>[] parameterTypes) {
+        List<Method> methods = methodMap2.get(methodName);
+        if (methods == null) return null;
+
         Class<?>[] targetParameterTypes = new Class<?>[2 + parameterTypes.length];
         targetParameterTypes[0] = beanClass;
         targetParameterTypes[1] = JetContext.class;
@@ -245,12 +272,9 @@ public class VariableResolver {
         Method method = static_method_cache.get(key);
         if (method == null) {
             synchronized (static_method_cache) {
-                List<Method> methods = methodMap.get(methodName);
-                if (methods != null) {
-                    method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
-                    if (method != null) {
-                        static_method_cache.put(key, method);
-                    }
+                method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
+                if (method != null) {
+                    static_method_cache.put(key, method);
                 }
             }
         }
@@ -259,18 +283,18 @@ public class VariableResolver {
 
     // 找到对应的方法 function(...)
     public Method resolveFunction(String methodName, Class<?>[] parameterTypes) {
+        List<Method> methods = functionMap1.get(methodName);
+        if (methods == null) return null;
+
         String key = getPrivateCacheKeyName(null, methodName, parameterTypes);
 
         // lookup cache
         Method method = static_function_cache.get(key);
         if (method == null) {
             synchronized (static_function_cache) {
-                List<Method> methods = functionMap.get(methodName);
-                if (methods != null) {
-                    method = MethodFinderUtils.lookupBestMethod(methods, methodName, parameterTypes);
-                    if (method != null) {
-                        static_function_cache.put(key, method);
-                    }
+                method = MethodFinderUtils.lookupBestMethod(methods, methodName, parameterTypes);
+                if (method != null) {
+                    static_function_cache.put(key, method);
                 }
             }
         }
@@ -279,6 +303,9 @@ public class VariableResolver {
 
     // 找到对应的方法 function(JetContext, ...)
     public Method resolveFunction_advanced(String methodName, Class<?>[] parameterTypes) {
+        List<Method> methods = functionMap2.get(methodName);
+        if (methods == null) return null;
+
         Class<?>[] targetParameterTypes = new Class<?>[1 + parameterTypes.length];
         targetParameterTypes[0] = JetContext.class;
         for (int i = 0; i < parameterTypes.length; i++) {
@@ -291,12 +318,9 @@ public class VariableResolver {
         Method method = static_function_cache.get(key);
         if (method == null) {
             synchronized (static_function_cache) {
-                List<Method> methods = functionMap.get(methodName);
-                if (methods != null) {
-                    method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
-                    if (method != null) {
-                        static_function_cache.put(key, method);
-                    }
+                method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
+                if (method != null) {
+                    static_function_cache.put(key, method);
                 }
             }
         }
