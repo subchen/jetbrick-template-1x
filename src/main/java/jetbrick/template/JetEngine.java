@@ -1,22 +1,32 @@
 package jetbrick.template;
 
+import java.io.File;
 import java.util.Properties;
 import jetbrick.template.compiler.JdkCompiler;
 import jetbrick.template.compiler.JetClassLoader;
 import jetbrick.template.parser.VariableResolver;
+import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.SourceCodeResource;
 import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.*;
 
 public class JetEngine {
-    private final JetConfig config;
-    private final ResourceLoader resourceLoader;
-    private final VariableResolver resolver;
-    private final JetClassLoader classLoader;
-    private final JdkCompiler jdkCompiler;
-    private final ConcurrentResourceCache resourceCache;
-    private final ConcurrentTemplateCache templateCache;
+    protected final JetConfig config;
+    protected final ResourceLoader resourceLoader;
+    protected final VariableResolver resolver;
+    protected final JetClassLoader classLoader;
+    protected final JdkCompiler jdkCompiler;
+    protected final ConcurrentResourceCache resourceCache;
+    protected final ConcurrentTemplateCache templateCache;
+
+    public JetEngine() {
+        this(PropertiesUtils.load(ClassUtils.getContextClassLoader().getResourceAsStream(JetConfig.DEFAULT_CONFIG_FILE)));
+    }
+
+    public JetEngine(File configFile) {
+        this(PropertiesUtils.load(configFile));
+    }
 
     public JetEngine(Properties properties) {
         this.config = new JetConfig(properties);

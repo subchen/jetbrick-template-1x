@@ -7,6 +7,8 @@
     <property name="product.vendor" value="subchen@gmail.com" />
     <property name="product.name" value="jetbrick-template" />
     <property name="product.version" value="1.0.0" />
+    <property name="java.source" value="1.6" /> 
+	<property name="java.encoding" value="utf-8" /> 
 
     <path id="compile.classpath">
         <fileset dir="${basedir}/lib" includes="**/*.jar" />
@@ -45,9 +47,9 @@
 
     <target name="compile" depends="compile.clean, compile.grammer">
         <javac destdir="${basedir}/bin" classpathref="compile.classpath"
-               debug="on" encoding="utf-8"
+               debug="on" encoding="${java.encoding}"
                nowarn="true" deprecation="off"
-               source="1.6" target="1.6"
+               source="${java.source}" target="${java.source}"
                includeantruntime="on">
             <src path="${basedir}/src/main/java" />
         </javac>
@@ -74,9 +76,9 @@
 
     <target name="test.compile">
         <javac destdir="${basedir}/bin" classpathref="compile.classpath"
-               debug="on" encoding="utf-8"
+               debug="on" encoding="${java.encoding}"
                nowarn="true" deprecation="off"
-               source="1.6" target="1.6"
+               source="${java.source}" target="${java.source}"
                includeantruntime="on">
             <classpath>
                 <pathelement path="${basedir}/bin"/>

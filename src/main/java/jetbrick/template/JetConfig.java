@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JetConfig {
+    public static final String DEFAULT_CONFIG_FILE = "jetbrick-template.properties";
+
     public static final String IMPORT_PACKAGES = "import.packages";
     public static final String IMPORT_METHODS = "import.methods";
     public static final String IMPORT_FUNCTIONS = "import.functions";
@@ -48,7 +50,9 @@ public class JetConfig {
         config.setProperty(COMPILE_DEBUG, "true");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
         config.setProperty(TRIM_DIRECTIVE_LINE, "true");
-        config.putAll(properties);
+        if (properties != null) {
+            config.putAll(properties);
+        }
 
         // set user config
         PropertiesHelper p = new PropertiesHelper(config);
