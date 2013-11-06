@@ -111,7 +111,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         code.addLine("import jetbrick.template.runtime.*;");
         code.addLine("");
 
-        code.addLine("public class " + resource.getClassName() + " extends JetPage {");
+        code.addLine("public final class " + resource.getClassName() + " extends JetPage {");
         scope = scope.push();
         textBlockCode = scope.createBlockCode(32); // 在当前作用域中建立 textBlockCode
 
@@ -536,7 +536,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitInclude_directive(Include_directiveContext ctx) {
         Expression_listContext expression_list = ctx.expression_list();
         SegmentListCode childrenCode = (SegmentListCode) expression_list.accept(this);
-        if (childrenCode.size() > 3) {
+        if (childrenCode.size() > 2) {
             throw reportError("The arguments do not matched with #include directive.", ctx);
         }
 
@@ -547,21 +547,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("Type mismatch: the first argument cannot convert from " + fileCode.getKlassName() + " to String", fileExpression);
         }
 
-        // argument 2: isPlainText
-        SegmentCode isPlainTextCode = null;
+        // argument 2: parameters
+        SegmentCode parametersCode = null;
         if (childrenCode.size() > 1) {
-            isPlainTextCode = childrenCode.getChild(1);
-            if (!(Boolean.TYPE.equals(isPlainTextCode.getKlass()) || Boolean.class.equals(isPlainTextCode.getKlass()))) {
-                throw reportError("Type mismatch: the second argument cannot convert from " + isPlainTextCode.getKlassName() + " to Boolean", expression_list.expression(1));
-            }
-        }
-
-        // argument 3: encoding
-        SegmentCode encodingCode = null;
-        if (childrenCode.size() > 2) {
-            encodingCode = childrenCode.getChild(2);
-            if (!(String.class.equals(encodingCode.getKlass()))) {
-                throw reportError("Type mismatch: the third argument cannot convert from " + encodingCode.getKlassName() + " to String", expression_list.expression(2));
+            parametersCode = childrenCode.getChild(1);
+            if (!(Map.class.equals(parametersCode.getKlass()))) {
+                throw reportError("Type mismatch: the second argument cannot convert from " + parametersCode.getKlassName() + " to Map", expression_list.expression(1));
             }
         }
 
@@ -580,10 +571,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         StringBuilder source = new StringBuilder();
         source.append("JetUtils.asInclude(context, ");
         source.append(fileCode.getSource());
-        source.append(", ");
-        source.append((isPlainTextCode != null) ? isPlainTextCode.getSource() : "false");
-        source.append(", ");
-        source.append((encodingCode != null) ? encodingCode.getSource() : "null");
+        source.append(", (Map<String, Object>)");
+        source.append((parametersCode != null) ? parametersCode.getSource() : "null");
         source.append("); // line: ");
         source.append(ctx.getStart().getLine());
         return scope.createLineCode(source.toString());

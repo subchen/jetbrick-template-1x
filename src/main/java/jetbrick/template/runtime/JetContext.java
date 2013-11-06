@@ -11,20 +11,21 @@ import jetbrick.template.JetTemplate;
 public class JetContext {
     private final JetTemplate template;
     private final JetWriter out;
-    private final Map<String, Object> context;
+    private final Map<String, Object> globalContext; // 全局共享 context
+    private final Map<String, Object> privateContext; // 私有 context
 
-    public JetContext(JetTemplate template, Map<String, Object> context, JetWriter out) {
+    public JetContext(JetTemplate template, JetContext parentContext, Map<String, Object> context, JetWriter out) {
         this.template = template;
         this.out = out;
 
-        this.context = new HashMap<String, Object>(context.size() + 8);
-        this.context.putAll(context);
-    }
-
-    public JetContext(JetTemplate template, JetContext parentContext, JetWriter out) {
-        this.template = template;
-        this.out = out;
-        this.context = parentContext.context; // 全局共享 context
+        if (parentContext == null) {
+            globalContext = new HashMap<String, Object>(context.size() + 16);
+            globalContext.putAll(context);
+            privateContext = null;
+        } else {
+            globalContext = parentContext.globalContext;
+            privateContext = context;
+        }
     }
 
     public JetEngine getEngine() {
@@ -40,11 +41,18 @@ public class JetContext {
     }
 
     public Object get(String name) {
-        return context.get(name);
+        Object value = null;
+        if (privateContext != null) {
+            value = privateContext.get(name);
+        }
+        if (value == null) {
+            value = globalContext.get(name);
+        }
+        return value;
     }
 
     // 支持子模板返回变量到父模板
     public void put(String name, Object value) {
-        context.put(name, value);
+        globalContext.put(name, value);
     }
 }

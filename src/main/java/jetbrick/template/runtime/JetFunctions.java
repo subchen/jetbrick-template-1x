@@ -1,5 +1,6 @@
 package jetbrick.template.runtime;
 
+import java.io.IOException;
 import java.util.*;
 import jetbrick.template.utils.ArrayUtils;
 
@@ -26,7 +27,23 @@ public final class JetFunctions {
         return ArrayUtils.step(start, stop, step);
     }
 
-    public static String include(JetContext context, String relativeName) {
-        return JetUtils.include(context, relativeName);
+    // 读取子模板内容
+    public static String include(JetContext context, String relativeName) throws IOException {
+        return JetUtils.getIncludeContent(context, relativeName, null);
+    }
+
+    // 读取子模板内容
+    public static String include(JetContext context, String relativeName, Map<String, Object> parameters) throws IOException {
+        return JetUtils.getIncludeContent(context, relativeName, parameters);
+    }
+
+    // 读取纯文本内容
+    public static String read(JetContext context, String relativeName) {
+        return JetUtils.getFileContext(context, relativeName, null);
+    }
+
+    // 读取纯文本内容
+    public static String read(JetContext context, String relativeName, String encoding) {
+        return JetUtils.getFileContext(context, relativeName, encoding);
     }
 }

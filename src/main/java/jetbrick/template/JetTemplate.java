@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JetTemplate {
+public final class JetTemplate {
     private static final Logger log = LoggerFactory.getLogger(JetTemplate.class);
 
     private final JetEngine engine;
@@ -107,17 +107,17 @@ public class JetTemplate {
 
     public void render(Map<String, Object> context, Writer out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetContext(this, context, writer));
+        render(new JetContext(this, null, context, writer));
     }
 
     public void render(Map<String, Object> context, OutputStream out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetContext(this, context, writer));
+        render(new JetContext(this, null, context, writer));
     }
 
     // 给 #include 和 include 函数用。
-    public void render(JetContext parentContext, JetWriter out) {
-        render(new JetContext(this, parentContext, out));
+    public void render(JetContext parentContext, Map<String, Object> parameters, JetWriter out) {
+        render(new JetContext(this, parentContext, parameters, out));
     }
 
     private void render(JetContext context) {

@@ -1,7 +1,4 @@
 #include("value.jetx")
 #include("./value.jetx")
 #include("/template/value.jetx")
-#include("value.jetx", true)
-#include("/template/value.jetx", true)
-#include("value.jetx", true, "utf-8")
-#include("/template/value.jetx", true, "utf-8")
+#include("value.jetx", {})

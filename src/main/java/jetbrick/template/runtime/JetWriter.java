@@ -12,6 +12,8 @@ public abstract class JetWriter {
         return new JetOutputStreamImpl(os, encoding);
     }
 
+    public abstract boolean isStreaming();
+
     public abstract void print(String text, byte[] bytes) throws IOException;
 
     public void print(boolean x) throws IOException {
@@ -54,7 +56,13 @@ public abstract class JetWriter {
 
     public void print(Object x) throws IOException {
         if (x != null) {
-            print(x.toString());
+            if (x instanceof byte[]) {
+                print((byte[]) x);
+            } else if (x instanceof char[]) {
+                print((char[]) x);
+            } else {
+                print(x.toString());
+            }
         }
     }
 
@@ -123,7 +131,7 @@ public abstract class JetWriter {
 
     public void println(Object x) throws IOException {
         if (x != null) {
-            print(x.toString());
+            print(x);
             println();
         }
     }
@@ -140,6 +148,11 @@ public abstract class JetWriter {
         public JetWriterImpl(Writer os, String encoding) {
             this.os = os;
             this.encoding = encoding;
+        }
+
+        @Override
+        public boolean isStreaming() {
+            return false;
         }
 
         @Override
@@ -192,6 +205,11 @@ public abstract class JetWriter {
         public JetOutputStreamImpl(OutputStream os, String encoding) {
             this.os = os;
             this.encoding = encoding;
+        }
+
+        @Override
+        public boolean isStreaming() {
+            return true;
         }
 
         @Override

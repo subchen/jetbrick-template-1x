@@ -1,6 +1,6 @@
 package jetbrick.template.runtime;
 
-import java.io.*;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.*;
 import jetbrick.template.JetTemplate;
@@ -110,44 +110,52 @@ public final class JetUtils {
         return StringEscapeUtils.escapeXml(value);
     }
 
-    public static void asInclude(JetContext context, String relativeName, boolean isPlainText, String encoding) throws IOException {
+    // render 子模板，并直接输出
+    public static void asInclude(JetContext parentContext, String relativeName, Map<String, Object> parameters) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
-        String file = PathUtils.relativePath(context.getTemplate().getName(), relativeName);
+        String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
 
-        if (isPlainText) {
-            Resource resource = context.getEngine().getResource(file);
-            if (resource == null) {
-                throw new IllegalAccessError("FileNotFoundException: " + file);
-            }
-            if (encoding == null) {
-                encoding = context.getEngine().getConfig().getInputEncoding();
-            }
-            context.getWriter().print(resource.getSource(encoding));
-        } else {
-            JetTemplate template = context.getEngine().getTemplate(file);
-            if (template == null) {
-                throw new IllegalAccessError("TemplateNotFound: " + file);
-            }
-            template.render(context, context.getWriter());
-        }
-    }
-
-    // redner 子模板， 并返回生成的内容
-    public static String include(JetContext context, String relativeName) {
-        if (relativeName == null || relativeName.length() == 0) {
-            throw new IllegalArgumentException("argument relativeName is null or empty.");
-        }
-        String file = PathUtils.relativePath(context.getTemplate().getName(), relativeName);
-        JetTemplate template = context.getEngine().getTemplate(file);
+        JetTemplate template = parentContext.getEngine().getTemplate(file);
         if (template == null) {
             throw new IllegalAccessError("TemplateNotFound: " + file);
         }
-        StringWriter os = new StringWriter();
-        JetWriter out = JetWriter.create(os, context.getEngine().getConfig().getOutputEncoding());
-        template.render(context, out);
+        template.render(parentContext, parameters, parentContext.getWriter());
+    }
+
+    // render 子模板，并返回生成的内容
+    public static String getIncludeContent(JetContext parentContext, String relativeName, Map<String, Object> parameters) {
+        if (relativeName == null || relativeName.length() == 0) {
+            throw new IllegalArgumentException("argument relativeName is null or empty.");
+        }
+        String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
+        JetTemplate template = parentContext.getEngine().getTemplate(file);
+        if (template == null) {
+            throw new IllegalAccessError("TemplateNotFound: " + file);
+        }
+
+        UnsafeCharArrayWriter os = new UnsafeCharArrayWriter();
+        String encoding = parentContext.getEngine().getConfig().getOutputEncoding();
+        JetWriter out = JetWriter.create(os, encoding);
+        template.render(parentContext, parameters, out);
         return os.toString();
+    }
+
+    // 读取纯文本内容
+    public static String getFileContext(JetContext parentContext, String relativeName, String encoding) {
+        if (relativeName == null || relativeName.length() == 0) {
+            throw new IllegalArgumentException("argument relativeName is null or empty.");
+        }
+        String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
+        Resource resource = parentContext.getEngine().getResource(file);
+        if (resource == null) {
+            throw new IllegalAccessError("ResourceNotFound: " + file);
+        }
+        if (encoding == null) {
+            encoding = parentContext.getEngine().getConfig().getOutputEncoding();
+        }
+        return new String(resource.getSource(encoding));
     }
 
     public static void debug(String format, Object... args) {
