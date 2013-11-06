@@ -8,7 +8,7 @@
     <property name="product.name" value="jetbrick-template" />
     <property name="product.version" value="1.0.0" />
     <property name="java.source" value="1.6" /> 
-	<property name="java.encoding" value="utf-8" /> 
+    <property name="java.encoding" value="utf-8" /> 
 
     <path id="compile.classpath">
         <fileset dir="${basedir}/lib" includes="**/*.jar" />
@@ -22,13 +22,13 @@
     </patternset>
 
     <target name="compile.clean">
-    	<!--
+        <!--
         <delete includeemptydirs="true">
             <fileset dir="${basedir}/bin" includes="**" />
         </delete>
         -->
-    	<delete dir="${basedir}/bin" />
-    	<mkdir dir="${basedir}/bin" />
+        <delete dir="${basedir}/bin" />
+        <mkdir dir="${basedir}/bin" />
     </target>
 
     <target name="compile.grammer">
@@ -76,6 +76,28 @@
                 <attribute name="Implementation-Version" value="${product.version}"/>
             </manifest>
         </jar>
+    </target>
+
+    <target name="javadoc" depends="compile.clean">
+        <property name="product.title" value="${product.name} ${product.version} API" />
+        <property name="javadoc.dir" value="${basedir}/bin/javadoc" />
+        <property name="javadoc.overview" value="" />
+
+        <javadoc destdir="${javadoc.dir}"
+                 windowtitle="${product.title}" overview="${javadoc.overview}"
+                 locale="en_US" source="${java.source}"
+                 encoding="${java.encoding}" docencoding="${java.encoding}" charset="${java.encoding}"
+                 access="protected" version="true" author="true" use="true"
+                 nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false"
+                 splitindex="true"
+                 classpathref="compile.classpath">
+            <doctitle>${product.title}</doctitle>
+            <bottom>Copyright @ 2010-2013 by ${product.author}. All Rights Reserved.</bottom> 
+
+            <fileset dir="${basedir}/src/main/java" defaultexcludes="yes">
+                <include name="jetbrick/**/*.java" />
+            </fileset>
+        </javadoc>
     </target>
 
     <target name="test.compile">
