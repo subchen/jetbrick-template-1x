@@ -3,6 +3,7 @@ package jetbrick.template;
 import java.io.File;
 import java.util.Properties;
 import jetbrick.template.resource.loader.FileSystemResourceLoader;
+import jetbrick.template.utils.PathUtils;
 import jetbrick.template.utils.PropertiesHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class JetConfig {
         config.setProperty(INPUT_ENCODING, "utf-8");
         config.setProperty(OUTPUT_ENCODING, "utf-8");
         config.setProperty(TEMPLATE_LOADER, FileSystemResourceLoader.class.getName());
-        config.setProperty(TEMPLATE_PATH, "");
+        config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_RELOADABLE, "false");
         config.setProperty(COMPILE_DEBUG, "true");
         config.setProperty(COMPILE_PATH, defaultCompilePath);

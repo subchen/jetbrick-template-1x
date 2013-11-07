@@ -24,7 +24,7 @@ public class JarResourceLoader implements ResourceLoader {
             this.jar = new File(basepath);
             this.entry = "";
         }
-        this.jar = this.jar.getAbsoluteFile();
+        this.jar = PathUtils.getCanonicalFile(this.jar);
         this.entry = PathUtils.getStandardizedPath(this.entry, false);
 
         this.encoding = encoding;

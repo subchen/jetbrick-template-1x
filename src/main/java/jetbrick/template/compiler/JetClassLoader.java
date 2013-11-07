@@ -1,10 +1,10 @@
 package jetbrick.template.compiler;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.*;
 import jetbrick.template.JetEngine;
 import jetbrick.template.utils.ExceptionUtils;
+import jetbrick.template.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,13 +40,9 @@ public class JetClassLoader {
 
     // 根据不同的 Version 生成不同的 classpath
     private static String getVersionClasspath(String classpath) {
-        try {
-            File dir = new File(classpath, "jetx_" + JetEngine.VERSION.replace('.', '_'));
-            dir.mkdirs(); // 必须先建立目录，否则 URLClassLoader 会失败
-            return dir.getCanonicalPath();
-        } catch (IOException e) {
-            throw ExceptionUtils.uncheck(e);
-        }
+        File dir = new File(classpath, "jetx_" + JetEngine.VERSION.replace('.', '_'));
+        dir.mkdirs(); // 必须先建立目录，否则 URLClassLoader 会失败
+        return PathUtils.getCanonicalPath(dir);
     }
 
     private static URL toURL(String url) {

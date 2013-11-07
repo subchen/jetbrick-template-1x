@@ -119,7 +119,7 @@ public final class JetUtils {
 
         JetTemplate template = parentContext.getEngine().getTemplate(file);
         if (template == null) {
-            throw new IllegalAccessError("TemplateNotFound: " + file);
+            throw new RuntimeException("TemplateNotFound: " + file);
         }
         template.render(parentContext, parameters, parentContext.getWriter());
     }
@@ -132,7 +132,7 @@ public final class JetUtils {
         String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
         JetTemplate template = parentContext.getEngine().getTemplate(file);
         if (template == null) {
-            throw new IllegalAccessError("TemplateNotFound: " + file);
+            throw new RuntimeException("TemplateNotFound: " + file);
         }
 
         UnsafeCharArrayWriter os = new UnsafeCharArrayWriter();
@@ -150,7 +150,7 @@ public final class JetUtils {
         String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
         Resource resource = parentContext.getEngine().getResource(file);
         if (resource == null) {
-            throw new IllegalAccessError("ResourceNotFound: " + file);
+            throw new RuntimeException("ResourceNotFound: " + file);
         }
         if (encoding == null) {
             encoding = parentContext.getEngine().getConfig().getOutputEncoding();

@@ -18,7 +18,7 @@ public class FileSystemResourceLoader implements ResourceLoader {
     @Override
     public Resource load(String name) {
         String pathname = PathUtils.combinePathName(basepath, name, false);
-        File file = new File(pathname).getAbsoluteFile();
+        File file = PathUtils.getCanonicalFile(new File(pathname));
         if (!file.exists()) return null;
         return new FileSystemResource(name, file, encoding);
     }

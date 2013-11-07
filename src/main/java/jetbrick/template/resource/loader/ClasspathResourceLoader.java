@@ -27,7 +27,7 @@ public class ClasspathResourceLoader implements ResourceLoader {
         if (url == null) return null;
 
         if (FILE_PROTOCOL.equals(url.getProtocol())) {
-            File file = new File(url.getFile()).getAbsoluteFile();
+            File file = PathUtils.getCanonicalFile(new File(url.getFile()));
             return new FileSystemResourceLoader.FileSystemResource(name, file, encoding);
         } else if (JAR_PROTOCOL.equals(url.getProtocol())) {
             String file = url.getFile();
@@ -35,7 +35,7 @@ public class ClasspathResourceLoader implements ResourceLoader {
                 file = file.substring(FILE_PROTOCOL_PREFIX.length());
             }
             int separator = file.indexOf(JAR_FILE_SEPARATOR);
-            File jar = new File(file.substring(0, separator)).getAbsoluteFile();
+            File jar = PathUtils.getCanonicalFile(new File(file.substring(0, separator)));
             String entry = file.substring(separator + JAR_FILE_SEPARATOR.length());
             entry = PathUtils.getStandardizedPath(entry, false);
             return new JarResourceLoader.JarResource(name, jar, entry, encoding);

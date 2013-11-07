@@ -1,7 +1,30 @@
 package jetbrick.template.utils;
 
+import java.io.File;
+import java.io.IOException;
+
 public final class PathUtils {
     private static final boolean IS_WINDOW = System.getProperty("os.name").toUpperCase().indexOf("WINDOWS") >= 0;
+
+    public static String getCanonicalPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            throw ExceptionUtils.uncheck(e);
+        }
+    }
+
+    public static File getCanonicalFile(File file) {
+        try {
+            return file.getCanonicalFile();
+        } catch (IOException e) {
+            throw ExceptionUtils.uncheck(e);
+        }
+    }
+
+    public static String getCurrentPath() {
+        return getCanonicalPath(new File("."));
+    }
 
     // 获得一个规范化的模板文件名称. like: /folder/file.jetx
     public static String getStandardizedName(String name) {
