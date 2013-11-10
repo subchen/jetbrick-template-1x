@@ -157,11 +157,14 @@ public final class JetMethods {
         return DateUtils.asDate(value, format);
     }
 
+    /**
+     * 支持输出 "null"
+     */
     public String asString(Object value) {
-        if (value == null) return null;
+        if (value == null) return "null";
         return value.toString();
     }
-
+  
     //---- json -------------------------------------------------------
     public static String asJSON(Object object) {
         return JSONUtils.toJSONString(object);
