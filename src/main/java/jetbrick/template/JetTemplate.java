@@ -1,7 +1,6 @@
 package jetbrick.template;
 
 import java.io.*;
-import java.util.Map;
 import jetbrick.template.parser.*;
 import jetbrick.template.parser.code.Code;
 import jetbrick.template.parser.grammer.JetTemplateLexer;
@@ -105,22 +104,21 @@ public final class JetTemplate {
         return code.getSource();
     }
 
-    public void render(Map<String, Object> context, Writer out) {
+    public void render(JetContext context, Writer out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetContext(this, null, context, writer));
+        render(new JetRuntimeContext(this, context, writer));
     }
 
-    public void render(Map<String, Object> context, OutputStream out) {
+    public void render(JetContext context, OutputStream out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetContext(this, null, context, writer));
+        render(new JetRuntimeContext(this, context, writer));
     }
 
-    // 给 #include 和 include 函数用。
-    public void render(JetContext parentContext, Map<String, Object> parameters, JetWriter out) {
-        render(new JetContext(this, parentContext, parameters, out));
+    public void render(JetContext context, JetWriter writer) {
+        render(new JetRuntimeContext(this, context, writer));
     }
 
-    private void render(JetContext context) {
+    private void render(JetRuntimeContext context) {
         try {
             pageObject.render(context);
         } catch (Throwable e) {

@@ -28,22 +28,22 @@ public final class JetFunctions {
     }
 
     // 读取子模板内容
-    public static String include(JetContext context, String relativeName) throws IOException {
-        return JetUtils.getIncludeContent(context, relativeName, null);
+    public static String include(JetRuntimeContext context, String relativeName) throws IOException {
+        return JetUtils.asIncludeContent(context, relativeName, null);
     }
 
     // 读取子模板内容
-    public static String include(JetContext context, String relativeName, Map<String, Object> parameters) throws IOException {
-        return JetUtils.getIncludeContent(context, relativeName, parameters);
+    public static String include(JetRuntimeContext context, String relativeName, Map<String, Object> parameters) throws IOException {
+        return JetUtils.asIncludeContent(context, relativeName, parameters);
     }
 
     // 读取纯文本内容
-    public static String read(JetContext context, String relativeName) {
-        return JetUtils.getFileContext(context, relativeName, null);
+    public static String read(JetRuntimeContext context, String relativeName) {
+        return JetUtils.asReadContent(context, relativeName, null);
     }
 
     // 读取纯文本内容
-    public static String read(JetContext context, String relativeName, String encoding) {
-        return JetUtils.getFileContext(context, relativeName, encoding);
+    public static String read(JetRuntimeContext context, String relativeName, String encoding) {
+        return JetUtils.asReadContent(context, relativeName, encoding);
     }
 }

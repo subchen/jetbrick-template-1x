@@ -13,9 +13,9 @@ public class VariableResolver {
     private Set<String> importedPackageList = new HashSet<String>(8); // 全局 import 的包
     private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(16); // 全局定义的变量
     private Map<String, List<Method>> methodMap1 = new HashMap<String, List<Method>>(64); // 全局导入的 method 类
-    private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetContext）
+    private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetRuntimeContext）
     private Map<String, List<Method>> functionMap1 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类
-    private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类 （带 JetContext）
+    private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类 （带 JetRuntimeContext）
 
     private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(32);
     private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>(128);
@@ -66,7 +66,7 @@ public class VariableResolver {
                 String name = method.getName();
 
                 List<Method> list;
-                if (parameterTypes.length > 1 && JetContext.class.equals(parameterTypes[1])) {
+                if (parameterTypes.length > 1 && JetRuntimeContext.class.equals(parameterTypes[1])) {
                     list = methodMap2.get(name);
                     if (list == null) {
                         list = new ArrayList<Method>(4);
@@ -97,7 +97,7 @@ public class VariableResolver {
 
                 List<Method> list;
                 Class<?>[] parameterTypes = method.getParameterTypes();
-                if (parameterTypes.length > 0 && JetContext.class.equals(parameterTypes[0])) {
+                if (parameterTypes.length > 0 && JetRuntimeContext.class.equals(parameterTypes[0])) {
                     list = functionMap2.get(name);
                     if (list == null) {
                         list = new ArrayList<Method>(4);
@@ -254,14 +254,14 @@ public class VariableResolver {
         return method;
     }
 
-    // 找到对应的方法 Tool.method(bean, JetContext, ...)
+    // 找到对应的方法 Tool.method(bean, JetRuntimeContext, ...)
     public Method resolveToolMethod_advanced(Class<?> beanClass, String methodName, Class<?>[] parameterTypes) {
         List<Method> methods = methodMap2.get(methodName);
         if (methods == null) return null;
 
         Class<?>[] targetParameterTypes = new Class<?>[2 + parameterTypes.length];
         targetParameterTypes[0] = beanClass;
-        targetParameterTypes[1] = JetContext.class;
+        targetParameterTypes[1] = JetRuntimeContext.class;
         for (int i = 0; i < parameterTypes.length; i++) {
             targetParameterTypes[i + 2] = parameterTypes[i];
         }
@@ -301,13 +301,13 @@ public class VariableResolver {
         return method;
     }
 
-    // 找到对应的方法 function(JetContext, ...)
+    // 找到对应的方法 function(JetRuntimeContext, ...)
     public Method resolveFunction_advanced(String methodName, Class<?>[] parameterTypes) {
         List<Method> methods = functionMap2.get(methodName);
         if (methods == null) return null;
 
         Class<?>[] targetParameterTypes = new Class<?>[1 + parameterTypes.length];
-        targetParameterTypes[0] = JetContext.class;
+        targetParameterTypes[0] = JetRuntimeContext.class;
         for (int i = 0; i < parameterTypes.length; i++) {
             targetParameterTypes[i + 1] = parameterTypes[i];
         }

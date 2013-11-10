@@ -3,6 +3,7 @@ package jetbrick.template.runtime;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.*;
+import jetbrick.template.JetContext;
 import jetbrick.template.JetTemplate;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.utils.*;
@@ -111,49 +112,48 @@ public final class JetUtils {
     }
 
     // render 子模板，并直接输出
-    public static void asInclude(JetContext parentContext, String relativeName, Map<String, Object> parameters) {
+    public static void asInclude(JetRuntimeContext ctx, String relativeName, Map<String, Object> parameters) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
-        String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
-
-        JetTemplate template = parentContext.getEngine().getTemplate(file);
+        String file = ctx.getAbsolutionName(relativeName);
+        JetTemplate template = ctx.getEngine().getTemplate(file);
         if (template == null) {
             throw new RuntimeException("TemplateNotFound: " + file);
         }
-        template.render(parentContext, parameters, parentContext.getWriter());
+        JetContext context = new JetContext(ctx.getContext(), parameters);
+        template.render(context, ctx.getWriter());
     }
 
     // render 子模板，并返回生成的内容
-    public static String getIncludeContent(JetContext parentContext, String relativeName, Map<String, Object> parameters) {
+    public static String asIncludeContent(JetRuntimeContext ctx, String relativeName, Map<String, Object> parameters) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
-        String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
-        JetTemplate template = parentContext.getEngine().getTemplate(file);
+        String file = ctx.getAbsolutionName(relativeName);
+        JetTemplate template = ctx.getEngine().getTemplate(file);
         if (template == null) {
             throw new RuntimeException("TemplateNotFound: " + file);
         }
+        JetContext context = new JetContext(ctx.getContext(), parameters);
 
         UnsafeCharArrayWriter os = new UnsafeCharArrayWriter();
-        String encoding = parentContext.getEngine().getConfig().getOutputEncoding();
-        JetWriter out = JetWriter.create(os, encoding);
-        template.render(parentContext, parameters, out);
+        template.render(context, os);
         return os.toString();
     }
 
     // 读取纯文本内容
-    public static String getFileContext(JetContext parentContext, String relativeName, String encoding) {
+    public static String asReadContent(JetRuntimeContext ctx, String relativeName, String encoding) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
-        String file = PathUtils.relativePath(parentContext.getTemplate().getName(), relativeName);
-        Resource resource = parentContext.getEngine().getResource(file);
+        String file = ctx.getAbsolutionName(relativeName);
+        Resource resource = ctx.getEngine().getResource(file);
         if (resource == null) {
             throw new RuntimeException("ResourceNotFound: " + file);
         }
         if (encoding == null) {
-            encoding = parentContext.getEngine().getConfig().getOutputEncoding();
+            encoding = ctx.getEngine().getConfig().getOutputEncoding();
         }
         return new String(resource.getSource(encoding));
     }

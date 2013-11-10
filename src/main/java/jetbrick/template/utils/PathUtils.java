@@ -73,7 +73,7 @@ public final class PathUtils {
     }
 
     // 根据当前模板，找到include子模板的路径。如果 relativeName 以 "/" 开头，那么直接返回 relativeName
-    public static String relativePath(String baseFile, String relativeName) {
+    public static String getAbsolutionName(String baseFile, String relativeName) {
         relativeName = relativeName.replace('\\', '/');
         if (relativeName.startsWith("/")) return relativeName; // 绝对路径直接返回
 

@@ -6,6 +6,7 @@ public class PrimitiveClassUtils {
     private static final Set<Class<?>> boxed_class_set;
     private static final Map<Class<?>, Class<?>> boxed_class_map;
     private static final Map<Class<?>, Class<?>> unboxed_class_map;
+    private static final Map<Class<?>, String> default_value_map;
 
     public static boolean isBoxedClass(Class<?> klass) {
         return boxed_class_set.contains(klass);
@@ -37,6 +38,12 @@ public class PrimitiveClassUtils {
             c = klass;
         }
         return c;
+    }
+
+    public static String getDefaultValueAsSource(Class<?> klass) {
+        if (klass == null) return "null";
+        String value = default_value_map.get(klass);
+        return value == null ? "null" : value;
     }
 
     static {
@@ -85,5 +92,15 @@ public class PrimitiveClassUtils {
         boxed_class_map.put(Long.class, Long.class);
         boxed_class_map.put(Float.class, Float.class);
         boxed_class_map.put(Double.class, Double.class);
+
+        default_value_map = new HashMap<Class<?>, String>(8);
+        default_value_map.put(Boolean.TYPE, "false");
+        default_value_map.put(Byte.TYPE, "0");
+        default_value_map.put(Short.TYPE, "0");
+        default_value_map.put(Character.TYPE, "'\0'");
+        default_value_map.put(Integer.TYPE, "0");
+        default_value_map.put(Long.TYPE, "0L");
+        default_value_map.put(Float.TYPE, "0.0F");
+        default_value_map.put(Double.TYPE, "0.0D");
     }
 }

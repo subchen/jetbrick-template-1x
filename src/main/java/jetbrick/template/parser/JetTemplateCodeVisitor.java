@@ -3,6 +3,7 @@ package jetbrick.template.parser;
 import java.lang.reflect.*;
 import java.util.*;
 import javax.lang.model.SourceVersion;
+import jetbrick.template.JetContext;
 import jetbrick.template.JetEngine;
 import jetbrick.template.parser.code.*;
 import jetbrick.template.parser.grammer.*;
@@ -61,7 +62,6 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Type_nameContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.ValueContext;
 import jetbrick.template.parser.support.*;
 import jetbrick.template.resource.Resource;
-import jetbrick.template.runtime.JetContext;
 import jetbrick.template.utils.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -108,6 +108,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             code.addLine("");
         }
         code.addLine("import java.util.*;");
+        code.addLine("import jetbrick.template.JetContext;");
         code.addLine("import jetbrick.template.runtime.*;");
         code.addLine("");
 
@@ -118,10 +119,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // add render() method
         code.addLine("");
         code.addLine("  @Override");
-        code.addLine("  public void render(JetContext context) throws Throwable {");
+        code.addLine("  public void render(JetRuntimeContext $ctx) throws Throwable {");
         scope = scope.push();
         scope.define("context", TypedKlass.JetContext);
-        code.addLine("    JetWriter $out = context.getWriter();");
+        code.addLine("    JetWriter $out = $ctx.getWriter();");
+        code.addLine("    JetContext context = $ctx.getContext();");
 
         contextScope = scope; // 全局context变量
         contextBlockCode = scope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
@@ -561,7 +563,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             String file = fileCode.getSource();
             file = file.substring(1, file.length() - 1);
             file = StringEscapeUtils.unescapeJava(file);
-            file = PathUtils.relativePath(resource.getName(), file);
+            file = PathUtils.getAbsolutionName(resource.getName(), file);
             if (engine.getResource(file) == null) {
                 throw reportError("FileNotFoundException: " + file, fileExpression);
             }
@@ -569,7 +571,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 生成代码
         StringBuilder source = new StringBuilder();
-        source.append("JetUtils.asInclude(context, ");
+        source.append("JetUtils.asInclude($ctx, ");
         source.append(fileCode.getSource());
         source.append(", (Map<String, Object>)");
         source.append((parametersCode != null) ? parametersCode.getSource() : "null");
@@ -691,34 +693,40 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 进行类型推导，找到方法的返回类型
         code = code.asBoxedSegmentCode();
         Class<?> beanClass = code.getKlass();
-        Member member = resolver.resolveProperty(beanClass, name);
-        if (member == null) {
-            // reportError
-            name = name.substring(0, 1).toUpperCase() + name.substring(1);
-            StringBuilder err = new StringBuilder(128);
-            err.append("The method ");
-            err.append("get" + name);
-            err.append("() or ");
-            err.append("is" + name);
-            err.append("() is undefined for the type ");
-            err.append(beanClass.getName());
-            err.append('.');
-            throw reportError(err.toString(), ctx.IDENTIFIER());
+        Member member = null;
+
+        if ((!beanClass.isArray()) || (!"length".equals(name))) { // not array.length
+            member = resolver.resolveProperty(beanClass, name);
+            if (member == null) {
+                // reportError
+                name = name.substring(0, 1).toUpperCase() + name.substring(1);
+                StringBuilder err = new StringBuilder(128);
+                err.append("The method ");
+                err.append("get" + name);
+                err.append("() or ");
+                err.append("is" + name);
+                err.append("() is undefined for the type ");
+                err.append(beanClass.getName());
+                err.append('.');
+                throw reportError(err.toString(), ctx.IDENTIFIER());
+            }
         }
 
         // 生成code
         StringBuilder source = new StringBuilder();
         TypedKlass resultKlass = null;
-
         String op = ctx.getChild(1).getText();
         if (member instanceof Method) {
             Method method = (Method) member;
+            resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
             if (method.getParameterTypes().length == 0) {
                 // getXXX() or isXXX()
                 if ("?.".equals(op)) { // 安全调用，防止 NullPointException
                     source.append("((");
                     source.append(code.getSource());
-                    source.append("==null)?null:");
+                    source.append("==null)?");
+                    source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
+                    source.append(':');
                     source.append(code.getSource());
                     source.append('.');
                     source.append(method.getName());
@@ -734,7 +742,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 if ("?.".equals(op)) { // 安全调用，防止 NullPointException
                     source.append("((");
                     source.append(code.getSource());
-                    source.append("==null)?null:");
+                    source.append("==null)?");
+                    source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
+                    source.append(':');
                     source.append(code.getSource());
                     source.append(".get(");
                     source.append(name);
@@ -746,23 +756,28 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                     source.append(')');
                 }
             }
-            resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
         } else {
-            Field field = (Field) member;
+            if (member instanceof Field) {
+                resultKlass = TypedKlassUtils.getFieldTypedKlass((Field) member);
+            } else {
+                // array.length
+                resultKlass = TypedKlass.create(Integer.TYPE);
+            }
             if ("?.".equals(op)) { // 安全调用，防止 NullPointException
                 source.append("((");
                 source.append(code.getSource());
-                source.append("==null)?null:");
+                source.append("==null)?");
+                source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
+                source.append(':');
                 source.append(code.getSource());
                 source.append('.');
-                source.append(field.getName());
+                source.append(name);
                 source.append(')');
             } else {
                 source.append(code.getSource());
                 source.append('.');
-                source.append(field.getName());
+                source.append(name);
             }
-            resultKlass = TypedKlassUtils.getFieldTypedKlass(field);
         }
 
         return new SegmentCode(resultKlass, source.toString());
@@ -822,7 +837,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             source.append('(');
             source.append(code.getSource());
             if (tool_advanced) {
-                source.append(",context");
+                source.append(",$ctx");
             }
             if (expr_list_code != null) {
                 source.append(',');
@@ -891,7 +906,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         source.append(name);
         source.append('(');
         if (advanced) {
-            source.append("context");
+            source.append("$ctx");
         }
         if (expr_list_code != null) {
             if (advanced) source.append(',');
@@ -1004,6 +1019,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("Cannot specify an array dimension after an empty dimension", ctx.type());
         }
 
+        StringBuilder typeSource = new StringBuilder(code.getSource());
+
         // 生成代码
         StringBuilder source = new StringBuilder(32);
         source.append("(new ").append(code.getSource());
@@ -1013,9 +1030,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 throw reportError("Type mismatch: cannot convert from " + c.getKlassName() + " to int.", expression);
             }
             source.append('[').append(c.getSource()).append(']');
+            typeSource.append("[]");
         }
         source.append(')');
-        return new SegmentCode(code.getTypedKlass(), source.toString());
+
+        TypedKlass resultKlass = resolver.resolveTypedKlass(typeSource.toString());
+        return new SegmentCode(resultKlass, source.toString());
     }
 
     @Override
