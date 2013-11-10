@@ -46,4 +46,8 @@ public final class JetFunctions {
     public static String read(JetRuntimeContext context, String relativeName, String encoding) {
         return JetUtils.asReadContent(context, relativeName, encoding);
     }
+
+    public static void debug(String format, Object... args) {
+        JetUtils.debug(format, args);
+    }
 }

@@ -47,7 +47,7 @@ public class PrimitiveClassUtils {
     }
 
     static {
-        boxed_class_set = new HashSet<Class<?>>(8);
+        boxed_class_set = new HashSet<Class<?>>();
         boxed_class_set.add(Boolean.class);
         boxed_class_set.add(Byte.class);
         boxed_class_set.add(Short.class);
@@ -57,7 +57,7 @@ public class PrimitiveClassUtils {
         boxed_class_set.add(Float.class);
         boxed_class_set.add(Double.class);
 
-        unboxed_class_map = new HashMap<Class<?>, Class<?>>(16);
+        unboxed_class_map = new HashMap<Class<?>, Class<?>>(32);
         unboxed_class_map.put(Boolean.class, Boolean.TYPE);
         unboxed_class_map.put(Byte.class, Byte.TYPE);
         unboxed_class_map.put(Short.class, Short.TYPE);
@@ -75,7 +75,7 @@ public class PrimitiveClassUtils {
         unboxed_class_map.put(Float.TYPE, Float.TYPE);
         unboxed_class_map.put(Double.TYPE, Double.TYPE);
 
-        boxed_class_map = new HashMap<Class<?>, Class<?>>(16);
+        boxed_class_map = new HashMap<Class<?>, Class<?>>(32);
         boxed_class_map.put(Boolean.TYPE, Boolean.class);
         boxed_class_map.put(Byte.TYPE, Byte.class);
         boxed_class_map.put(Short.TYPE, Short.class);
@@ -93,7 +93,7 @@ public class PrimitiveClassUtils {
         boxed_class_map.put(Float.class, Float.class);
         boxed_class_map.put(Double.class, Double.class);
 
-        default_value_map = new HashMap<Class<?>, String>(8);
+        default_value_map = new HashMap<Class<?>, String>();
         default_value_map.put(Boolean.TYPE, "false");
         default_value_map.put(Byte.TYPE, "0");
         default_value_map.put(Short.TYPE, "0");

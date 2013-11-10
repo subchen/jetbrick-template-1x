@@ -1,5 +1,6 @@
 package jetbrick.template.runtime;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -51,7 +52,7 @@ public final class JetUtils {
         if (values == null || values.length == 0) {
             return Collections.EMPTY_MAP;
         }
-        Map<Object, Object> map = new HashMap<Object, Object>(values.length / 2);
+        Map<Object, Object> map = new HashMap<Object, Object>(values.length);
         for (int i = 0; i < values.length; i += 2) {
             map.put(values[i], values[i + 1]);
         }
@@ -112,14 +113,16 @@ public final class JetUtils {
     }
 
     // render 子模板，并直接输出
-    public static void asInclude(JetRuntimeContext ctx, String relativeName, Map<String, Object> parameters) {
+    public static void asInclude(JetRuntimeContext ctx, String relativeName, Map<String, Object> parameters) throws IOException {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
         String file = ctx.getAbsolutionName(relativeName);
         JetTemplate template = ctx.getEngine().getTemplate(file);
         JetContext context = new JetContext(ctx.getContext(), parameters);
-        template.render(context, ctx.getWriter());
+        JetWriter writer = ctx.getWriter();
+        template.render(context, writer);
+        writer.println(); // append CRLF for #include directive
     }
 
     // render 子模板，并返回生成的内容

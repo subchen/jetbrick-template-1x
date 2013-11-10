@@ -10,18 +10,18 @@ import org.slf4j.LoggerFactory;
 public class VariableResolver {
     private final Logger log = LoggerFactory.getLogger(VariableResolver.class);
 
-    private Set<String> importedPackageList = new HashSet<String>(8); // 全局 import 的包
-    private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(16); // 全局定义的变量
+    private Set<String> importedPackageList = new HashSet<String>(); // 全局 import 的包
+    private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(); // 全局定义的变量
     private Map<String, List<Method>> methodMap1 = new HashMap<String, List<Method>>(64); // 全局导入的 method 类
     private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetRuntimeContext）
-    private Map<String, List<Method>> functionMap1 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类
-    private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(16); // 全局导入的 function 类 （带 JetRuntimeContext）
+    private Map<String, List<Method>> functionMap1 = new HashMap<String, List<Method>>(32); // 全局导入的 function 类
+    private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(); // 全局导入的 function 类 （带 JetRuntimeContext）
 
-    private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(32);
+    private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(64);
     private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>(128);
     private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>(128);
-    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(32);
-    private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>(16);
+    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(64);
+    private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>();
 
     public VariableResolver() {
         addImportPackage("java.lang");

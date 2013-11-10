@@ -122,8 +122,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         code.addLine("  public void render(JetRuntimeContext $ctx) throws Throwable {");
         scope = scope.push();
         scope.define("context", TypedKlass.JetContext);
-        code.addLine("    JetWriter $out = $ctx.getWriter();");
         code.addLine("    JetContext context = $ctx.getContext();");
+        code.addLine("    JetWriter $out = $ctx.getWriter();");
 
         contextScope = scope; // 全局context变量
         contextBlockCode = scope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
@@ -158,6 +158,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     @Override
     public Code visitBlock(BlockContext ctx) {
         BlockCode code = scope.createBlockCode(32);
+        if (ctx.getChildCount() == 0) return code;
 
         int size = ctx.children.size();
         for (int i = 0; i < size; i++) {
@@ -229,6 +230,14 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitValue(ValueContext ctx) {
         Code code = ctx.expression().accept(this);
         String source = code.getSource();
+
+        // 如果返回值是 void，那么不需要 print 语句。
+        if (code instanceof SegmentCode) {
+            Class<?> klass = ((SegmentCode) code).getKlass();
+            if (Void.TYPE.equals(klass)) {
+                return scope.createLineCode(source + "; // line: " + ctx.getStart().getLine());
+            }
+        }
 
         Token token = ((TerminalNode) ctx.getChild(0)).getSymbol();
         if (token.getType() == JetTemplateParser.VALUE_ESCAPED_OPEN) {

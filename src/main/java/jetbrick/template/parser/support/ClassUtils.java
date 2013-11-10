@@ -146,7 +146,7 @@ public class ClassUtils {
     }
 
     static {
-        abbreviation_map = new HashMap<String, String>(8);
+        abbreviation_map = new HashMap<String, String>();
         abbreviation_map.put("boolean", "Z");
         abbreviation_map.put("byte", "B");
         abbreviation_map.put("short", "S");
@@ -156,7 +156,7 @@ public class ClassUtils {
         abbreviation_map.put("float", "F");
         abbreviation_map.put("double", "D");
 
-        default_package_set = new HashSet<String>(3);
+        default_package_set = new HashSet<String>();
         default_package_set.add("java.lang");
         default_package_set.add("java.util");
         default_package_set.add("jetbrick.template.runtime");

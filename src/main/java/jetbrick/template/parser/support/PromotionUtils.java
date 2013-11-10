@@ -196,7 +196,7 @@ public class PromotionUtils {
 
     static {
         // http://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html#jls-5.6.2
-        unary_promotion_map = new HashMap<Class<?>, Class<?>>(14);
+        unary_promotion_map = new HashMap<Class<?>, Class<?>>(32);
         unary_promotion_map.put(Byte.TYPE, Integer.TYPE);
         unary_promotion_map.put(Short.TYPE, Integer.TYPE);
         unary_promotion_map.put(Character.TYPE, Integer.TYPE);
