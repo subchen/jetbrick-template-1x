@@ -573,7 +573,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             file = file.substring(1, file.length() - 1);
             file = StringEscapeUtils.unescapeJava(file);
             file = PathUtils.getAbsolutionName(resource.getName(), file);
-            if (!engine.findResource(file)) {
+            if (!engine.lookupResource(file)) {
                 throw reportError("FileNotFoundException: " + file, fileExpression);
             }
         }

@@ -43,7 +43,7 @@ public class JetEngine {
     /**
      * 根据一个绝对路径，判断资源文件是否存在
      */
-    public boolean findResource(String name) {
+    public boolean lookupResource(String name) {
         name = PathUtils.getStandardizedName(name);
         return resourceCache.get(name) != null;
     }
