@@ -32,21 +32,23 @@
     </target>
 
     <target name="compile.grammer">
-        <java jar="antlr-4.1-complete.jar" fork="yes" dir="${basedir}/src/main/java/jetbrick/template/parser/grammer">
+        <property name="antlr.jar" value="${basedir}/lib/antlr/antlr-4.1-complete.jar" />
+        <property name="grammer.dir" value="${basedir}/src/main/java/jetbrick/template/parser/grammer" />
+        <java jar="${antlr.jar}" fork="yes" dir="${grammer.dir}">
             <arg value="JetTemplateLexer.g4" />
             <arg value="-o" />
             <arg value="." />
         </java>
-        <java jar="antlr-4.1-complete.jar" fork="yes" dir="${basedir}/src/main/java/jetbrick/template/parser/grammer">
+        <java jar="${antlr.jar}" fork="yes" dir="${grammer.dir}">
             <arg value="-no-listener" />
             <arg value="-visitor" />
             <arg value="JetTemplateParser.g4" />
             <arg value="-o" />
             <arg value="." />
         </java>
-        <delete file="${basedir}/src/main/java/jetbrick/template/parser/grammer/JetTemplateLexer.tokens"/>
-        <delete file="${basedir}/src/main/java/jetbrick/template/parser/grammer/JetTemplateParser.tokens"/>
-        <delete file="${basedir}/src/main/java/jetbrick/template/parser/grammer/JetTemplateParserBaseVisitor.java"/>
+        <delete file="${grammer.dir}/JetTemplateLexer.tokens"/>
+        <delete file="${grammer.dir}/JetTemplateParser.tokens"/>
+        <delete file="${grammer.dir}/JetTemplateParserBaseVisitor.java"/>
     </target>
 
     <target name="compile" depends="compile.clean, compile.grammer">

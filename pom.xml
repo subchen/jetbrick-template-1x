@@ -1,0 +1,19 @@
+<project>
+  <dependencies>
+    <dependency>
+      <groupId>com.github.subchen</groupId>
+      <artifactId>jetbrick-template</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+  </dependencies>
+<project>

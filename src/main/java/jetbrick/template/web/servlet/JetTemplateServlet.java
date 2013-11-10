@@ -2,13 +2,14 @@ package jetbrick.template.web.servlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import jetbrick.template.*;
 import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.utils.PropertiesUtils;
+import jetbrick.template.web.JetWebContext;
+import jetbrick.template.web.JetWebEngine;
 
 /**
  * 直接作为 Servlet 使用。需要在 web.xml 中作如下配置。
@@ -58,7 +59,7 @@ public class JetTemplateServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Map<String, Object> context = new JetWebContext(getServletContext(), request, response);
+        JetWebContext context = new JetWebContext(getServletContext(), request, response);
 
         String path = request.getPathInfo();
         if (path == null || path.length() == 0) {
