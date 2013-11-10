@@ -86,7 +86,7 @@ public class TypedKlassParser {
         } while (true);
 
         if (sb.length() == 0) {
-            throw new RuntimeException("Syntax error, no lable found.");
+            throw new SyntaxErrorException("Syntax error, no lable found.");
         }
         return sb.toString();
     }
@@ -133,7 +133,7 @@ public class TypedKlassParser {
         if (lookahead == c) {
             consume(true);
         } else {
-            throw new RuntimeException("Syntax error. match '" + lookahead + "', expected '" + c + "'");
+            throw new SyntaxErrorException("Syntax error. match '" + lookahead + "', expected '" + c + "'");
         }
     }
 

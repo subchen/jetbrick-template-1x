@@ -564,7 +564,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             file = file.substring(1, file.length() - 1);
             file = StringEscapeUtils.unescapeJava(file);
             file = PathUtils.getAbsolutionName(resource.getName(), file);
-            if (engine.getResource(file) == null) {
+            if (!engine.findResource(file)) {
                 throw reportError("FileNotFoundException: " + file, fileExpression);
             }
         }
@@ -1464,6 +1464,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         } else if (node instanceof TerminalNode) {
             parser.notifyErrorListeners(((TerminalNode) node).getSymbol(), message, null);
         }
-        return new RuntimeException(message);
+        return new SyntaxErrorException(message);
     }
 }

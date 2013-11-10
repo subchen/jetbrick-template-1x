@@ -40,21 +40,41 @@ public class JetEngine {
         this.templateCache = new ConcurrentTemplateCache();
     }
 
-    public Resource getResource(String name) {
+    /**
+     * 根据一个绝对路径，判断资源文件是否存在
+     */
+    public boolean findResource(String name) {
         name = PathUtils.getStandardizedName(name);
-        return resourceCache.get(name);
+        return resourceCache.get(name) != null;
     }
 
-    public JetTemplate getTemplate(String name) {
+    /**
+     * 根据一个绝对路径，获取一个资源对象
+     * @throws ResourceNotFoundException
+     */
+    public Resource getResource(String name) throws ResourceNotFoundException {
+        name = PathUtils.getStandardizedName(name);
+        Resource resource = resourceCache.get(name);
+        if (resource == null) {
+            throw new ResourceNotFoundException(name);
+        }
+        return resource;
+    }
+
+    /**
+     * 根据一个绝对路径，获取一个模板对象
+     * @throws ResourceNotFoundException
+     */
+    public JetTemplate getTemplate(String name) throws ResourceNotFoundException {
         name = PathUtils.getStandardizedName(name);
         JetTemplate template = templateCache.get(name);
-        if (template != null) {
-            template.checkLastModified();
-        }
+        template.checkLastModified();
         return template;
     }
 
-    // No cache for template that from plain source
+    /**
+     * 直接从源代码中生成一个模板对象
+     */
     public JetTemplate getTemplateFromSource(String source) {
         Resource resource = new SourceCodeResource(source);
         return new JetTemplate(this, resource);
@@ -72,10 +92,16 @@ public class JetEngine {
         return jdkCompiler;
     }
 
+    /**
+     * 获取模板配置
+     */
     public JetConfig getConfig() {
         return config;
     }
 
+    /**
+     * 获取模板引擎的版本号
+     */
     public String getVersion() {
         return VERSION;
     }
@@ -121,7 +147,6 @@ public class JetEngine {
         @Override
         public JetTemplate doGetValue(String name) {
             Resource resource = JetEngine.this.getResource(name);
-            if (resource == null) return null;
             return new JetTemplate(JetEngine.this, resource);
         }
     }

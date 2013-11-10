@@ -118,9 +118,6 @@ public final class JetUtils {
         }
         String file = ctx.getAbsolutionName(relativeName);
         JetTemplate template = ctx.getEngine().getTemplate(file);
-        if (template == null) {
-            throw new RuntimeException("TemplateNotFound: " + file);
-        }
         JetContext context = new JetContext(ctx.getContext(), parameters);
         template.render(context, ctx.getWriter());
     }
@@ -132,9 +129,6 @@ public final class JetUtils {
         }
         String file = ctx.getAbsolutionName(relativeName);
         JetTemplate template = ctx.getEngine().getTemplate(file);
-        if (template == null) {
-            throw new RuntimeException("TemplateNotFound: " + file);
-        }
         JetContext context = new JetContext(ctx.getContext(), parameters);
 
         UnsafeCharArrayWriter os = new UnsafeCharArrayWriter();
@@ -149,9 +143,6 @@ public final class JetUtils {
         }
         String file = ctx.getAbsolutionName(relativeName);
         Resource resource = ctx.getEngine().getResource(file);
-        if (resource == null) {
-            throw new RuntimeException("ResourceNotFound: " + file);
-        }
         if (encoding == null) {
             encoding = ctx.getEngine().getConfig().getOutputEncoding();
         }
