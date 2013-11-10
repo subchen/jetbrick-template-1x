@@ -1,3 +1,4 @@
 *.class
 /bin/
 findbugs.xml
+jetbrick-template.jar
