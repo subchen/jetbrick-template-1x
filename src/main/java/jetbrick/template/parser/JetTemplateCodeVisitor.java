@@ -1123,7 +1123,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 类型检查
         Class<?> resultKlass = PromotionUtils.get_binary_basic(lhs.getKlass(), rhs.getKlass(), op);
         if (resultKlass == null) {
-            throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx);
+            throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx.getChild(1));
         }
 
         String source = "(" + lhs.getSource() + op + rhs.getSource() + ")";
@@ -1147,7 +1147,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 类型检查
         Class<?> resultKlass = PromotionUtils.get_binary_shift(lhs.getKlass(), rhs.getKlass(), op);
         if (resultKlass == null) {
-            throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx);
+            throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx.getChild(1));
         }
 
         String source = "(" + lhs.getSource() + op + rhs.getSource() + ")";

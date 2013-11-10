@@ -72,6 +72,7 @@ public class PromotionUtils {
         case '+':
             // http://docs.oracle.com/javase/specs/jls/se7/html/jls-15.html#jls-15.18.1
             if (String.class.equals(lhs) || String.class.equals(rhs)) {
+                if (Void.TYPE.equals(lhs) || Void.TYPE.equals(rhs)) return null;
                 return String.class;
             }
         case '-':
