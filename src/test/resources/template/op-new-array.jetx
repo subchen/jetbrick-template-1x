@@ -1,6 +1,0 @@
-${new int[2]}
-${new int[1][2]}
-${new Integer[2]}
-${new Integer[1][2]}
-${new java.lang.String[2]}
-${new java.lang.String[1][2]}

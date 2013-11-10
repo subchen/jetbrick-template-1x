@@ -1,4 +1,4 @@
-#include("value.jetx")
-#include("./value.jetx")
-#include("/template/value.jetx")
-#include("value.jetx", {})
+#include("include-sub.jetx")
+#include("./include-sub.jetx")
+#include("/template/include-sub.jetx")
+#include("include-sub.jetx", {})

@@ -1,77 +1,83 @@
 package testcase;
 
-import java.io.File;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
-import java.util.*;
+import java.util.Properties;
 import jetbrick.template.*;
 import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.loader.ClasspathResourceLoader;
-import testcase.model.SimpleModel;
-import testcase.model.User;
+import jetbrick.template.utils.IoUtils;
+import jetbrick.template.utils.UnsafeByteArrayOutputStream;
 
 public class JetEngineTestCase {
     private static final JetEngine engine = getEngine();
-    private static final Map<String, Object> context = getContext();
+    private static final JetContext context = getContext();
 
     private static JetEngine getEngine() {
         Properties config = new Properties();
         config.put(JetConfig.IMPORT_PACKAGES, "testcase.model.*");
-        config.put(JetConfig.IMPORT_VARIABLES, "User user, Book book, SimpleModel model, int[] array");
+        config.put(JetConfig.IMPORT_VARIABLES, "User user, Book book");
         config.put(JetConfig.TEMPLATE_LOADER, ClasspathResourceLoader.class.getName());
         config.put(JetConfig.TEMPLATE_PATH, "/");
         return new JetEngine(config);
     }
 
-    private static Map<String, Object> getContext() {
-        Map<String, Object> context = new HashMap<String, Object>();
-        context.put("model", SimpleModel.newInstance());
-        context.put("user", User.newInstance());
-        context.put("book", User.newInstance().getBookList().get(0));
+    private static JetContext getContext() {
+        JetContext context = new JetContext();
+        testcase.model.User user = testcase.model.User.newInstance();
+        context.put("user", user);
+        context.put("book", user.getBookList().get(0));
         context.put("array", new int[] { 1, 2, 3 });
         context.put("items", new String[] { "a", "b", "c" });
         return context;
     }
 
-    private static void test(String name, OutputStream out) {
+    private static void render(String name, OutputStream out) {
         JetTemplate template = engine.getTemplate(name);
         template.render(context, out);
     }
 
-    public static void main(String[] args) throws Throwable {
-        List<String> filelist = new ArrayList<String>();
-        if (args.length == 0) {
-            URL url = ClassUtils.getContextClassLoader().getResource("template");
-            File path = new File(url.getFile());
-            for (File file : path.listFiles()) {
-                if (file.getName().endsWith(".jetx")) {
-                    filelist.add("/template/" + file.getName());
+    private static void testSuccessfully() throws IOException {
+        URL url = ClassUtils.getContextClassLoader().getResource("template");
+        File path = new File(url.getFile());
+
+        for (File file : path.listFiles()) {
+            if (file.getName().endsWith(".jetx")) {
+                String name = "/template/" + file.getName();
+
+                UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream();
+                render(name, out);
+                String out_contents = out.toString("utf-8");
+
+                if (name.endsWith("-ignore.jetx")) continue;
+
+                File outputFile = new File(path, file.getName() + ".txt");
+                String contents = new String(IoUtils.toCharArray(outputFile, "utf-8"));
+
+                if (!contents.equals(out_contents)) {
+                    System.err.println("ASSERT ERROR: " + name);
+                    System.err.println("==========================================");
+                    System.err.println(out_contents);
+                    System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                    System.err.println(contents);
+                    System.exit(1);
                 }
             }
-        } else {
-            for (String arg : args) {
-                filelist.add("/template/" + arg);
-            }
+        }
+    }
+
+    public static void main(String[] args) throws Throwable {
+        if (args.length > 0) {
+            render(args[0], System.out);
+            return;
         }
 
-        //System.in.read();
         long ts = System.currentTimeMillis();
-        int n = 1;
-        for (int i = 0; i < n; i++) {
-            for (String name : filelist) {
-                //System.out.println("processing: " + file);
-                //OutputStream out = new FileOutputStream(new File(path, name + ".txt"));
-                //OutputStream out = NullOutputStream.NULL_OUTPUT_STREAM;
-                OutputStream out = System.out;
-                test(name, out);
-                //out.close();
-                // Thread.sleep(1000);
-                //System.in.read();
-            }
-        }
+
+        testSuccessfully();
+
         System.out.println();
         System.out.println("total: " + (System.currentTimeMillis() - ts));
-        System.out.println("avg: " + (System.currentTimeMillis() - ts) / n / filelist.size());
         //System.in.read();
     }
 }

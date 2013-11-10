@@ -1,9 +1,0 @@
-${now()}
-${uuid()}
-${random()}
-${step(1,10)}
-${step(10,1,-1)}
-${include("value.jetx")}
-${include("value.jetx", {})}
-${read("value.jetx")}
-${read("value.jetx", "utf-8")}

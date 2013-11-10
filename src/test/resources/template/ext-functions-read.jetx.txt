@@ -1,0 +1,6 @@
+#if (true)
+    print true
+#end
+#if (true)
+    print true
+#end
