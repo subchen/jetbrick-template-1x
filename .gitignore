@@ -2,3 +2,4 @@
 /bin/
 findbugs.xml
 jetbrick-template.jar
+*.zip

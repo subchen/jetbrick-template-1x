@@ -22,11 +22,9 @@
     </patternset>
 
     <target name="compile.clean">
-        <!--
         <delete includeemptydirs="true">
-            <fileset dir="${basedir}/bin" includes="**" />
+            <fileset dir="${basedir}" includes="*.zip" />
         </delete>
-        -->
         <delete dir="${basedir}/bin" />
         <mkdir dir="${basedir}/bin" />
     </target>
@@ -67,7 +65,7 @@
     </target>
 
     <target name="jar" depends="compile">
-        <jar jarfile="${basedir}/${product.name}-${product.version}.jar" whenempty="fail">
+        <jar jarfile="${basedir}/bin/${product.name}-${product.version}.jar" whenempty="fail">
             <fileset dir="${basedir}/bin">
                 <include name="jetbrick/**/*.class" />
             </fileset>
@@ -80,7 +78,23 @@
         </jar>
     </target>
 
-    <target name="javadoc" depends="compile.clean">
+    <target name="source.jar">
+        <jar jarfile="${basedir}/bin/${product.name}-source-${product.version}.jar" whenempty="fail">
+            <fileset dir="${basedir}" >
+                <include name="src/**" />
+                <include name="build.xml" />
+                <include name="pom.xml" />
+            </fileset>
+            <manifest>
+                <attribute name="Built-By" value="${product.author}"/>
+                <attribute name="Implementation-Vendor" value="${product.vendor}"/>
+                <attribute name="Implementation-Title" value="${product.name}"/>
+                <attribute name="Implementation-Version" value="${product.version}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="javadoc.compile" depends="compile.clean">
         <property name="product.title" value="${product.name} ${product.version} API" />
         <property name="javadoc.dir" value="${basedir}/bin/javadoc" />
         <property name="javadoc.overview" value="" />
@@ -100,6 +114,40 @@
                 <include name="jetbrick/**/*.java" />
             </fileset>
         </javadoc>
+    </target>
+
+    <target name="javadoc.jar" depends="javadoc.compile">
+        <jar jarfile="${basedir}/bin/${product.name}-javadoc-${product.version}.jar" whenempty="fail">
+            <fileset dir="${basedir}/bin/javadoc">
+                <include name="**" />
+            </fileset>
+            <manifest>
+                <attribute name="Built-By" value="${product.author}"/>
+                <attribute name="Implementation-Vendor" value="${product.vendor}"/>
+                <attribute name="Implementation-Title" value="${product.name}"/>
+                <attribute name="Implementation-Version" value="${product.version}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="zip.all" depends="jar, source.jar, javadoc.jar">
+        <zip zipfile="${basedir}/${product.name}-${product.version}.zip" whenempty="fail">
+            <fileset dir="${basedir}/bin">
+                <include name="${product.name}-${product.version}.jar" />
+            </fileset>
+            <fileset dir="${basedir}">
+                <include name="lib/*.jar" />
+            </fileset>
+        </zip>
+
+        <zip zipfile="${basedir}/${product.name}-${product.version}-alls.zip" whenempty="fail">
+            <fileset dir="${basedir}/bin">
+                <include name="*.jar" />
+            </fileset>
+            <fileset dir="${basedir}">
+                <include name="lib/**/*.jar" />
+            </fileset>
+        </zip>
     </target>
 
     <target name="test.compile">
