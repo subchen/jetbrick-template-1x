@@ -1,8 +1,8 @@
 package jetbrick.template.web;
 
+import java.util.Map;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.*;
 import jetbrick.template.JetContext;
 
 /**
@@ -17,18 +17,24 @@ public class JetWebContext extends JetContext {
     public static final String COOKIES = "cookies";
 
     private final ServletContext servletContext;
+    private final HttpSession session;
     private final HttpServletRequest request;
 
-    public JetWebContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response) {
-        this.servletContext = servletContext;
+    public JetWebContext(HttpServletRequest request, HttpServletResponse response, Map<String, Object> context) {
         this.request = request;
+        this.session = request.getSession();
+        this.servletContext = session.getServletContext();
 
         put(SERVLET_CONTEXT, servletContext);
-        put(SESSION, request.getSession(false));
+        put(SESSION, session);
         put(REQUEST, request);
         put(RESPONSE, response);
         put(PARAMETERS, request.getParameterMap());
         put(COOKIES, request.getCookies());
+
+        if (context != null) {
+            putAll(context);
+        }
     }
 
     @Override
@@ -40,7 +46,7 @@ public class JetWebContext extends JetContext {
 
         value = request.getAttribute(name);
         if (value != null) return value;
-        value = request.getSession().getAttribute(name);
+        value = session.getAttribute(name);
         if (value != null) return value;
         return servletContext.getAttribute(name);
     }

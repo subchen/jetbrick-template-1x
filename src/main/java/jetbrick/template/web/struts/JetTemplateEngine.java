@@ -7,7 +7,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrick.template.*;
-import jetbrick.template.web.JetEngineManager;
+import jetbrick.template.web.JetWebEngineManager;
 import jetbrick.template.web.JetWebContext;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.components.template.*;
@@ -24,8 +24,8 @@ public class JetTemplateEngine extends BaseTemplateEngine {
         HttpServletRequest request = (HttpServletRequest) actionContext.get(ServletActionContext.HTTP_REQUEST);
         HttpServletResponse response = (HttpServletResponse) actionContext.get(ServletActionContext.HTTP_RESPONSE);
 
-        JetEngineManager.setServletContext(servletContext);
-        JetEngine engine = JetEngineManager.getJetEngine();
+        JetWebEngineManager.setServletContext(servletContext);
+        JetEngine engine = JetWebEngineManager.getJetEngine();
 
         // get the list of templates we can use
         List<Template> templates = templateContext.getTemplate().getPossibleTemplates(this);
@@ -59,7 +59,7 @@ public class JetTemplateEngine extends BaseTemplateEngine {
             log.debug("Rendering template " + templateName);
         }
 
-        JetContext context = new JetWebContext(servletContext, request, response);
+        JetContext context = new JetWebContext(request, response, null);
         Writer writer = templateContext.getWriter();
         template.render(context, writer);
     }

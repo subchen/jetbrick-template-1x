@@ -1,12 +1,12 @@
 package jetbrick.template.web;
 
-import java.util.Properties;
+import jetbrick.template.JetConfig;
 import jetbrick.template.JetEngine;
 import jetbrick.template.parser.VariableResolver;
 
-public class JetWebEngine extends JetEngine {
+class JetWebEngine extends JetEngine {
 
-    public JetWebEngine(Properties config) {
+    protected JetWebEngine(JetConfig config) {
         super(config);
 
         VariableResolver resolver = getVariableResolver();
