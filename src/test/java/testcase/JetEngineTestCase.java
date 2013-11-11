@@ -19,7 +19,7 @@ public class JetEngineTestCase {
         config.put(JetConfig.IMPORT_VARIABLES, "User user, Book book");
         config.put(JetConfig.TEMPLATE_LOADER, ClasspathResourceLoader.class.getName());
         config.put(JetConfig.TEMPLATE_PATH, "/");
-        return new JetEngine(config);
+        return JetEngine.create(config);
     }
 
     private static JetContext getContext() {

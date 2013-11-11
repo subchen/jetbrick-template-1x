@@ -1,14 +1,15 @@
 package jetbrick.template;
 
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 import jetbrick.template.resource.loader.FileSystemResourceLoader;
+import jetbrick.template.utils.ConfigSupport;
 import jetbrick.template.utils.PathUtils;
-import jetbrick.template.utils.PropertiesHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JetConfig {
+public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String DEFAULT_CONFIG_FILE = "jetbrick-template.properties";
 
     public static final String IMPORT_PACKAGES = "import.packages";
@@ -25,20 +26,21 @@ public class JetConfig {
     public static final String TRIM_DIRECTIVE_LINE = "trim.directive.line";
 
     private final Logger log = LoggerFactory.getLogger(JetConfig.class);
-    private final String[] importPackages;
-    private final String[] importMethods;
-    private final String[] importFunctions;
-    private final String[] importVariables;
-    private final String inputEncoding;
-    private final String outputEncoding;
-    private final Class<?> templateLoader;
-    private final String templatePath;
-    private final boolean templateReloadable;
-    private final boolean compileDebug;
-    private final String compilePath;
-    private final boolean trimDirectiveLine;
 
-    protected JetConfig(Properties properties) {
+    private List<String> importPackages;
+    private List<String> importMethods;
+    private List<String> importFunctions;
+    private List<String> importVariables;
+    private String inputEncoding;
+    private String outputEncoding;
+    private Class<?> templateLoader;
+    private String templatePath;
+    private boolean templateReloadable;
+    private boolean compileDebug;
+    private String compilePath;
+    private boolean trimDirectiveLine;
+
+    public JetConfig() {
         // default config
         String defaultCompilePath = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
 
@@ -51,24 +53,12 @@ public class JetConfig {
         config.setProperty(COMPILE_DEBUG, "true");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
         config.setProperty(TRIM_DIRECTIVE_LINE, "true");
-        if (properties != null) {
-            config.putAll(properties);
-        }
+        load(config);
+    }
 
-        // set user config
-        PropertiesHelper p = new PropertiesHelper(config);
-        importPackages = p.getStringArray(IMPORT_PACKAGES);
-        importMethods = p.getStringArray(IMPORT_METHODS);
-        importFunctions = p.getStringArray(IMPORT_FUNCTIONS);
-        importVariables = p.getStringArray(IMPORT_VARIABLES);
-        inputEncoding = p.getString(INPUT_ENCODING);
-        outputEncoding = p.getString(OUTPUT_ENCODING);
-        templateLoader = p.getClass(TEMPLATE_LOADER);
-        templatePath = p.getString(TEMPLATE_PATH);
-        templateReloadable = p.getBoolean(TEMPLATE_RELOADABLE);
-        compileDebug = p.getBoolean(COMPILE_DEBUG);
-        compilePath = p.getString(COMPILE_PATH);
-        trimDirectiveLine = p.getBoolean(TRIM_DIRECTIVE_LINE);
+    @Override
+    public JetConfig build() {
+        super.build();
 
         // log
         if (log.isDebugEnabled()) {
@@ -79,21 +69,22 @@ public class JetConfig {
                 log.debug("autoload off: template will NOT automatically reload.");
             }
         }
+        return this;
     }
 
-    public String[] getImportPackages() {
+    public List<String> getImportPackages() {
         return importPackages;
     }
 
-    public String[] getImportMethods() {
+    public List<String> getImportMethods() {
         return importMethods;
     }
 
-    public String[] getImportFunctions() {
+    public List<String> getImportFunctions() {
         return importFunctions;
     }
 
-    public String[] getImportVariables() {
+    public List<String> getImportVariables() {
         return importVariables;
     }
 

@@ -213,15 +213,15 @@ public final class JetMethods {
 
     //---- String -------------------------------------------------------
     public static String toUnderlineName(String s) {
-        return CamelCaseUtils.toUnderlineName(s);
+        return WordUtils.toUnderlineName(s);
     }
 
     public static String toCamelCase(String s) {
-        return CamelCaseUtils.toCamelCase(s);
+        return WordUtils.toCamelCase(s);
     }
 
     public static String toCapitalizeCamelCase(String s) {
-        return CamelCaseUtils.toCapitalizeCamelCase(s);
+        return WordUtils.toCapitalizeCamelCase(s);
     }
 
     public static String repeat(String value, int count) {

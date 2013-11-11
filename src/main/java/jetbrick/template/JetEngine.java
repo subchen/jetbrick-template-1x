@@ -5,7 +5,6 @@ import java.util.Properties;
 import jetbrick.template.compiler.JdkCompiler;
 import jetbrick.template.compiler.JetClassLoader;
 import jetbrick.template.parser.VariableResolver;
-import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.SourceCodeResource;
 import jetbrick.template.resource.loader.ResourceLoader;
@@ -22,16 +21,20 @@ public class JetEngine {
     private final ConcurrentResourceCache resourceCache;
     private final ConcurrentTemplateCache templateCache;
 
-    public JetEngine() {
-        this(PropertiesUtils.load(ClassUtils.getContextClassLoader().getResourceAsStream(JetConfig.DEFAULT_CONFIG_FILE)));
+    public static JetEngine create() {
+        return new JetEngine(new JetConfig().loadClasspath(JetConfig.DEFAULT_CONFIG_FILE));
     }
 
-    public JetEngine(File configFile) {
-        this(PropertiesUtils.load(configFile));
+    public static JetEngine create(File configFile) {
+        return new JetEngine(new JetConfig().loadFile(configFile));
     }
 
-    public JetEngine(Properties properties) {
-        this.config = new JetConfig(properties);
+    public static JetEngine create(Properties properties) {
+        return new JetEngine(new JetConfig().load(properties));
+    }
+
+    protected JetEngine(JetConfig config) {
+        this.config = config.build();
         this.resolver = createVariableResolver();
         this.resourceLoader = createResourceLoader();
         this.classLoader = new JetClassLoader(config.getCompilePath(), config.isTemplateReloadable());
@@ -111,8 +114,8 @@ public class JetEngine {
         for (String pkg : config.getImportPackages()) {
             resolver.addImportPackage(pkg);
         }
-        for (String tool : config.getImportMethods()) {
-            resolver.addMethodClass(tool);
+        for (String method : config.getImportMethods()) {
+            resolver.addMethodClass(method);
         }
         for (String function : config.getImportFunctions()) {
             resolver.addFunctionClass(function);

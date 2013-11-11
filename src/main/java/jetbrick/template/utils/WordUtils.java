@@ -1,9 +1,16 @@
 package jetbrick.template.utils;
 
-public final class CamelCaseUtils {
-    private static final char SEPARATOR = '_';
+public final class WordUtils {
 
     public static String toUnderlineName(String s) {
+        return toSpecialName(s, '_');
+    }
+
+    public static String toDashlineName(String s) {
+        return toSpecialName(s, '-');
+    }
+
+    public static String toSpecialName(String s, char ch) {
         if (s == null || s.length() == 0) return s;
 
         StringBuilder sb = new StringBuilder();
@@ -18,7 +25,7 @@ public final class CamelCaseUtils {
 
             if ((i >= 0) && Character.isUpperCase(c)) {
                 if (!upperCase || !nextUpperCase) {
-                    if (i > 0) sb.append(SEPARATOR);
+                    if (i > 0) sb.append(ch);
                 }
                 upperCase = true;
             } else {
@@ -39,7 +46,7 @@ public final class CamelCaseUtils {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
 
-            if (c == SEPARATOR) {
+            if (c == '_' || c == '-' || c == '.') {
                 upperCase = true;
             } else if (upperCase) {
                 sb.append(Character.toUpperCase(c));

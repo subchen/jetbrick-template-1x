@@ -43,4 +43,11 @@ public class JetContext {
             parent.put(name, value);
         }
     }
+
+    public void putAll(Map<String, Object> context) {
+        context.putAll(context);
+        if (parent != null) {
+            parent.putAll(context);
+        }
+    }
 }
