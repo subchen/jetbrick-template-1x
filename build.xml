@@ -140,7 +140,7 @@
             </fileset>
         </zip>
 
-        <zip zipfile="${basedir}/${product.name}-${product.version}-alls.zip" whenempty="fail">
+        <zip zipfile="${basedir}/${product.name}-${product.version}-all.zip" whenempty="fail">
             <fileset dir="${basedir}/bin">
                 <include name="*.jar" />
             </fileset>
