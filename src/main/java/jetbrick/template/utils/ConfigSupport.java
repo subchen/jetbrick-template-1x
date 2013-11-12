@@ -38,43 +38,56 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
 
         Field[] fields = getClass().getDeclaredFields();
         for (Field field : fields) {
-            if (Modifier.isFinal(field.getModifiers())) continue;
-            field.setAccessible(true);
-
             String name = WordUtils.toSpecialName(field.getName(), '.');
             String value = config.getProperty(name);
             if (value == null) continue;
-
-            Class<?> type = field.getType();
-
-            try {
-                if (List.class.isAssignableFrom(type)) {
-                    List<Object> values = (List<Object>) field.get(this);
-                    if (values == null) {
-                        values = new ArrayList<Object>();
-                        field.set(this, values);
-                    }
-
-                    type = String.class; // String is the default Class
-                    // try to lookup generic type for List<?>
-                    Type genericType = field.getGenericType();
-                    if (genericType instanceof ParameterizedType) {
-                        Type[] actualTypeArgs = ((ParameterizedType) genericType).getActualTypeArguments();
-                        if (actualTypeArgs != null && actualTypeArgs.length > 0) {
-                            type = (Class<?>) actualTypeArgs[0];
-                        }
-                    }
-                    for (String val : value.split(",")) {
-                        values.add(cast(val, type));
-                    }
-                } else {
-                    field.set(this, cast(value, type));
-                }
-            } catch (Exception e) {
-                throw ExceptionUtils.uncheck(e);
-            }
+            setFieldValue(field, value);
         }
         return (T) this;
+    }
+
+    public T load(String name, String value) {
+        try {
+            String fieldName = WordUtils.toCamelCase(name);
+            Field field = getClass().getDeclaredField(fieldName);
+            setFieldValue(field, value);
+        } catch (Exception e) {
+            throw ExceptionUtils.uncheck(e);
+        }
+        return (T) this;
+    }
+
+    protected void setFieldValue(Field field, String value) {
+        if (field == null || Modifier.isFinal(field.getModifiers())) return;
+
+        field.setAccessible(true);
+        Class<?> type = field.getType();
+        try {
+            if (List.class.isAssignableFrom(type)) {
+                List<Object> values = (List<Object>) field.get(this);
+                if (values == null) {
+                    values = new ArrayList<Object>();
+                    field.set(this, values);
+                }
+
+                type = String.class; // String is the default Class
+                // try to lookup generic type for List<?>
+                Type genericType = field.getGenericType();
+                if (genericType instanceof ParameterizedType) {
+                    Type[] actualTypeArgs = ((ParameterizedType) genericType).getActualTypeArguments();
+                    if (actualTypeArgs != null && actualTypeArgs.length > 0) {
+                        type = (Class<?>) actualTypeArgs[0];
+                    }
+                }
+                for (String val : value.split(",")) {
+                    values.add(cast(val, type));
+                }
+            } else {
+                field.set(this, cast(value, type));
+            }
+        } catch (Exception e) {
+            throw ExceptionUtils.uncheck(e);
+        }
     }
 
     public T build() {
@@ -101,11 +114,13 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
     }
 
     private Object cast(String value, Class<?> type) {
-        value = value.trim();
+        if (value != null) {
+            value = value.trim();
+        }
         if (String.class.equals(type)) {
             return value;
         }
-        if (value.length() == 0) {
+        if (value == null || value.length() == 0) {
             if (Boolean.TYPE.equals(type)) {
                 return Boolean.FALSE;
             } else if (Integer.TYPE.equals(type)) {
