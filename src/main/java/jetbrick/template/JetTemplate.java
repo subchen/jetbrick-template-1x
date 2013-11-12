@@ -1,6 +1,7 @@
 package jetbrick.template;
 
 import java.io.*;
+import java.util.Map;
 import jetbrick.template.parser.*;
 import jetbrick.template.parser.code.Code;
 import jetbrick.template.parser.grammer.JetTemplateLexer;
@@ -104,23 +105,31 @@ public final class JetTemplate {
         return code.getSource();
     }
 
+    public void render(Map<String, Object> context, Writer out) {
+        render(new JetContext(context), out);
+    }
+
+    public void render(Map<String, Object> context, OutputStream out) {
+        render(new JetContext(context), out);
+    }
+
     public void render(JetContext context, Writer out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetRuntimeContext(this, context, writer));
+        render(new JetPageContext(this, context, writer));
     }
 
     public void render(JetContext context, OutputStream out) {
         JetWriter writer = JetWriter.create(out, encoding);
-        render(new JetRuntimeContext(this, context, writer));
+        render(new JetPageContext(this, context, writer));
     }
 
     public void render(JetContext context, JetWriter writer) {
-        render(new JetRuntimeContext(this, context, writer));
+        render(new JetPageContext(this, context, writer));
     }
 
-    private void render(JetRuntimeContext context) {
+    private void render(JetPageContext ctx) {
         try {
-            pageObject.render(context);
+            pageObject.render(ctx);
         } catch (Throwable e) {
             throw ExceptionUtils.uncheck(e);
         }

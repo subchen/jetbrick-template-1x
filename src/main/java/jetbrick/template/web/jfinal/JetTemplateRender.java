@@ -3,6 +3,7 @@ package jetbrick.template.web.jfinal;
 import java.io.IOException;
 import jetbrick.template.*;
 import jetbrick.template.utils.ExceptionUtils;
+import jetbrick.template.web.JetWebContext;
 import jetbrick.template.web.JetWebEngineManager;
 import com.jfinal.render.Render;
 
@@ -21,7 +22,7 @@ public class JetTemplateRender extends Render {
             engine = JetWebEngineManager.getJetEngine();
         }
 
-        JetContext context = JetWebEngineManager.createJetContext(request, response);
+        JetContext context = new JetWebContext(request, response);
         JetTemplate template = engine.getTemplate(view);
         try {
             template.render(context, response.getOutputStream());

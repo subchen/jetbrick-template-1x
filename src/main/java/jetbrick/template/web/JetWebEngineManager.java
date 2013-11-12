@@ -1,11 +1,8 @@
 package jetbrick.template.web;
 
-import java.util.Map;
-import java.util.Properties;
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import jetbrick.template.*;
+import jetbrick.template.JetConfig;
+import jetbrick.template.JetEngine;
 import jetbrick.template.web.struts.JetTemplateEngine;
 
 public class JetWebEngineManager {
@@ -38,21 +35,10 @@ public class JetWebEngineManager {
             } else {
                 config.loadClasspath(JetConfig.DEFAULT_CONFIG_FILE);
             }
-            Properties properties = new Properties();
-            properties.setProperty(JetConfig.TEMPLATE_PATH, servletContext.getRealPath(templatePath));
-            config.load(properties);
-            
+            config.load(JetConfig.TEMPLATE_PATH, servletContext.getRealPath(templatePath));
             engine = new JetWebEngine(config);
         }
         return engine;
-    }
-
-    public static JetContext createJetContext(HttpServletRequest request, HttpServletResponse response) {
-        return new JetWebContext(request, response, null);
-    }
-
-    public static JetContext createJetContext(HttpServletRequest request, HttpServletResponse response, Map<String, Object> context) {
-        return new JetWebContext(request, response, context);
     }
 
     public static String getTemplateSuffix() {

@@ -10,10 +10,10 @@ import jetbrick.template.utils.IoUtils;
 import jetbrick.template.utils.UnsafeByteArrayOutputStream;
 
 public class JetEngineTestCase {
-    private static final JetEngine engine = getEngine();
-    private static final JetContext context = getContext();
+    private static final JetEngine engine = getJetEngine();
+    private static final JetContext context = getJetContext();
 
-    private static JetEngine getEngine() {
+    private static JetEngine getJetEngine() {
         Properties config = new Properties();
         config.put(JetConfig.IMPORT_PACKAGES, "testcase.model.*");
         config.put(JetConfig.IMPORT_VARIABLES, "User user, Book book");
@@ -22,7 +22,7 @@ public class JetEngineTestCase {
         return JetEngine.create(config);
     }
 
-    private static JetContext getContext() {
+    private static JetContext getJetContext() {
         JetContext context = new JetContext();
         testcase.model.User user = testcase.model.User.newInstance();
         context.put("user", user);

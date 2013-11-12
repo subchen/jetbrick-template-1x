@@ -113,7 +113,7 @@ public final class JetUtils {
     }
 
     // render 子模板，并直接输出
-    public static void asInclude(JetRuntimeContext ctx, String relativeName, Map<String, Object> parameters) throws IOException {
+    public static void asInclude(JetPageContext ctx, String relativeName, Map<String, Object> parameters) throws IOException {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
@@ -126,7 +126,7 @@ public final class JetUtils {
     }
 
     // render 子模板，并返回生成的内容
-    public static String asIncludeContent(JetRuntimeContext ctx, String relativeName, Map<String, Object> parameters) {
+    public static String asIncludeContent(JetPageContext ctx, String relativeName, Map<String, Object> parameters) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
@@ -140,7 +140,7 @@ public final class JetUtils {
     }
 
     // 读取纯文本内容
-    public static String asReadContent(JetRuntimeContext ctx, String relativeName, String encoding) {
+    public static String asReadContent(JetPageContext ctx, String relativeName, String encoding) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }

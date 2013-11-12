@@ -5,11 +5,11 @@ import java.io.StringWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import jetbrick.template.runtime.JetRuntimeContext;
+import jetbrick.template.runtime.JetPageContext;
 
 public class ServletViewUtils {
 
-    public static String getOutput(JetRuntimeContext ctx, String name) throws ServletException, IOException {
+    public static String getOutput(JetPageContext ctx, String name) throws ServletException, IOException {
         name = ctx.getAbsolutionName(name);
 
         HttpServletRequest request = (HttpServletRequest) ctx.getContext().get(JetWebContext.REQUEST);

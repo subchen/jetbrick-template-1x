@@ -10,11 +10,11 @@ class JetWebEngine extends JetEngine {
         super(config);
 
         VariableResolver resolver = getVariableResolver();
-        resolver.addGlobalVariable("javax.servlet.ServletContext", "application");
-        resolver.addGlobalVariable("javax.servlet.http.HttpSession", "session");
-        resolver.addGlobalVariable("javax.servlet.http.HttpServletRequest", "request");
-        resolver.addGlobalVariable("javax.servlet.http.HttpServletResponse", "response");
-        resolver.addGlobalVariable("java.util.Map<String,String[]>", "parameters");
-        resolver.addGlobalVariable("javax.servlet.http.Cookie[]", "cookies");
+        resolver.addGlobalVariable("javax.servlet.ServletContext", JetWebContext.SERVLET_CONTEXT);
+        resolver.addGlobalVariable("javax.servlet.http.HttpSession", JetWebContext.SESSION);
+        resolver.addGlobalVariable("javax.servlet.http.HttpServletRequest", JetWebContext.REQUEST);
+        resolver.addGlobalVariable("javax.servlet.http.HttpServletResponse", JetWebContext.RESPONSE);
+        resolver.addGlobalVariable("java.util.Map<String,String[]>", JetWebContext.PARAMETERS);
+        resolver.addGlobalVariable("javax.servlet.http.Cookie[]", JetWebContext.COOKIES);
     }
 }

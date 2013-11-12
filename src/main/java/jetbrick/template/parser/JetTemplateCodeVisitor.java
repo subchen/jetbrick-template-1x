@@ -72,6 +72,7 @@ import org.slf4j.LoggerFactory;
 // Visitor 模式访问器，用来生成 Java 代码
 public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> implements JetTemplateParserVisitor<Code> {
     private static final Logger log = LoggerFactory.getLogger(JetTemplateCodeVisitor.class);
+    private static final String CONTEXT_NAME = "context";
 
     private final JetEngine engine;
     private final JetTemplateParser parser;
@@ -81,9 +82,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private final boolean trimDirectiveLine;
 
     private SymbolScope scope; // 当前的作用域
-    private SymbolScope contextScope; // 全局context变量
+    private SymbolScope contextScope; // 全局 context 变量
     private BlockCode textBlockCode; // 缓存全局文本内容
-    private BlockCode contextBlockCode; // 缓存全局context变量
+    private BlockCode contextBlockCode; // 缓存全局 context 变量
     private Map<String, String> textCodeCache; // 缓存文本内容
     private Deque<String[]> forStack; // 维护嵌套 #for 的堆栈， 可以识别是否在嵌入在 #for 里面, 内部是否使用了 for.index
     private int uuid = 1;
@@ -119,13 +120,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // add render() method
         code.addLine("");
         code.addLine("  @Override");
-        code.addLine("  public void render(JetRuntimeContext $ctx) throws Throwable {");
+        code.addLine("  public void render(JetPageContext $ctx) throws Throwable {");
         scope = scope.push();
-        scope.define("context", TypedKlass.JetContext);
-        code.addLine("    JetContext context = $ctx.getContext();");
+        scope.define(CONTEXT_NAME, TypedKlass.JetContext);
+        code.addLine("    JetContext " + CONTEXT_NAME + " = $ctx.getContext();");
         code.addLine("    JetWriter $out = $ctx.getWriter();");
 
-        contextScope = scope; // 全局context变量
+        contextScope = scope; // 全局 context 变量
         contextBlockCode = scope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
         Code blockCode = ctx.block().accept(this);
 
@@ -280,7 +281,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         String typeName = code.getTypedKlass().asBoxedTypedKlass().getSource();
-        return scope.createLineCode(typeName + " " + name + " = (" + typeName + ") context.get(\"" + name + "\"); // line: " + ctx.getStart().getLine());
+        return scope.createLineCode(typeName + " " + name + " = (" + typeName + ") " + CONTEXT_NAME + ".get(\"" + name + "\"); // line: " + ctx.getStart().getLine());
     }
 
     @Override
@@ -343,7 +344,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The first parameter type is not String.class for #put directive", ctx);
         }
 
-        return scope.createLineCode("context.put(" + name.getSource() + ", " + value.getSource() + "); // line: " + ctx.getStart().getLine());
+        return scope.createLineCode(CONTEXT_NAME + ".put(" + name.getSource() + ", " + value.getSource() + "); // line: " + ctx.getStart().getLine());
     }
 
     @Override
@@ -686,7 +687,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 scope.define(name, resultKlass);
 
                 String klass = resultKlass.asBoxedTypedKlass().getSource();
-                contextBlockCode.addLine(klass + " " + name + " = (" + klass + ") context.get(\"" + name + "\");");
+                contextBlockCode.addLine(klass + " " + name + " = (" + klass + ") " + CONTEXT_NAME + ".get(\"" + name + "\");");
             }
         }
 
@@ -1410,7 +1411,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
             return name;
         }
-        if ("context".equals(name)) {
+        if (CONTEXT_NAME.equals(name)) {
             if (isDefining) {
                 throw reportError("Duplicate local variable \"" + name + "\" is a reserved identifier.", node);
             }

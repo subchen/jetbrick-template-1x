@@ -7,8 +7,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrick.template.*;
-import jetbrick.template.web.JetWebEngineManager;
 import jetbrick.template.web.JetWebContext;
+import jetbrick.template.web.JetWebEngineManager;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.components.template.*;
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class JetTemplateEngine extends BaseTemplateEngine {
             log.debug("Rendering template " + templateName);
         }
 
-        JetContext context = new JetWebContext(request, response, null);
+        JetContext context = new JetWebContext(request, response);
         Writer writer = templateContext.getWriter();
         template.render(context, writer);
     }

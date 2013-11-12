@@ -43,7 +43,7 @@ public class JetTemplateServlet extends HttpServlet {
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        JetContext context = new JetWebContext(request, response, null);
+        JetContext context = new JetWebContext(request, response);
 
         String path = request.getPathInfo();
         if (path == null || path.length() == 0) {

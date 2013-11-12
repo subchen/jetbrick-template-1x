@@ -20,7 +20,7 @@ public class JetWebContext extends JetContext {
     private final HttpSession session;
     private final HttpServletRequest request;
 
-    public JetWebContext(HttpServletRequest request, HttpServletResponse response, Map<String, Object> context) {
+    public JetWebContext(HttpServletRequest request, HttpServletResponse response) {
         this.request = request;
         this.session = request.getSession();
         this.servletContext = session.getServletContext();
@@ -31,6 +31,10 @@ public class JetWebContext extends JetContext {
         put(RESPONSE, response);
         put(PARAMETERS, request.getParameterMap());
         put(COOKIES, request.getCookies());
+    }
+
+    public JetWebContext(HttpServletRequest request, HttpServletResponse response, Map<String, Object> context) {
+        this(request, response);
 
         if (context != null) {
             putAll(context);

@@ -3,12 +3,12 @@ package jetbrick.template.runtime;
 import jetbrick.template.*;
 import jetbrick.template.utils.PathUtils;
 
-public class JetRuntimeContext {
+public class JetPageContext {
     private final JetTemplate template;
     private final JetWriter out;
     private final JetContext context;
 
-    public JetRuntimeContext(JetTemplate template, JetContext context, JetWriter out) {
+    public JetPageContext(JetTemplate template, JetContext context, JetWriter out) {
         this.template = template;
         this.context = context;
         this.out = out;

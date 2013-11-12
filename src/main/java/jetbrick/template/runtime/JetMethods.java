@@ -164,7 +164,7 @@ public final class JetMethods {
         if (value == null) return "null";
         return value.toString();
     }
-  
+
     //---- json -------------------------------------------------------
     public static String asJSON(Object object) {
         return JSONUtils.toJSONString(object);

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 存放模板的 Context 数据, 支持 context chain
+ * 存放模板的 context 数据, 支持 chain
  */
 public class JetContext {
     private final JetContext parent;
@@ -45,7 +45,7 @@ public class JetContext {
     }
 
     public void putAll(Map<String, Object> context) {
-        context.putAll(context);
+        this.context.putAll(context);
         if (parent != null) {
             parent.putAll(context);
         }
