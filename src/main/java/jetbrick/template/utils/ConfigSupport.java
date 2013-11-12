@@ -90,6 +90,9 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
         }
     }
 
+    /**
+     * 固话配置，对象变成只读。只要是处理 List
+     */
     public T build() {
         Field[] fields = getClass().getDeclaredFields();
         for (Field field : fields) {
