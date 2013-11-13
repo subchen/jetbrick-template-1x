@@ -1,19 +1,88 @@
-<project>
-  <dependencies>
-    <dependency>
-      <groupId>com.github.subchen</groupId>
-      <artifactId>jetbrick-template</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr4-runtime</artifactId>
-      <version>4.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
-    </dependency>
-  </dependencies>
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.subchen</groupId>
+    <artifactId>jetbrick-template</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+
+    <name>jetbrick-template</name>
+    <description>Next generation template engine for Java.</description>
+    <url>http://subchen.github.io/jetbrick-template</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/subchen/jetbrick-template.git</url>
+        <connection>scm:git:https://github.com/subchen/jetbrick-template.git</connection>
+        <developerConnection>scm:git:git://github.com/subchen/jetbrick-template.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>github issue</system>
+        <url>https://github.com/subchen/jetbrick-template/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <name>Guoqiang Chen</name>
+            <email>subchen@gmail.com</email>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.struts</groupId>
+            <artifactId>struts2-core</artifactId>
+            <version>2.3.15.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>3.2.5.RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>jfinal</artifactId>
+            <version>1.5</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>

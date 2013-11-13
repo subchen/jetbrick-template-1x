@@ -3,3 +3,5 @@
 findbugs.xml
 jetbrick-template.jar
 *.zip
+/build/
+/target/

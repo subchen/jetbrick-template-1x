@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<project default="compile" basedir=".">
+ 
+<project default="dist" basedir=".">
     <property file="${basedir}/build.properties" />
-
-    <property name="product.author" value="Guoqiang Chen" />
-    <property name="product.vendor" value="subchen@gmail.com" />
-    <property name="product.name" value="jetbrick-template" />
-    <property name="product.version" value="1.0.0" />
-    <property name="java.source" value="1.6" /> 
-    <property name="java.encoding" value="utf-8" /> 
-
+ 
     <path id="compile.classpath">
         <fileset dir="${basedir}/lib" includes="**/*.jar" />
     </path>
-
-    <patternset id="compile.resource">
-        <include name="**/*.properties" />
-        <include name="**/*.xml" />
-        <include name="**/*.jetx" />
-        <include name="**/*.txt" />
-    </patternset>
-
-    <target name="compile.clean">
-        <delete includeemptydirs="true">
-            <fileset dir="${basedir}" includes="*.zip" />
-        </delete>
-        <delete dir="${basedir}/bin" />
-        <mkdir dir="${basedir}/bin" />
+    <path id="compile.sourcepath">
+        <pathelement location="${basedir}/src/main/java"/>
+    </path>
+    <path id="compile.resources">
+        <fileset dir="${basedir}/src/main/resources" excludes="**/*.java" />
+    </path>
+ 
+    <path id="sources.resources">
+        <fileset dir="${basedir}">
+            <include name="src/**" />
+            <include name="LICENSE.txt" />
+            <include name="README.*" />
+            <include name="pom.xml" />
+            <include name="build.*" />
+        </fileset>
+    </path>
+ 
+    <target name="clean">
+        <delete dir="${build.dir}" quiet="true" />
     </target>
-
+ 
     <target name="compile.grammer">
         <property name="antlr.jar" value="${basedir}/lib/antlr/antlr-4.1-complete.jar" />
         <property name="grammer.dir" value="${basedir}/src/main/java/jetbrick/template/parser/grammer" />
@@ -44,136 +42,92 @@
             <arg value="-o" />
             <arg value="." />
         </java>
-        <delete file="${grammer.dir}/JetTemplateLexer.tokens"/>
-        <delete file="${grammer.dir}/JetTemplateParser.tokens"/>
-        <delete file="${grammer.dir}/JetTemplateParserBaseVisitor.java"/>
+        <delete file="${grammer.dir}/JetTemplateLexer.tokens" />
+        <delete file="${grammer.dir}/JetTemplateParser.tokens" />
+        <delete file="${grammer.dir}/JetTemplateParserBaseVisitor.java" />
     </target>
-
-    <target name="compile" depends="compile.clean, compile.grammer">
-        <javac destdir="${basedir}/bin" classpathref="compile.classpath"
-               debug="on" encoding="${java.encoding}"
-               nowarn="true" deprecation="off"
-               source="${java.source}" target="${java.source}"
-               includeantruntime="on">
-            <src path="${basedir}/src/main/java" />
+ 
+    <target name="compile" depends="clean, compile.grammer">
+        <mkdir dir="${classes.dir}" />
+        <javac destdir="${classes.dir}"
+               classpathref="compile.classpath"
+               debug="on" nowarn="true" deprecation="off"
+               encoding="${javac.encoding}"
+               includeantruntime="off">
+            <src refid="compile.sourcepath" />
         </javac>
-        <copy todir="${basedir}/bin">
-            <fileset dir="${basedir}/src/main/resources" >
-                <patternset refid="compile.resource" />
-            </fileset>
+        <copy todir="${classes.dir}">
+            <path refid="compile.resources" />
         </copy>
     </target>
-
+ 
     <target name="jar" depends="compile">
-        <jar jarfile="${basedir}/bin/${product.name}-${product.version}.jar" whenempty="fail">
-            <fileset dir="${basedir}/bin">
-                <include name="jetbrick/**/*.class" />
-            </fileset>
+        <mkdir dir="${dist.dir}" />
+        <jar jarfile="${dist.jar}" whenempty="fail">
+            <fileset dir="${classes.dir}" includes="**" />
             <manifest>
-                <attribute name="Built-By" value="${product.author}"/>
-                <attribute name="Implementation-Vendor" value="${product.vendor}"/>
-                <attribute name="Implementation-Title" value="${product.name}"/>
-                <attribute name="Implementation-Version" value="${product.version}"/>
+                <attribute name="Built-By" value="${product.author}" />
+                <attribute name="Implementation-Vendor" value="${product.vendor}" />
+                <attribute name="Implementation-Title" value="${product.name}" />
+                <attribute name="Implementation-Version" value="${product.version}" />
             </manifest>
         </jar>
     </target>
-
-    <target name="source.jar">
-        <jar jarfile="${basedir}/bin/${product.name}-${product.version}-sources.jar" whenempty="fail">
-            <fileset dir="${basedir}" >
-                <include name="src/**" />
-                <include name="build.xml" />
-                <include name="pom.xml" />
-            </fileset>
+ 
+    <target name="sources.jar">
+        <mkdir dir="${dist.dir}" />
+        <jar jarfile="${dist.sources.jar}" whenempty="fail">
+            <path refid="sources.resources" />
             <manifest>
-                <attribute name="Built-By" value="${product.author}"/>
-                <attribute name="Implementation-Vendor" value="${product.vendor}"/>
-                <attribute name="Implementation-Title" value="${product.name}"/>
-                <attribute name="Implementation-Version" value="${product.version}"/>
+                <attribute name="Built-By" value="${product.author}" />
+                <attribute name="Implementation-Vendor" value="${product.vendor}" />
+                <attribute name="Implementation-Title" value="${product.name}" />
+                <attribute name="Implementation-Version" value="${product.version}" />
             </manifest>
         </jar>
     </target>
-
-    <target name="javadoc.compile" depends="compile.clean">
-        <property name="product.title" value="${product.name} ${product.version} API" />
-        <property name="javadoc.dir" value="${basedir}/bin/javadoc" />
-        <property name="javadoc.overview" value="" />
-
+ 
+    <target name="javadoc" depends="clean">
+        <mkdir dir="${javadoc.dir}" />
         <javadoc destdir="${javadoc.dir}"
-                 windowtitle="${product.title}" overview="${javadoc.overview}"
-                 locale="en_US" source="${java.source}"
-                 encoding="${java.encoding}" docencoding="${java.encoding}" charset="${java.encoding}"
-                 access="protected" version="true" author="true" use="true"
+                 sourcepathref="compile.sourcepath"
+                 classpathref="compile.classpath"
+                 windowtitle="${javadoc.title}"
+                 encoding="${javac.encoding}" docencoding="${javadoc.encoding}" charset="${javadoc.encoding}"
+                 access="${javadoc.access}" version="true" author="true" use="true" splitindex="true"
                  nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false"
-                 splitindex="true"
-                 classpathref="compile.classpath">
-            <doctitle>${product.title}</doctitle>
-            <bottom>Copyright @ 2010-2013 by ${product.author}. All Rights Reserved.</bottom> 
-
-            <fileset dir="${basedir}/src/main/java" defaultexcludes="yes">
-                <include name="jetbrick/**/*.java" />
-            </fileset>
-        </javadoc>
+                 doctitle="${javadoc.title}" bottom="${javadoc.copyright}"
+                 linksource="${javadoc.linksource}"
+        />
     </target>
-
-    <target name="javadoc.jar" depends="javadoc.compile">
-        <jar jarfile="${basedir}/bin/${product.name}-${product.version}-javadoc.jar" whenempty="fail">
-            <fileset dir="${basedir}/bin/javadoc">
-                <include name="**" />
-            </fileset>
+ 
+    <target name="javadoc.jar" depends="javadoc">
+        <mkdir dir="${dist.dir}" />
+        <jar jarfile="${dist.javadoc.jar}" whenempty="fail">
+            <fileset dir="${javadoc.dir}" includes="**" />
             <manifest>
-                <attribute name="Built-By" value="${product.author}"/>
-                <attribute name="Implementation-Vendor" value="${product.vendor}"/>
-                <attribute name="Implementation-Title" value="${product.name}"/>
-                <attribute name="Implementation-Version" value="${product.version}"/>
+                <attribute name="Built-By" value="${product.author}" />
+                <attribute name="Implementation-Vendor" value="${product.vendor}" />
+                <attribute name="Implementation-Title" value="${product.name}" />
+                <attribute name="Implementation-Version" value="${product.version}" />
             </manifest>
         </jar>
     </target>
-
-    <target name="zip.all" depends="jar, source.jar, javadoc.jar">
-        <zip zipfile="${basedir}/${product.name}-${product.version}.zip" whenempty="fail">
-            <fileset dir="${basedir}/bin">
-                <include name="${product.name}-${product.version}.jar" />
-            </fileset>
-            <fileset dir="${basedir}">
-                <include name="lib/*.jar" />
-            </fileset>
+ 
+    <target name="dist" depends="jar, sources.jar, javadoc.jar">
+        <mkdir dir="${dist.dir}" />
+        <zip zipfile="${dist.zip}" whenempty="fail">
+            <fileset file="${dist.jar}" />
+            <fileset dir="${basedir}" includes="lib/*.jar" />
         </zip>
-
-        <zip zipfile="${basedir}/${product.name}-${product.version}-all.zip" whenempty="fail">
-            <fileset dir="${basedir}/bin">
-                <include name="*.jar" />
-            </fileset>
-            <fileset dir="${basedir}">
-                <include name="lib/**/*.jar" />
-            </fileset>
+        <zip zipfile="${dist.all.zip}" whenempty="fail">
+            <fileset file="${dist.jar}" />
+            <fileset file="${dist.sources.jar}" />
+            <fileset file="${dist.javadoc.jar}" />
+            <fileset dir="${basedir}" includes="lib/**/*.jar" />
         </zip>
     </target>
-
-    <target name="test.compile">
-        <javac destdir="${basedir}/bin" classpathref="compile.classpath"
-               debug="on" encoding="${java.encoding}"
-               nowarn="true" deprecation="off"
-               source="${java.source}" target="${java.source}"
-               includeantruntime="on">
-            <classpath>
-                <pathelement path="${basedir}/bin"/>
-            </classpath>
-            <src path="${basedir}/src/test/java" />
-        </javac>
-        <copy todir="${basedir}/bin">
-            <fileset dir="${basedir}/src/test/resources" >
-                <patternset refid="compile.resource" />
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="test.run" depends="test.compile">
-        <java classname="testcase.JetEngineTestCase" classpathref="compile.classpath" fork="yes">
-            <classpath>
-                <pathelement path="${basedir}/bin"/>
-            </classpath>
-        </java>
-    </target>
-
+ 
+    <ant antfile="${basedir}/maven-deploy.xml" />
+ 
 </project>
