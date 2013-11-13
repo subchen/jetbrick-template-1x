@@ -23,7 +23,7 @@ public final class JetFunctions {
         return ArrayUtils.range(start, stop, 1);
     }
 
-    public static int[] step(int start, int stop, int step) {
+    public static int[] range(int start, int stop, int step) {
         return ArrayUtils.range(start, stop, step);
     }
 
