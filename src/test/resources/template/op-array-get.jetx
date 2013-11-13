@@ -5,3 +5,8 @@ ${list[0]}
 ${list[i+1]}
 ${items[0]}
 ${items[i+1]}
+#set (map = {"id":1, "name":"chen"})
+${map["id"]}
+${map[name]}
+#set (User u = context["user"])
+${u.name}

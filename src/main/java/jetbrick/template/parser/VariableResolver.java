@@ -182,27 +182,14 @@ public class VariableResolver {
         // public method
         Method[] methods = beanClass.getMethods();
 
-        // getXXX()
-        String methodName = "get" + name.substring(0, 1).toUpperCase() + name.substring(1);
+        // getXXX() or isXXX()
+        String suffix = name.substring(0, 1).toUpperCase() + name.substring(1);
+        String method_get = "get" + suffix;
+        String method_is = "is" + suffix;
         for (Method method : methods) {
-            if (methodName.equals(method.getName()) && method.getParameterTypes().length == 0) {
-                return method;
-            }
-        }
-        // isXXX()
-        methodName = "is" + name.substring(0, 1).toUpperCase() + name.substring(1);
-        for (Method method : methods) {
-            if (methodName.equals(method.getName()) && method.getParameterTypes().length == 0) {
-                return method;
-            }
-        }
-
-        // get(String) for map like...
-        methodName = "get";
-        for (Method method : methods) {
-            if (methodName.equals(method.getName())) {
-                Class<?>[] types = method.getParameterTypes();
-                if (types.length == 1 && String.class.equals(types[0])) {
+            String methodName = method.getName();
+            if (method_get.equals(methodName) || method_is.equals(methodName)) {
+                if (method.getParameterTypes().length == 0) {
                     return method;
                 }
             }
