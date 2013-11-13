@@ -11,7 +11,6 @@ import jetbrick.template.parser.grammer.JetTemplateParser.BlockContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Break_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.ConstantContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Continue_directiveContext;
-import jetbrick.template.parser.grammer.JetTemplateParser.Debug_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Define_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Define_expressionContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.DirectiveContext;
@@ -587,27 +586,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         source.append(fileCode.getSource());
         source.append(", (Map<String, Object>)");
         source.append((parametersCode != null) ? parametersCode.getSource() : "null");
-        source.append("); // line: ");
-        source.append(ctx.getStart().getLine());
-        return scope.createLineCode(source.toString());
-    }
-
-    @Override
-    public Code visitDebug_directive(Debug_directiveContext ctx) {
-        Expression_listContext expression_list = ctx.expression_list();
-        SegmentListCode childrenCode = (SegmentListCode) expression_list.accept(this);
-        if (childrenCode.size() == 0) {
-            throw reportError("Missing arguments for #debug directive.", ctx);
-        }
-        SegmentCode formatCode = childrenCode.getChild(0);
-        if (!String.class.equals(formatCode.getKlass())) {
-            throw reportError("Type mismatch: the first argument cannot convert from " + formatCode.getKlassName() + " to String", expression_list.expression(0));
-        }
-
-        // 生成代码
-        StringBuilder source = new StringBuilder();
-        source.append("JetUtils.debug(");
-        source.append(childrenCode.getSource());
         source.append("); // line: ");
         source.append(ctx.getStart().getLine());
         return scope.createLineCode(source.toString());
