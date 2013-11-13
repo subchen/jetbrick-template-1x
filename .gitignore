@@ -5,3 +5,4 @@ jetbrick-template.jar
 *.zip
 /build/
 /target/
+/*.xml.asc

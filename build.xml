@@ -63,6 +63,8 @@
  
     <target name="jar" depends="compile">
         <mkdir dir="${dist.dir}" />
+        <mkdir dir="${classes.dir}/META-INF" />
+        <copy todir="${classes.dir}/META-INF" file="pom.xml" />
         <jar jarfile="${dist.jar}" whenempty="fail">
             <fileset dir="${classes.dir}" includes="**" />
             <manifest>
