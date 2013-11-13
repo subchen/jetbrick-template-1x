@@ -4,3 +4,8 @@ ${user.status}
 ${user.locked}
 ${user.bookList[0].name}
 ${notFoundUser?.none?.name}
+## Map or JetContext
+#set (map = {"id":1, "name":"chen"})
+${map.name}
+#set (User u = context.user)
+${u.name}

@@ -758,14 +758,14 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                     source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
                     source.append(':');
                     source.append(code.getSource());
-                    source.append(".get(");
+                    source.append(".get(\"");
                     source.append(name);
-                    source.append("))");
+                    source.append("\"))");
                 } else {
                     source.append(code.getSource());
-                    source.append(".get(");
+                    source.append(".get(\"");
                     source.append(name);
-                    source.append(')');
+                    source.append("\")");
                 }
             }
         } else {

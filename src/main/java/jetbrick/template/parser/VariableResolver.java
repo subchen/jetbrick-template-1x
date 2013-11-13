@@ -2,8 +2,10 @@ package jetbrick.template.parser;
 
 import java.lang.reflect.*;
 import java.util.*;
+import jetbrick.template.JetContext;
 import jetbrick.template.parser.support.*;
 import jetbrick.template.runtime.*;
+import jetbrick.template.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,6 +195,19 @@ public class VariableResolver {
                     return method;
                 }
             }
+        }
+
+        try {
+            // get(Object) for Map
+            if (Map.class.isAssignableFrom(beanClass)) {
+                return beanClass.getMethod("get", Object.class);
+            }
+            // get(String) for JetContext
+            if (JetContext.class.isAssignableFrom(beanClass)) {
+                return beanClass.getMethod("get", String.class);
+            }
+        } catch (Exception e) {
+            throw ExceptionUtils.uncheck(e);
         }
 
         return null;

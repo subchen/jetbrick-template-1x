@@ -55,9 +55,10 @@ public class JetEngineTestCase {
                 File outputFile = new File(path, file.getName() + ".txt");
                 String contents = new String(IoUtils.toCharArray(outputFile, "utf-8"));
                 contents = contents.replaceAll("\r", "");
-                
+
                 if (!contents.equals(out_contents)) {
                     System.err.println("ASSERT ERROR: " + name);
+                    System.err.println("length: get = " + out_contents.length() + ", expect: " + contents.length());
                     System.err.println("==========================================");
                     System.err.println(out_contents);
                     System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
