@@ -48,12 +48,14 @@ public class JetEngineTestCase {
                 UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream();
                 render(name, out);
                 String out_contents = out.toString("utf-8");
+                out_contents = out_contents.replaceAll("\r", "");
 
                 if (name.endsWith("-ignore.jetx")) continue;
 
                 File outputFile = new File(path, file.getName() + ".txt");
                 String contents = new String(IoUtils.toCharArray(outputFile, "utf-8"));
-
+                contents = contents.replaceAll("\r", "");
+                
                 if (!contents.equals(out_contents)) {
                     System.err.println("ASSERT ERROR: " + name);
                     System.err.println("==========================================");

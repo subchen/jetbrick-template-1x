@@ -1,1 +1,4 @@
 ${123}
+${user.name}
+${myvar}
+#put("sub", "from sub template")

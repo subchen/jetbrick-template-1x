@@ -30,7 +30,7 @@ public class JetContext {
 
     public Object get(String name) {
         Object value = context.get(name);
-        if (value != null && parent != null) {
+        if (value == null && parent != null) {
             value = parent.get(name);
         }
         return value;

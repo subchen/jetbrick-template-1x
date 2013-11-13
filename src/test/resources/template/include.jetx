@@ -1,4 +1,5 @@
 #include("include-sub.jetx")
 #include("./include-sub.jetx")
 #include("/template/include-sub.jetx")
-#include("include-sub.jetx", {})
+#include("include-sub.jetx", {"myvar": "hello from parent"})
+${context["sub"]}
