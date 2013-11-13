@@ -322,8 +322,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         // 进行赋值语句类型检查
-        if (!ClassUtils.isAssignable(lhs.getKlass(), code.getKlass())) {
-            throw reportError("Type mismatch: cannot convert from " + code.getTypedKlass().getSource() + " to " + lhs.getSource(), ctx);
+        if (!ClassUtils.isAssignable(lhs.getKlass(), code.getKlass())) { // 是否支持正常赋值
+            if (!ClassUtils.isAssignable(code.getKlass(), lhs.getKlass())) { // 是否支持强制类型转换
+                throw reportError("Type mismatch: cannot convert from " + code.getTypedKlass().getSource() + " to " + lhs.getSource(), ctx);
+            }
         }
 
         String source = lhs.getSource() + " " + name + " = (" + lhs.getSource() + ") " + code.getSource() + "; // line: " + ctx.getStart().getLine();
