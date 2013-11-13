@@ -4,7 +4,7 @@ public final class ArrayUtils {
     public static final int[] EMPTY_INTEGER_ARRAY = new int[0];
     public static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
 
-    public static int[] step(int start, int stop, int step) {
+    public static int[] range(int start, int stop, int step) {
         if (step == 0) {
             throw new IllegalArgumentException("step cannot be zero.");
         }

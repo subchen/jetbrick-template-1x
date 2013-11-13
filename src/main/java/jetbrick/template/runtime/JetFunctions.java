@@ -19,12 +19,12 @@ public final class JetFunctions {
         return UUID.randomUUID();
     }
 
-    public static int[] step(int start, int stop) {
-        return ArrayUtils.step(start, stop, 1);
+    public static int[] range(int start, int stop) {
+        return ArrayUtils.range(start, stop, 1);
     }
 
     public static int[] step(int start, int stop, int step) {
-        return ArrayUtils.step(start, stop, step);
+        return ArrayUtils.range(start, stop, step);
     }
 
     // 读取子模板内容
