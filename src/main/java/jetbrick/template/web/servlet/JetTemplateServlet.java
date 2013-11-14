@@ -5,7 +5,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import jetbrick.template.*;
 import jetbrick.template.web.JetWebContext;
-import jetbrick.template.web.JetWebEngineManager;
+import jetbrick.template.web.JetWebEngineLoader;
 
 /**
  * 直接作为 Servlet 使用。需要在 web.xml 中作如下配置。
@@ -13,10 +13,6 @@ import jetbrick.template.web.JetWebEngineManager;
  * <servlet>
  *      <servlet-name>jetbrick-template</servlet-name>
  *      <servlet-class>jetbrick.template.web.servlet.JetTemplateServlet</servlet-class>
- *      <init-param>
- *          <param-name>config</param-name>
- *          <param-value>/WEB-INF/jetbrick-template.properties</param-value>
- *      </init-param>
  *      <load-on-startup>1</load-on-startup>
  *  </servlet>
  *  <servlet-mapping>
@@ -27,15 +23,10 @@ import jetbrick.template.web.JetWebEngineManager;
  */
 public class JetTemplateServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private static JetEngine engine;
 
     @Override
     public void init() throws ServletException {
-        String configFile = getInitParameter("config");
-
-        JetWebEngineManager.setConfigFile(configFile);
-        JetWebEngineManager.setServletContext(getServletContext());
-        engine = JetWebEngineManager.getJetEngine();
+        JetWebEngineLoader.setServletContext(getServletContext());
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -54,7 +45,7 @@ public class JetTemplateServlet extends HttpServlet {
         }
 
         try {
-            JetTemplate template = engine.getTemplate(path);
+            JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(path);
             template.render(context, response.getOutputStream());
         } catch (ResourceNotFoundException e) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);

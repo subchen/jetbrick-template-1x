@@ -4,9 +4,10 @@ import java.util.Map;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import jetbrick.template.*;
+import jetbrick.template.JetContext;
+import jetbrick.template.JetTemplate;
 import jetbrick.template.web.JetWebContext;
-import jetbrick.template.web.JetWebEngineManager;
+import jetbrick.template.web.JetWebEngineLoader;
 import org.apache.struts2.ServletActionContext;
 import org.apache.struts2.dispatcher.StrutsResultSupport;
 import com.opensymphony.xwork2.ActionInvocation;
@@ -21,11 +22,10 @@ public class JetTemplateResult extends StrutsResultSupport {
         HttpServletRequest request = (HttpServletRequest) model.get(ServletActionContext.HTTP_REQUEST);
         HttpServletResponse response = (HttpServletResponse) model.get(ServletActionContext.HTTP_RESPONSE);
 
-        JetWebEngineManager.setServletContext(servletContext);
-        JetEngine engine = JetWebEngineManager.getJetEngine();
+        JetWebEngineLoader.setServletContext(servletContext);
 
         JetContext context = new JetWebContext(request, response, model);
-        JetTemplate template = engine.getTemplate(location);
+        JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(location);
         template.render(context, response.getOutputStream());
     }
 }

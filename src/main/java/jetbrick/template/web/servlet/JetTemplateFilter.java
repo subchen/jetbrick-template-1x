@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrick.template.*;
 import jetbrick.template.web.JetWebContext;
-import jetbrick.template.web.JetWebEngineManager;
+import jetbrick.template.web.JetWebEngineLoader;
 
 /**
  * 直接作为 Filter 使用。需要在 web.xml 中作如下配置。
@@ -14,10 +14,6 @@ import jetbrick.template.web.JetWebEngineManager;
  * <filter>
  *   <filter-name>jetbrick-template</filter-name>
  *   <filter-class>jetbrick.template.web.servlet.JetTemplateFilter</filter-class>
- *   <init-param>
- *     <param-name>config</param-name>
- *     <param-value>/WEB-INF/jetbrick-template.properties</param-value>
- *   </init-param>
  * </filter>
  * <filter-mapping>
  *   <filter-name>jetbrick-template</filter-name>
@@ -26,15 +22,9 @@ import jetbrick.template.web.JetWebEngineManager;
  * </xmp></pre>
  */
 public class JetTemplateFilter implements Filter {
-    private static JetEngine engine;
-
     @Override
     public void init(FilterConfig fc) throws ServletException {
-        String configFile = fc.getInitParameter("config");
-
-        JetWebEngineManager.setConfigFile(configFile);
-        JetWebEngineManager.setServletContext(fc.getServletContext());
-        engine = JetWebEngineManager.getJetEngine();
+        JetWebEngineLoader.setServletContext(fc.getServletContext());
     }
 
     @Override
@@ -52,7 +42,7 @@ public class JetTemplateFilter implements Filter {
         }
 
         try {
-            JetTemplate template = engine.getTemplate(path);
+            JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(path);
             template.render(context, resp.getOutputStream());
         } catch (ResourceNotFoundException e) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);

@@ -1,6 +1,6 @@
 package jetbrick.template.web.springmvc;
 
-import jetbrick.template.web.JetWebEngineManager;
+import jetbrick.template.web.JetWebEngineLoader;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.web.servlet.view.AbstractTemplateViewResolver;
 
@@ -17,9 +17,9 @@ public class JetTemplateViewResolver extends AbstractTemplateViewResolver implem
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        JetWebEngineManager.setServletContext(getServletContext());
+        JetWebEngineLoader.setServletContext(getServletContext());
         if (getSuffix() == null || getSuffix().length() == 0) {
-            setSuffix(JetWebEngineManager.getTemplateSuffix());
+            setSuffix(JetWebEngineLoader.getTemplateSuffix());
         }
     }
 }
