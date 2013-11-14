@@ -12,18 +12,18 @@ import jetbrick.template.web.JetWebEngineManager;
  * 直接作为 Filter 使用。需要在 web.xml 中作如下配置。
  * <pre><xmp>
  * <filter>
- *      <filter-name>jetbrick-template</filter-name>
- *      <filter-class>jetbrick.template.web.servlet.JetTemplateFilter</filter-class>
- *      <init-param>
- *          <param-name>config</param-name>
- *          <param-value>/WEB-INF/jetbrick-template.properties</param-value>
- *      </init-param>
- *  </filter>
- *  <filter-mapping>
- *      <filter-name>jetbrick-template</filter-name>
- *      <url-pattern>*.jetx</url-pattern>
- *  </filter-mapping>
- *  </xmp></pre>
+ *   <filter-name>jetbrick-template</filter-name>
+ *   <filter-class>jetbrick.template.web.servlet.JetTemplateFilter</filter-class>
+ *   <init-param>
+ *     <param-name>config</param-name>
+ *     <param-value>/WEB-INF/jetbrick-template.properties</param-value>
+ *   </init-param>
+ * </filter>
+ * <filter-mapping>
+ *   <filter-name>jetbrick-template</filter-name>
+ *   <url-pattern>*.jetx</url-pattern>
+ * </filter-mapping>
+ * </xmp></pre>
  */
 public class JetTemplateFilter implements Filter {
     private static JetEngine engine;
