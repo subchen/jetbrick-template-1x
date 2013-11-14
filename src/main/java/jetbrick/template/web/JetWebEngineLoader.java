@@ -22,8 +22,8 @@ public class JetWebEngineLoader implements ServletContextListener {
     private static final String CONFIG_LOCATION = "jetbirck-template-config-location";
     private static JetEngine engine;
 
-    public static boolean available() {
-        return engine != null;
+    public static boolean unavailable() {
+        return engine == null;
     }
 
     public static JetEngine getJetEngine() {

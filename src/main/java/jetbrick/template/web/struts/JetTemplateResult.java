@@ -18,11 +18,13 @@ public class JetTemplateResult extends StrutsResultSupport {
     @Override
     protected void doExecute(String location, ActionInvocation ai) throws Exception {
         Map<String, Object> model = ai.getStack().getContext();
-        ServletContext servletContext = (ServletContext) model.get(ServletActionContext.SERVLET_CONTEXT);
         HttpServletRequest request = (HttpServletRequest) model.get(ServletActionContext.HTTP_REQUEST);
         HttpServletResponse response = (HttpServletResponse) model.get(ServletActionContext.HTTP_RESPONSE);
 
-        JetWebEngineLoader.setServletContext(servletContext);
+        if (JetWebEngineLoader.unavailable()) {
+            ServletContext servletContext = (ServletContext) model.get(ServletActionContext.SERVLET_CONTEXT);
+            JetWebEngineLoader.setServletContext(servletContext);
+        }
 
         JetContext context = new JetWebContext(request, response, model);
         JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(location);

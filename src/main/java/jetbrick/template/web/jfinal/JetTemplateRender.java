@@ -17,7 +17,7 @@ public class JetTemplateRender extends Render {
 
     @Override
     public void render() {
-        if (!JetWebEngineLoader.available()) {
+        if (JetWebEngineLoader.unavailable()) {
             JetWebEngineLoader.setServletContext(request.getServletContext());
         }
 
