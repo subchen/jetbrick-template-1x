@@ -9,6 +9,7 @@ import jetbrick.template.web.JetWebContext;
 import jetbrick.template.web.JetWebEngineManager;
 
 /**
+ * 直接作为 Filter 使用。需要在 web.xml 中作如下配置。
  * <pre><xmp>
  * <filter>
  *      <filter-name>jetbrick-template</filter-name>
@@ -54,12 +55,11 @@ public class JetTemplateFilter implements Filter {
             JetTemplate template = engine.getTemplate(path);
             template.render(context, resp.getOutputStream());
         } catch (ResourceNotFoundException e) {
-            resp.sendError(404, "Template not found: " + path);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);
         }
     }
 
     @Override
     public void destroy() {
     }
-
 }

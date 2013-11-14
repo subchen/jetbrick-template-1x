@@ -53,10 +53,10 @@ public class JetTemplateServlet extends HttpServlet {
             path = path + "/index.jetx";
         }
 
-        if (engine.lookupResource(path)) {
+        try {
             JetTemplate template = engine.getTemplate(path);
             template.render(context, response.getOutputStream());
-        } else {
+        } catch (ResourceNotFoundException e) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);
         }
     }

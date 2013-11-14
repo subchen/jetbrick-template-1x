@@ -14,7 +14,10 @@ class JetWebEngine extends JetEngine {
         resolver.addGlobalVariable("javax.servlet.http.HttpSession", JetWebContext.SESSION);
         resolver.addGlobalVariable("javax.servlet.http.HttpServletRequest", JetWebContext.REQUEST);
         resolver.addGlobalVariable("javax.servlet.http.HttpServletResponse", JetWebContext.RESPONSE);
-        resolver.addGlobalVariable("java.util.Map<String,String[]>", JetWebContext.PARAMETERS);
-        resolver.addGlobalVariable("javax.servlet.http.Cookie[]", JetWebContext.COOKIES);
+        resolver.addGlobalVariable("java.util.Map<String,Object>", JetWebContext.SERVLET_CONTEXT_SCOPE);
+        resolver.addGlobalVariable("java.util.Map<String,Object>", JetWebContext.SESSION_SCOPE);
+        resolver.addGlobalVariable("java.util.Map<String,Object>", JetWebContext.REQUEST_SCOPE);
+        resolver.addGlobalVariable("java.util.Map<String,String>", JetWebContext.PARAMETER);
+        resolver.addGlobalVariable("java.util.Map<String,String[]>", JetWebContext.PARAMETER_VALUES);
     }
 }

@@ -3,7 +3,6 @@ package jetbrick.template.web;
 import javax.servlet.ServletContext;
 import jetbrick.template.JetConfig;
 import jetbrick.template.JetEngine;
-import jetbrick.template.web.struts.JetTemplateEngine;
 
 public class JetWebEngineManager {
     private static volatile JetEngine engine;
@@ -26,7 +25,7 @@ public class JetWebEngineManager {
     public static JetEngine getJetEngine() {
         if (engine != null) return engine;
 
-        synchronized (JetTemplateEngine.class) {
+        synchronized (JetWebEngineManager.class) {
             if (engine != null) return engine; // double check
 
             JetConfig config = new JetConfig();

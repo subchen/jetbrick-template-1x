@@ -42,11 +42,12 @@ public class MemoryJdkCompiler extends SimpleJdkCompiler {
             StringBuilder sb = new StringBuilder();
             sb.append("Compilation failed.");
             sb.append('\n');
-            for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
+            List<Diagnostic<? extends JavaFileObject>> diagnosticsList = diagnostics.getDiagnostics();
+            for (Diagnostic<?> d : diagnosticsList) {
                 sb.append(d.getMessage(Locale.ENGLISH)).append('\n');
                 sb.append(StringUtils.getPrettyError(sourceLines, (int) d.getLineNumber(), (int) d.getColumnNumber(), (int) d.getPosition(), (int) d.getPosition(), 3));
             }
-            sb.append(diagnostics.getDiagnostics().size());
+            sb.append(diagnosticsList.size());
             sb.append(" error(s)\n");
             throw new IllegalStateException(sb.toString());
         }
