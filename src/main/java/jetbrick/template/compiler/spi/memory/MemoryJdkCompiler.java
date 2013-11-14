@@ -1,9 +1,5 @@
 package jetbrick.template.compiler.spi.memory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
@@ -26,30 +22,6 @@ public class MemoryJdkCompiler extends SimpleJdkCompiler {
         StandardJavaFileManager standardJavaFileManager = jc.getStandardFileManager(null, null, null);
         setDefaultClasspath(standardJavaFileManager);
         this.fileManager = new FileManagerImpl(standardJavaFileManager);
-    }
-
-    private void setDefaultClasspath(StandardJavaFileManager standardJavaFileManager) {
-        Set<File> files = new HashSet<File>();
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        while (loader instanceof URLClassLoader && (!"sun.misc.Launcher$AppClassLoader".equals(loader.getClass().getName()))) {
-            URLClassLoader urlClassLoader = (URLClassLoader) loader;
-            for (URL url : urlClassLoader.getURLs()) {
-                files.add(new File(url.getFile()));
-            }
-            loader = loader.getParent();
-        }
-
-        if (files.size() > 0) {
-            try {
-                Iterable<? extends File> list = standardJavaFileManager.getLocation(StandardLocation.CLASS_PATH);
-                for (File file : list) {
-                    files.add(file);
-                }
-                standardJavaFileManager.setLocation(StandardLocation.CLASS_PATH, files);
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
-        }
     }
 
     @Override

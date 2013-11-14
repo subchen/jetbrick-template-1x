@@ -130,6 +130,4 @@
         </zip>
     </target>
  
-    <ant antfile="${basedir}/maven-deploy.xml" />
- 
 </project>

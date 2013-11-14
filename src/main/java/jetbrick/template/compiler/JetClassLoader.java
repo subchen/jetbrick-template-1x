@@ -3,6 +3,7 @@ package jetbrick.template.compiler;
 import java.io.File;
 import java.net.*;
 import jetbrick.template.JetEngine;
+import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.utils.PathUtils;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class JetClassLoader {
     public JetClassLoader(String classpath, boolean reloadable) {
         this.classpath = getVersionClasspath(classpath);
         this.urls = new URL[] { toURL(this.classpath) };
-        this.classloader = new URLClassLoader(urls);
+        this.classloader = createClassLoader();
         this.reloadable = reloadable;
 
         log.debug("Will compile template into " + this.classpath);
@@ -27,7 +28,7 @@ public class JetClassLoader {
     public Class<?> loadClass(String qualifiedClassName) throws ClassNotFoundException {
         if (reloadable) {
             // 为了可以动态卸载 Class，需要每次重新 new 一个 URLClassLoader
-            ClassLoader classloader = new URLClassLoader(urls);
+            ClassLoader classloader = createClassLoader();
             return classloader.loadClass(qualifiedClassName);
         } else {
             return classloader.loadClass(qualifiedClassName);
@@ -36,6 +37,10 @@ public class JetClassLoader {
 
     public String getClasspath() {
         return classpath;
+    }
+
+    private ClassLoader createClassLoader() {
+        return new URLClassLoader(urls, ClassUtils.getContextClassLoader());
     }
 
     // 根据不同的 Version 生成不同的 classpath

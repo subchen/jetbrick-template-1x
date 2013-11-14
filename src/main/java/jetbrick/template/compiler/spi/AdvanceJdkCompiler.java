@@ -19,6 +19,8 @@ public class AdvanceJdkCompiler extends SimpleJdkCompiler {
 
         this.fileManager = jc.getStandardFileManager(null, null, null);
         this.options = Arrays.asList("-encoding", encoding, "-g", "-nowarn");
+
+        setDefaultClasspath(fileManager);
     }
 
     @Override

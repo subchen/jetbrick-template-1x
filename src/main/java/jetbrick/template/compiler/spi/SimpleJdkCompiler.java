@@ -1,8 +1,11 @@
 package jetbrick.template.compiler.spi;
 
 import java.io.*;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.HashSet;
+import java.util.Set;
+import javax.tools.*;
 import jetbrick.template.compiler.JdkCompiler;
 import jetbrick.template.compiler.JetClassLoader;
 import jetbrick.template.utils.*;
@@ -18,6 +21,30 @@ public class SimpleJdkCompiler extends JdkCompiler {
 
         if (jc == null) {
             throw new IllegalStateException("Can't get system java compiler. Please add jdk tools.jar to your classpath.");
+        }
+    }
+
+    protected void setDefaultClasspath(StandardJavaFileManager standardJavaFileManager) {
+        Set<File> files = new HashSet<File>();
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        while (loader instanceof URLClassLoader && (!"sun.misc.Launcher$AppClassLoader".equals(loader.getClass().getName()))) {
+            URLClassLoader urlClassLoader = (URLClassLoader) loader;
+            for (URL url : urlClassLoader.getURLs()) {
+                files.add(new File(url.getFile()));
+            }
+            loader = loader.getParent();
+        }
+
+        if (files.size() > 0) {
+            try {
+                Iterable<? extends File> list = standardJavaFileManager.getLocation(StandardLocation.CLASS_PATH);
+                for (File file : list) {
+                    files.add(file);
+                }
+                standardJavaFileManager.setLocation(StandardLocation.CLASS_PATH, files);
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 
