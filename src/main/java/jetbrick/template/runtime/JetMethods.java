@@ -160,7 +160,7 @@ public final class JetMethods {
     /**
      * 支持输出 "null"
      */
-    public String asString(Object value) {
+    public static String asString(Object value) {
         if (value == null) return "null";
         return value.toString();
     }
