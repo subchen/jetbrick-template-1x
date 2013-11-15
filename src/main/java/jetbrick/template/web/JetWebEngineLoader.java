@@ -9,8 +9,8 @@ import jetbrick.template.resource.loader.FileSystemResourceLoader;
  * 自动初始化加载 JetEngine。
  * <pre><xmp>
  * <context-param>
- *   <param-name>jetbirck-template-config-location</param-name>
- *   <param-value>/WEB-INF/jetbirck-template.properties</param-value>
+ *   <param-name>jetbrick-template-config-location</param-name>
+ *   <param-value>/WEB-INF/jetbrick-template.properties</param-value>
  * </context-param>
  * 
  * <listener>
@@ -19,7 +19,7 @@ import jetbrick.template.resource.loader.FileSystemResourceLoader;
  * </xmp></pre>
  */
 public class JetWebEngineLoader implements ServletContextListener {
-    private static final String CONFIG_LOCATION = "jetbirck-template-config-location";
+    private static final String CONFIG_LOCATION = "jetbrick-template-config-location";
     private static JetEngine engine;
 
     public static boolean unavailable() {
