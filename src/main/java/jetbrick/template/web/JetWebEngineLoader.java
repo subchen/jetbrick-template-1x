@@ -53,7 +53,10 @@ public class JetWebEngineLoader implements ServletContextListener {
     }
 
     public static String getTemplateSuffix() {
-        return ".jetx";
+        if (engine == null) {
+            throw new IllegalStateException("Please add JetWebEngineLoader as listener into web.xml");
+        }
+        return engine.getConfig().getTemplateSuffix();
     }
 
     // 允许非 ServletContextListener 方式初始化

@@ -39,6 +39,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String OUTPUT_ENCODING = "output.encoding";
     public static final String TEMPLATE_LOADER = "template.loader";
     public static final String TEMPLATE_PATH = "template.path";
+    public static final String TEMPLATE_SUFFIX = "template.suffix";
     public static final String TEMPLATE_RELOADABLE = "template.reloadable";
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
@@ -54,6 +55,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private String outputEncoding;
     private Class<?> templateLoader;
     private String templatePath;
+    private String templateSuffix;
     private boolean templateReloadable;
     private boolean compileDebug;
     private String compilePath;
@@ -68,6 +70,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(OUTPUT_ENCODING, "utf-8");
         config.setProperty(TEMPLATE_LOADER, FileSystemResourceLoader.class.getName());
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
+        config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
         config.setProperty(COMPILE_DEBUG, "true");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
@@ -80,12 +83,12 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         super.build();
 
         // log
-        if (log.isDebugEnabled()) {
-            log.debug("Load template from \"" + templatePath + "\" by " + templateLoader + ".");
+        if (log.isInfoEnabled()) {
+            log.info("Load template from \"" + templatePath + "\" by " + templateLoader + ".");
             if (templateReloadable) {
-                log.debug("autoload on: template will automatically reload.");
+                log.info("autoload on: template will automatically reload.");
             } else {
-                log.debug("autoload off: template will NOT automatically reload.");
+                log.info("autoload off: template will NOT automatically reload.");
             }
         }
         return this;
@@ -121,6 +124,10 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public String getTemplatePath() {
         return templatePath;
+    }
+
+    public String getTemplateSuffix() {
+        return templateSuffix;
     }
 
     public boolean isTemplateReloadable() {

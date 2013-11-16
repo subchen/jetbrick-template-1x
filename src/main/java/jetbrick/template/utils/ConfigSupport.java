@@ -110,7 +110,7 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
     }
 
     /**
-     * 固话配置，对象变成只读。只要是处理 List
+     * 固化配置，对象变成只读。目前只要是处理 List as unmodifiableList
      */
     public T build() {
         Field[] fields = getClass().getDeclaredFields();
