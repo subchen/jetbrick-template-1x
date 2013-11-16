@@ -24,7 +24,7 @@ import org.antlr.v4.runtime.*;
 public class JetTemplateErrorStrategy extends DefaultErrorStrategy {
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
-        throw e;
+        throw new SyntaxErrorException(e);
     }
 
     @Override
