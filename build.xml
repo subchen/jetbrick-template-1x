@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
- 
+
 <project default="dist" basedir=".">
     <property file="${basedir}/build.properties" />
- 
+
     <path id="compile.classpath">
         <fileset dir="${basedir}/lib" includes="**/*.jar" />
     </path>
@@ -12,23 +12,32 @@
     <path id="compile.resources">
         <fileset dir="${basedir}/src/main/resources" excludes="**/*.java" />
     </path>
- 
+
     <path id="sources.resources">
         <fileset dir="${basedir}">
             <include name="src/**" />
             <include name="NOTICE" />
             <include name="LICENSE" />
+            <include name="CHANGELOG.md" />
             <include name="README.md" />
             <include name="pom.xml" />
             <include name="build.properties" />
             <include name="build.xml" />
         </fileset>
     </path>
- 
+
+    <patternset id="metainf.resources">
+        <include name="NOTICE" />
+        <include name="LICENSE" />
+        <include name="CHANGELOG.md" />
+        <include name="README.md" />
+        <include name="pom.xml" />
+    </patternset>
+
     <target name="clean">
         <delete dir="${build.dir}" quiet="true" />
     </target>
- 
+
     <target name="compile.grammer">
         <property name="antlr.jar" value="${basedir}/lib/antlr/antlr-4.1-complete.jar" />
         <property name="grammer.dir" value="${basedir}/src/main/java/jetbrick/template/parser/grammer" />
@@ -48,7 +57,7 @@
         <delete file="${grammer.dir}/JetTemplateParser.tokens" />
         <delete file="${grammer.dir}/JetTemplateParserBaseVisitor.java" />
     </target>
- 
+
     <target name="compile" depends="clean, compile.grammer">
         <mkdir dir="${classes.dir}" />
         <javac destdir="${classes.dir}"
@@ -61,12 +70,16 @@
         <copy todir="${classes.dir}">
             <path refid="compile.resources" />
         </copy>
+        <mkdir dir="${classes.dir}/META-INF" />
+        <copy todir="${classes.dir}/META-INF">
+            <fileset dir="${basedir}">
+                <patternset refid="metainf.resources" />
+            </fileset>
+        </copy>
     </target>
- 
+
     <target name="jar" depends="compile">
         <mkdir dir="${dist.dir}" />
-        <mkdir dir="${classes.dir}/META-INF" />
-        <copy todir="${classes.dir}/META-INF" file="pom.xml" />
         <jar jarfile="${dist.jar}" whenempty="fail">
             <fileset dir="${classes.dir}" includes="**" />
             <manifest>
@@ -77,7 +90,7 @@
             </manifest>
         </jar>
     </target>
- 
+
     <target name="sources.jar">
         <mkdir dir="${dist.dir}" />
         <jar jarfile="${dist.sources.jar}" whenempty="fail">
@@ -90,7 +103,7 @@
             </manifest>
         </jar>
     </target>
- 
+
     <target name="javadoc" depends="clean">
         <mkdir dir="${javadoc.dir}" />
         <javadoc destdir="${javadoc.dir}"
@@ -104,7 +117,7 @@
                  linksource="${javadoc.linksource}"
         />
     </target>
- 
+
     <target name="javadoc.jar" depends="javadoc">
         <mkdir dir="${dist.dir}" />
         <jar jarfile="${dist.javadoc.jar}" whenempty="fail">
@@ -117,19 +130,25 @@
             </manifest>
         </jar>
     </target>
- 
+
     <target name="dist" depends="jar, sources.jar, javadoc.jar">
         <mkdir dir="${dist.dir}" />
         <zip zipfile="${dist.zip}" whenempty="fail">
             <fileset file="${dist.jar}" />
             <fileset dir="${basedir}" includes="lib/*.jar" />
+            <fileset dir="${basedir}">
+                <patternset refid="metainf.resources" />
+            </fileset>
         </zip>
         <zip zipfile="${dist.all.zip}" whenempty="fail">
             <fileset file="${dist.jar}" />
             <fileset file="${dist.sources.jar}" />
             <fileset file="${dist.javadoc.jar}" />
             <fileset dir="${basedir}" includes="lib/**/*.jar" />
+            <fileset dir="${basedir}">
+                <patternset refid="metainf.resources" />
+            </fileset>
         </zip>
     </target>
- 
+
 </project>
