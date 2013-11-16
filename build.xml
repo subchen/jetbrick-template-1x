@@ -16,8 +16,8 @@
     <path id="sources.resources">
         <fileset dir="${basedir}">
             <include name="src/**" />
-            <include name="NOTICE.txt" />
-            <include name="LICENSE.txt" />
+            <include name="NOTICE" />
+            <include name="LICENSE" />
             <include name="README.md" />
             <include name="pom.xml" />
             <include name="build.properties" />
