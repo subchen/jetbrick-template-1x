@@ -92,15 +92,15 @@ for_expression
             ;
 
 break_directive
-            :   DIRECTIVE_OPEN_BREAK expression ')'
+            :   DIRECTIVE_OPEN_BREAK expression? ')'
             |   DIRECTIVE_BREAK
             ;
 continue_directive
-            :   DIRECTIVE_OPEN_CONTINUE expression ')'
+            :   DIRECTIVE_OPEN_CONTINUE expression? ')'
             |   DIRECTIVE_CONTINUE
             ;
 stop_directive
-            :   DIRECTIVE_OPEN_STOP expression ')'
+            :   DIRECTIVE_OPEN_STOP expression? ')'
             |   DIRECTIVE_STOP
             ;
 include_directive
