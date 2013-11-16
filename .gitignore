@@ -1,8 +1,7 @@
 *.class
-/bin/
-findbugs.xml
-jetbrick-template.jar
+*.asc
 *.zip
+/bin/
 /build/
 /target/
-/*.xml.asc
+/findbugs.xml
