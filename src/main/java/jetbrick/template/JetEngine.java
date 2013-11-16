@@ -21,8 +21,8 @@ package jetbrick.template;
 
 import java.io.File;
 import java.util.Properties;
-import jetbrick.template.compiler.JdkCompiler;
-import jetbrick.template.compiler.JetClassLoader;
+import jetbrick.template.compiler.JavaCompiler;
+import jetbrick.template.compiler.JetTemplateClassLoader;
 import jetbrick.template.parser.VariableResolver;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.SourceCodeResource;
@@ -35,8 +35,8 @@ public class JetEngine {
     private final JetConfig config;
     private final ResourceLoader resourceLoader;
     private final VariableResolver resolver;
-    private final JetClassLoader classLoader;
-    private final JdkCompiler jdkCompiler;
+    private final JetTemplateClassLoader classLoader;
+    private final JavaCompiler javaCompiler;
     private final ConcurrentResourceCache resourceCache;
     private final ConcurrentTemplateCache templateCache;
 
@@ -56,8 +56,8 @@ public class JetEngine {
         this.config = config.build();
         this.resolver = createVariableResolver();
         this.resourceLoader = createResourceLoader();
-        this.classLoader = new JetClassLoader(config.getCompilePath(), config.isTemplateReloadable());
-        this.jdkCompiler = JdkCompiler.create(this.classLoader);
+        this.classLoader = new JetTemplateClassLoader(config.getCompilePath(), config.isTemplateReloadable());
+        this.javaCompiler = JavaCompiler.create(this.classLoader);
         this.resourceCache = new ConcurrentResourceCache();
         this.templateCache = new ConcurrentTemplateCache();
     }
@@ -106,12 +106,12 @@ public class JetEngine {
         return resolver;
     }
 
-    protected JetClassLoader getClassLoader() {
+    protected JetTemplateClassLoader getClassLoader() {
         return classLoader;
     }
 
-    protected JdkCompiler getJdkCompiler() {
-        return jdkCompiler;
+    protected JavaCompiler getJdkCompiler() {
+        return javaCompiler;
     }
 
     /**

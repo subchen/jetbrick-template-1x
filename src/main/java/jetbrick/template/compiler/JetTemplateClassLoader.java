@@ -28,20 +28,20 @@ import jetbrick.template.utils.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JetClassLoader {
-    private final Logger log = LoggerFactory.getLogger(JetClassLoader.class);
+public class JetTemplateClassLoader {
+    private final Logger log = LoggerFactory.getLogger(JetTemplateClassLoader.class);
     private final String classpath;
     private final URL[] urls;
     private final ClassLoader classloader;
     private final boolean reloadable;
 
-    public JetClassLoader(String classpath, boolean reloadable) {
+    public JetTemplateClassLoader(String classpath, boolean reloadable) {
         this.classpath = getVersionClasspath(classpath);
         this.urls = new URL[] { toURL(this.classpath) };
         this.classloader = createClassLoader();
         this.reloadable = reloadable;
 
-        log.debug("Will compile template into " + this.classpath);
+        log.info("Will compile template into " + this.classpath);
     }
 
     public Class<?> loadClass(String qualifiedClassName) throws ClassNotFoundException {

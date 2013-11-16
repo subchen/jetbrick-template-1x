@@ -19,18 +19,22 @@
  */
 package jetbrick.template.compiler;
 
-import java.io.File;
-import jetbrick.template.compiler.spi.AdvanceJdkCompiler;
+public class CompileErrorException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
-public abstract class JdkCompiler {
-
-    public static JdkCompiler create(JetClassLoader classloader) {
-        return new AdvanceJdkCompiler(classloader);
+    public CompileErrorException() {
+        super();
     }
 
-    public abstract Class<?> compile(String qualifiedClassName, String source);
+    public CompileErrorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    public abstract File getGenerateJavaSourceFile(String qualifiedClassName);
+    public CompileErrorException(String message) {
+        super(message);
+    }
 
-    public abstract File getGenerateJavaClassFile(String qualifiedClassName);
+    public CompileErrorException(Throwable cause) {
+        super(cause);
+    }
 }
