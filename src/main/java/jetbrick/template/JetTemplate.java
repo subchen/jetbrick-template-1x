@@ -101,7 +101,7 @@ public final class JetTemplate {
         }
         // compile
         Class<?> cls = engine.getJdkCompiler().compile(resource.getQualifiedClassName(), source);
-        log.debug("generateJavaClass: " + javaClassFile.getAbsolutePath());
+        log.info("generateJavaClass: " + javaClassFile.getAbsolutePath());
         try {
             pageObject = (JetPage) cls.newInstance();
         } catch (Exception e) {

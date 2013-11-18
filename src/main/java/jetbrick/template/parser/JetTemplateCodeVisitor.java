@@ -131,6 +131,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         code.addLine("import jetbrick.template.runtime.*;");
         code.addLine("");
 
+        code.addLine("@SuppressWarnings({\"all\", \"warnings\", \"unchecked\", \"unused\", \"cast\"})");
         code.addLine("public final class " + resource.getClassName() + " extends JetPage {");
         scope = scope.push();
         textBlockCode = scope.createBlockCode(32); // 在当前作用域中建立 textBlockCode

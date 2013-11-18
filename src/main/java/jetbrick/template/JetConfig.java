@@ -72,7 +72,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
-        config.setProperty(COMPILE_DEBUG, "true");
+        config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
         config.setProperty(TRIM_DIRECTIVE_LINE, "true");
         load(config);
