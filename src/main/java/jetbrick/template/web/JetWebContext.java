@@ -62,7 +62,7 @@ public class JetWebContext extends JetContext {
 
         this.request = request;
         this.session = request.getSession();
-        this.servletContext = request.getServletContext();
+        this.servletContext = session.getServletContext();
 
         put(SERVLET_CONTEXT, servletContext);
         put(SESSION, session);
@@ -126,7 +126,7 @@ public class JetWebContext extends JetContext {
         }
         case APPLICATION_SCOPE: {
             HashMap<String, Object> map = new HashMap<String, Object>();
-            ServletContext app = request.getServletContext();
+            ServletContext app = request.getSession().getServletContext();
             Enumeration<String> e = app.getAttributeNames();
             while (e.hasMoreElements()) {
                 String name = (String) e.nextElement();
