@@ -33,17 +33,36 @@ public class TextCode implements Code {
         this.text = text;
     }
 
-    public void trim(boolean timeLeft, boolean trimRight) {
+    public void trim(boolean trimLeft, boolean trimRight) {
         int lpos = 0;
-        if (timeLeft) {
-            lpos = text.indexOf('\n');
-            lpos = (lpos < 0) ? 0 : lpos + 1;
+        if (trimLeft) {
+            int len = text.length();
+            for (int i = 0; i < len; i++) {
+                char c = text.charAt(i);
+                if (c == ' ' || c == '\t' || c == '\r') {
+                    continue;
+                } else if (c == '\n') {
+                    lpos = i + 1;
+                    break;
+                } else {
+                    break;
+                }
+            }
         }
 
         int rpos = text.length();
         if (trimRight) {
-            rpos = text.lastIndexOf('\n');
-            rpos = (rpos < 0) ? text.length() : rpos + 1;
+            for (int i = text.length() - 1; i >= 0; i--) {
+                char c = text.charAt(i);
+                if (c == ' ' || c == '\t' || c == '\r') {
+                    continue;
+                } else if (c == '\n') {
+                    rpos = i + 1;
+                    break;
+                } else {
+                    break;
+                }
+            }
         }
 
         if (lpos < rpos) {
