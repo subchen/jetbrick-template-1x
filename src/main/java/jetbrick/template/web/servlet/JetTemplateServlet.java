@@ -48,10 +48,12 @@ public class JetTemplateServlet extends HttpServlet {
         JetWebEngineLoader.setServletContext(getServletContext());
     }
 
+    @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         doPost(request, response);
     }
 
+    @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JetContext context = new JetWebContext(request, response);
 
@@ -64,7 +66,10 @@ public class JetTemplateServlet extends HttpServlet {
         }
 
         try {
-            JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(path);
+            JetEngine engine = JetWebEngineLoader.getJetEngine();
+            response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
+            
+            JetTemplate template = engine.getTemplate(path);
             template.render(context, response.getOutputStream());
         } catch (ResourceNotFoundException e) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);
