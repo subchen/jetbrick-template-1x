@@ -54,7 +54,13 @@ public final class JetTemplate {
 
         // compile and load
         if (javaClassFile.lastModified() > resource.lastModified()) {
-            loadClassFile();
+            try {
+                loadClassFile();
+            } catch (Throwable e) {
+                // 无法 load 的话，尝试重新编译
+                log.warn(e.getMessage());
+                compileAndLoadClass();
+            }
         } else {
             compileAndLoadClass();
         }
@@ -72,14 +78,10 @@ public final class JetTemplate {
     }
 
     // 从 disk 的缓存文件中读取
-    private void loadClassFile() {
+    private void loadClassFile() throws Exception {
         log.info("Loading template class file: " + javaClassFile.getAbsolutePath());
-        try {
-            Class<?> cls = engine.getClassLoader().loadClass(resource.getQualifiedClassName());
-            pageObject = (JetPage) cls.newInstance();
-        } catch (Exception e) {
-            throw ExceptionUtils.uncheck(e);
-        }
+        Class<?> cls = engine.getClassLoader().loadClass(resource.getQualifiedClassName());
+        pageObject = (JetPage) cls.newInstance();
     }
 
     // 编译 source 为 class， 然后 load class
