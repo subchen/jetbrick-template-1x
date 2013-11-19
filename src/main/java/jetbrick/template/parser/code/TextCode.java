@@ -33,7 +33,7 @@ public class TextCode implements Code {
         this.text = text;
     }
 
-    public void trim(boolean trimLeft, boolean trimRight) {
+    public void trimEmptyLine(boolean trimLeft, boolean trimRight) {
         int lpos = 0;
         if (trimLeft) {
             int len = text.length();
@@ -60,6 +60,69 @@ public class TextCode implements Code {
                     rpos = i + 1;
                     break;
                 } else {
+                    break;
+                }
+            }
+        }
+
+        if (lpos < rpos) {
+            text = text.substring(lpos, rpos);
+        } else {
+            text = null;
+        }
+    }
+
+    public void trimComments(boolean trimLeft, boolean trimRight, String prefix, String suffix) {
+        if (text == null) return;
+
+        int lpos = 0;
+        int text_len = text.length();
+        int suffix_len = suffix.length();
+        int prefix_len = prefix.length();
+        if (trimLeft) {
+            for (int i = 0; i < text_len; i++) {
+                char c = text.charAt(i);
+                if (c == ' ' || c == '\t') {
+                    continue;
+                } else {
+                    boolean matched = true;
+                    int j = 0;
+                    while (i < text_len && j < suffix_len) {
+                        if (text.charAt(i) != suffix.charAt(j)) {
+                            matched = false;
+                            break;
+                        }
+                        i++;
+                        j++;
+                    }
+                    if (matched) {
+                        lpos = i;
+                    }
+                    break;
+                }
+            }
+        }
+
+        int rpos = text_len;
+        if (trimRight) {
+            for (int i = text_len - 1; i >= 0; i--) {
+                char c = text.charAt(i);
+                if (c == ' ' || c == '\t') {
+                    continue;
+                } else {
+                    boolean matched = true;
+                    int j = prefix_len - 1;
+                    while (i >= 0 && j >= 0) {
+                        if (text.charAt(i) != prefix.charAt(j)) {
+                            matched = false;
+                            break;
+                        }
+                        i--;
+                        j--;
+                    }
+                    if (matched) {
+                        rpos = i + 1;
+                    }
                     break;
                 }
             }

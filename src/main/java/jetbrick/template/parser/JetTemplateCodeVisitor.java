@@ -98,6 +98,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private final Resource resource;
     private final String encoding;
     private final boolean trimDirectiveLine;
+    private final boolean trimDirectiveComments;
+    private final String commentsPrefix;
+    private final String commentsSuffix;
 
     private SymbolScope scope; // 当前的作用域
     private SymbolScope contextScope; // 全局 context 变量
@@ -114,6 +117,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         this.resource = resource;
         this.encoding = engine.getConfig().getOutputEncoding();
         this.trimDirectiveLine = engine.getConfig().isTrimDirectiveLine();
+        this.trimDirectiveComments = engine.getConfig().isTrimDirectiveComments();
+        this.commentsPrefix = engine.getConfig().getTrimDirectiveCommentsPrefix();
+        this.commentsSuffix = engine.getConfig().getTrimDirectiveCommentsSuffix();
+
         this.scope = new SymbolScope(null);
         this.textCodeCache = new HashMap<String, String>(32);
         this.forStack = new ArrayDeque<String[]>(8);
@@ -188,9 +195,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (node instanceof TextContext) {
                 // 文本节点
                 TextCode textCode = (TextCode) c;
-                if (trimDirectiveLine) {
-                    // trim 指令两边的空白内容
-                    ParseTree prev = i > 0 ? ctx.children.get(i - 1) : null;
+
+                if (trimDirectiveLine || trimDirectiveComments) {
+                    ParseTree prev = (i > 0) ? ctx.children.get(i - 1) : null;
                     ParseTree next = (i < size - 1) ? ctx.children.get(i + 1) : null;
 
                     boolean trimLeft;
@@ -207,7 +214,14 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                         trimRight = (next instanceof DirectiveContext);
                     }
 
-                    textCode.trim(trimLeft, trimRight);
+                    // trim 指令两边的注释
+                    if (trimDirectiveComments) {
+                        textCode.trimComments(trimLeft, trimRight, commentsPrefix, commentsSuffix);
+                    }
+                    // trim 指令两边的空白内容
+                    if (trimDirectiveLine) {
+                        textCode.trimEmptyLine(trimLeft, trimRight);
+                    }
                 }
 
                 if (!textCode.isEmpty()) {

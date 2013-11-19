@@ -44,6 +44,9 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
     public static final String TRIM_DIRECTIVE_LINE = "trim.directive.line";
+    public static final String TRIM_DIRECTIVE_COMMENTS = "trim.directive.comments";
+    public static final String TRIM_DIRECTIVE_COMMENTS_PREFIX = "trim.directive.comments.prefix";
+    public static final String TRIM_DIRECTIVE_COMMENTS_SUFFIX = "trim.directive.comments.suffix";
 
     private final Logger log = LoggerFactory.getLogger(JetConfig.class);
 
@@ -60,6 +63,9 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private boolean compileDebug;
     private String compilePath;
     private boolean trimDirectiveLine;
+    private boolean trimDirectiveComments;
+    private String trimDirectiveCommentsPrefix;
+    private String trimDirectiveCommentsSuffix;
 
     public JetConfig() {
         // default config
@@ -75,6 +81,9 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
         config.setProperty(TRIM_DIRECTIVE_LINE, "true");
+        config.setProperty(TRIM_DIRECTIVE_COMMENTS, "false");
+        config.setProperty(TRIM_DIRECTIVE_COMMENTS_PREFIX, "<!--");
+        config.setProperty(TRIM_DIRECTIVE_COMMENTS_SUFFIX, "-->");
         load(config);
     }
 
@@ -144,5 +153,17 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public boolean isTrimDirectiveLine() {
         return trimDirectiveLine;
+    }
+
+    public boolean isTrimDirectiveComments() {
+        return trimDirectiveComments;
+    }
+
+    public String getTrimDirectiveCommentsPrefix() {
+        return trimDirectiveCommentsPrefix;
+    }
+
+    public String getTrimDirectiveCommentsSuffix() {
+        return trimDirectiveCommentsSuffix;
     }
 }

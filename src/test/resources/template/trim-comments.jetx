@@ -1,0 +1,7 @@
+1234567890
+<!-- #if (true) -->
+ABCDEFG
+<!-- #else -->
+abcdefg
+<!-- #end -->
+AAABBB

@@ -38,6 +38,8 @@ public class JetEngineTestCase {
         config.put(JetConfig.IMPORT_VARIABLES, "User user, Book book");
         config.put(JetConfig.TEMPLATE_LOADER, ClasspathResourceLoader.class.getName());
         config.put(JetConfig.TEMPLATE_PATH, "/");
+        config.put(JetConfig.COMPILE_DEBUG, "true");
+        config.put(JetConfig.TRIM_DIRECTIVE_COMMENTS, "true");
         return JetEngine.create(config);
     }
 
