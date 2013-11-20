@@ -30,7 +30,7 @@ public class FileSystemResourceLoader implements ResourceLoader {
 
     @Override
     public void initialize(String basepath, String encoding) {
-        this.basepath = PathUtils.getStandardizedPath(basepath, true);
+        this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, true);
         this.encoding = encoding;
     }
 

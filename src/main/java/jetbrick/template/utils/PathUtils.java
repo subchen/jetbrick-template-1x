@@ -47,21 +47,31 @@ public final class PathUtils {
 
     // 获得一个规范化的模板文件名称. like: /folder/file.jetx
     public static String getStandardizedName(String name) {
-        if (name == null || name.length() == 0) throw new IllegalArgumentException("template name is null or empty.");
+        if (name == null || name.length() == 0) throw new IllegalArgumentException("Resource path is null or empty.");
         name = name.replace('\\', '/');
-        if (name.charAt(0) != '/') {
-            name = "/" + name; // 加入前导的 "/"
+
+        StringBuilder sb = new StringBuilder(name.length() + 2);
+        for (String part : name.split("/")) {
+            if (part.length() == 0 || ".".equals(part)) continue;
+            if ("..".equals(part)) {
+                int pos = sb.lastIndexOf("/");
+                if (pos < 0) {
+                    throw new IllegalStateException("Resource path is not under template root path: " + name);
+                }
+                sb.delete(pos, sb.length());
+            } else {
+                sb.append('/').append(part);
+            }
         }
-        return name;
+        return sb.toString();
     }
 
     /**
-     * 获得一个规范化的模板路径. like: /folder/folder
+     * 获得一个规范化的模板 root 路径. like: /folder/folder
      * @param path
      * @param fileSystemPath 对于一个非文件系统的路径，那么必须是 “/" 开头的路径
-     * @return
      */
-    public static String getStandardizedPath(String path, boolean fileSystemPath) {
+    public static String getStandardizedTemplateRoot(String path, boolean fileSystemPath) {
         if (path == null) throw new IllegalArgumentException("path is null.");
         if (path.length() == 0) return "/";
 
@@ -93,24 +103,21 @@ public final class PathUtils {
 
     // 根据当前模板，找到include子模板的路径。如果 relativeName 以 "/" 开头，那么直接返回 relativeName
     public static String getAbsolutionName(String baseFile, String relativeName) {
+        if (!baseFile.startsWith("/")) {
+            throw new IllegalArgumentException("BaseFile must be start with '/'.");
+        }
         relativeName = relativeName.replace('\\', '/');
-        if (relativeName.startsWith("/")) return relativeName; // 绝对路径直接返回
+        if (relativeName.startsWith("/")) {
+            return getStandardizedName(relativeName); // 绝对路径直接返回
+        }
 
-        // get base path
+        // get parent path
         String path = baseFile;
         int pos = path.lastIndexOf('/');
-        path = (pos < 0) ? "" : path.substring(0, pos);
-
-        String[] names = relativeName.split("/");
-        for (String name : names) {
-            if (".".equals(name)) continue;
-            if ("..".equals(name)) {
-                pos = path.lastIndexOf('/');
-                path = (pos < 0) ? "" : path.substring(0, pos);
-            } else {
-                path = path + "/" + name;
-            }
+        if (pos < 0) {
+            throw new IllegalStateException("Resource path is not under template root path: " + relativeName);
         }
-        return path;
+        path = path.substring(0, pos + 1) + relativeName;
+        return getStandardizedName(path);
     }
 }

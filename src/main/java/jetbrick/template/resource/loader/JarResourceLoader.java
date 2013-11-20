@@ -33,7 +33,7 @@ public class JarResourceLoader implements ResourceLoader {
 
     @Override
     public void initialize(String basepath, String encoding) {
-        basepath = PathUtils.getStandardizedPath(basepath, true);
+        basepath = PathUtils.getStandardizedTemplateRoot(basepath, true);
 
         int separator = basepath.indexOf(JAR_FILE_SEPARATOR);
         if (separator > 0) {
@@ -44,7 +44,7 @@ public class JarResourceLoader implements ResourceLoader {
             this.entry = "";
         }
         this.jar = PathUtils.getCanonicalFile(this.jar);
-        this.entry = PathUtils.getStandardizedPath(this.entry, false);
+        this.entry = PathUtils.getStandardizedTemplateRoot(this.entry, false);
 
         this.encoding = encoding;
     }
