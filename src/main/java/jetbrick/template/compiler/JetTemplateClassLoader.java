@@ -65,7 +65,10 @@ public class JetTemplateClassLoader {
     // 根据不同的 Version 生成不同的 classpath
     private static String getVersionClasspath(String classpath) {
         File dir = new File(classpath, "jetx_" + JetEngine.VERSION.replace('.', '_'));
-        dir.mkdirs(); // 必须先建立目录，否则 URLClassLoader 会失败
+        // 必须先建立目录，否则 URLClassLoader 会失败
+        if (!dir.mkdirs() && !dir.exists()) {
+            throw new IllegalStateException("Can't create a directory in " + dir.getAbsolutePath());
+        }
         return PathUtils.getCanonicalPath(dir);
     }
 
