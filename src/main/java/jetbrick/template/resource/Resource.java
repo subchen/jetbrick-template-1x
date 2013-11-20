@@ -19,6 +19,8 @@
  */
 package jetbrick.template.resource;
 
+import javax.lang.model.SourceVersion;
+
 public abstract class Resource {
     private final String name;
     private final String qualifiedClassName;
@@ -54,21 +56,41 @@ public abstract class Resource {
 
     public abstract char[] getSource(String encoding); // 读取非模板的资源
 
-    // 返回一个用于生成Template类的完整类名
-    private String doGetQualifiedClassName() {
-        char[] cs = name.toCharArray();
-        for (int i = 0; i < cs.length; i++) {
-            char c = cs[i];
-            if (c == '/' || c == '\\') {
-                cs[i] = '.';
-            } else if (c < '0' || (c > '9' && c < 'A') || (c > 'Z' && c < 'a') || c > 'z') {
-                cs[i] = '_';
+    // 返回一个用于生成Template类的完整类名 (规则同JSP)
+    public String doGetQualifiedClassName() {
+        StringBuilder sb = new StringBuilder(name.length() + 16);
+
+        String[] identifiers = name.split("/");
+        for (int i = 1; i < identifiers.length; i++) { // 跳过第一个 "/"
+            String identifier = identifiers[i];
+            StringBuilder modifiedIdentifier = new StringBuilder(identifier.length() + 16);
+
+            char c = identifier.charAt(0);
+            if (c < 'A' || (c > 'Z' && c < 'a') || c > 'z') {
+                modifiedIdentifier.append('_');
             }
+            for (int j = 0; j < identifier.length(); j++) {
+                c = identifier.charAt(j);
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                    modifiedIdentifier.append(c);
+                } else if (c == '.') {
+                    modifiedIdentifier.append('_');
+                } else {
+                    modifiedIdentifier.append('_');
+                    modifiedIdentifier.append(Character.forDigit(c >> 12 & 0xF, 16));
+                    modifiedIdentifier.append(Character.forDigit(c >> 8 & 0xF, 16));
+                    modifiedIdentifier.append(Character.forDigit(c >> 4 & 0xF, 16));
+                    modifiedIdentifier.append(Character.forDigit(c & 0xF, 16));
+                }
+            }
+            if (SourceVersion.isKeyword(modifiedIdentifier.toString())) {
+                modifiedIdentifier.append('_');
+            }
+            if (sb.length() > 0) {
+                sb.append('.');
+            }
+            sb.append(modifiedIdentifier);
         }
-        if (cs.length > 0 && cs[0] == '.') {
-            return new String(cs, 1, cs.length - 1); // 去掉第一个 "."
-        } else {
-            return new String(cs);
-        }
+        return sb.toString();
     }
 }
