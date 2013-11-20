@@ -41,6 +41,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String TEMPLATE_PATH = "template.path";
     public static final String TEMPLATE_SUFFIX = "template.suffix";
     public static final String TEMPLATE_RELOADABLE = "template.reloadable";
+    public static final String COMPILE_ALWAYS = "compile.always";
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
     public static final String TRIM_DIRECTIVE_LINE = "trim.directive.line";
@@ -60,6 +61,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private String templatePath;
     private String templateSuffix;
     private boolean templateReloadable;
+    private boolean compileAlways;
     private boolean compileDebug;
     private String compilePath;
     private boolean trimDirectiveLine;
@@ -78,6 +80,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
+        config.setProperty(COMPILE_ALWAYS, "true");
         config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
         config.setProperty(TRIM_DIRECTIVE_LINE, "true");
@@ -141,6 +144,10 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public boolean isTemplateReloadable() {
         return templateReloadable;
+    }
+
+    public boolean isCompileAlways() {
+        return compileAlways;
     }
 
     public boolean isCompileDebug() {

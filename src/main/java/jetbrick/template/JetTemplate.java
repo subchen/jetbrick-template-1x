@@ -45,20 +45,23 @@ public final class JetTemplate {
     private JetPage pageObject;
 
     protected JetTemplate(JetEngine engine, Resource resource) {
+        JetConfig config = engine.getConfig();
+
         this.engine = engine;
         this.resource = resource;
-        this.encoding = engine.getConfig().getOutputEncoding();
-        this.reloadable = engine.getConfig().isTemplateReloadable();
+        this.encoding = config.getOutputEncoding();
+        this.reloadable = config.isTemplateReloadable();
         this.javaSourceFile = engine.getJdkCompiler().getGenerateJavaSourceFile(resource.getQualifiedClassName());
         this.javaClassFile = engine.getJdkCompiler().getGenerateJavaClassFile(resource.getQualifiedClassName());
 
         // compile and load
-        if (javaClassFile.lastModified() > resource.lastModified()) {
+        if ((!config.isCompileAlways()) && javaClassFile.lastModified() > resource.lastModified()) {
             try {
                 loadClassFile();
             } catch (Throwable e) {
                 // 无法 load 的话，尝试重新编译
-                log.warn(e.getMessage());
+                log.warn(e.getClass().getName() + ": " + e.getMessage());
+                log.warn("Try to recompile the template.");
                 compileAndLoadClass();
             }
         } else {
@@ -81,6 +84,12 @@ public final class JetTemplate {
     private void loadClassFile() throws Exception {
         log.info("Loading template class file: " + javaClassFile.getAbsolutePath());
         Class<?> cls = engine.getClassLoader().loadClass(resource.getQualifiedClassName());
+
+        // 判断编码匹配
+        if (!encoding.equals(cls.getDeclaredField("$ENC").get(null))) {
+            throw new IllegalStateException("The encoding of last compiled template class is not " + encoding);
+        }
+
         pageObject = (JetPage) cls.newInstance();
     }
 

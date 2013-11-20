@@ -173,7 +173,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // add text fields definition
         code.addLine("");
-        code.addLine("  private static final String $ENC = \"" + encoding + "\";");
+        code.addLine("  public static final String $ENC = \"" + encoding + "\";");
         code.addChild(textBlockCode);
 
         scope = scope.pop(); // exit class
