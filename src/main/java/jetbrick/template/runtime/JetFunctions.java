@@ -38,12 +38,22 @@ public final class JetFunctions {
         return UUID.randomUUID();
     }
 
+    @Deprecated
     public static int[] range(int start, int stop) {
         return ArrayUtils.range(start, stop, 1);
     }
 
+    @Deprecated
     public static int[] range(int start, int stop, int step) {
         return ArrayUtils.range(start, stop, step);
+    }
+
+    public static Iterator<Integer> iterator(int start, int stop) {
+        return ArrayUtils.iterator(start, stop, 1);
+    }
+
+    public static Iterator<Integer> iterator(int start, int stop, int step) {
+        return ArrayUtils.iterator(start, stop, step);
     }
 
     // 读取子模板内容

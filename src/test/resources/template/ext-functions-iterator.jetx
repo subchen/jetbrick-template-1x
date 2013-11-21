@@ -1,0 +1,6 @@
+#for (int i: iterator(8,10))
+    ${i}
+#end
+#for (int i: iterator(10,1,-2))
+    ${i}
+#end

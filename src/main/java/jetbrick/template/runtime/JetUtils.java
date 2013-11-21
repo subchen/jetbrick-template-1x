@@ -52,6 +52,9 @@ public final class JetUtils {
         if (value == null) {
             return EmptyIterator.INSTANCE;
         }
+        if (value instanceof Iterator) {
+            return (Iterator<?>) value;
+        }
         if (value instanceof Iterable) {
             return ((Iterable<?>) value).iterator();
         }
