@@ -36,7 +36,11 @@ public class BlockCode implements Code {
     }
 
     public void addChild(Code code) {
-        lines.add(code.getSource());
+        if (code instanceof BlockCode) {
+            lines.addAll(((BlockCode) code).lines);
+        } else {
+            lines.add(code.getSource());
+        }
     }
 
     public void addChild(BlockCode code) {

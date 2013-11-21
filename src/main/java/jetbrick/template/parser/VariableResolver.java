@@ -38,12 +38,14 @@ public class VariableResolver {
     private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetPageContext）
     private Map<String, List<Method>> functionMap1 = new HashMap<String, List<Method>>(32); // 全局导入的 function 类
     private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(); // 全局导入的 function 类 （带 JetPageContext）
+    private Map<String, List<Method>> tagMap = new HashMap<String, List<Method>>(); // 全局导入的 tag 类 （带 JetTagContext）
 
     private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(64);
     private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>(128);
     private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>(128);
     private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(64);
     private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>();
+    private static final Map<String, Method> static_tag_cache = new WeakHashMap<String, Method>();
 
     public VariableResolver() {
         addImportPackage("java.lang");
@@ -81,10 +83,13 @@ public class VariableResolver {
     }
 
     public void addMethodClass(String klassName) {
-        Class<?> klass = resolveClass(klassName);
-        if (klass == null) {
-            throw new RuntimeException("ClassNotFoundException: " + klassName);
+        Class<?> klass;
+        try {
+            klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+        } catch (ClassNotFoundException e) {
+            throw ExceptionUtils.uncheck(e);
         }
+
         for (Method method : klass.getMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length == 0) {
@@ -115,10 +120,13 @@ public class VariableResolver {
     }
 
     public void addFunctionClass(String klassName) {
-        Class<?> klass = resolveClass(klassName);
-        if (klass == null) {
-            throw new RuntimeException("ClassNotFoundException: " + klassName);
+        Class<?> klass;
+        try {
+            klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+        } catch (ClassNotFoundException e) {
+            throw ExceptionUtils.uncheck(e);
         }
+
         for (Method method : klass.getMethods()) {
             int modifiers = method.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
@@ -143,6 +151,34 @@ public class VariableResolver {
             }
         }
         log.info("add function class: " + klass.getName());
+    }
+
+    public void addTagClass(String klassName) {
+        Class<?> klass;
+        try {
+            klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+        } catch (ClassNotFoundException e) {
+            throw ExceptionUtils.uncheck(e);
+        }
+
+        for (Method method : klass.getMethods()) {
+            int modifiers = method.getModifiers();
+            if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
+                String name = method.getName();
+
+                List<Method> list;
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length > 0 && JetTagContext.class.equals(parameterTypes[0])) {
+                    list = tagMap.get(name);
+                    if (list == null) {
+                        list = new ArrayList<Method>(4);
+                        tagMap.put(name, list);
+                    }
+                    list.add(method);
+                }
+            }
+        }
+        log.info("add tag class: " + klass.getName());
     }
 
     // 根据名称，查找到对应的class (支持完整的泛型声明)
@@ -375,6 +411,26 @@ public class VariableResolver {
             }
         }
         return constructor;
+    }
+
+    // 找到对应的Tag tag(...)
+    public Method resolveTagMethod(String methodName, Class<?>[] parameterTypes) {
+        List<Method> methods = tagMap.get(methodName);
+        if (methods == null) return null;
+
+        String key = getPrivateCacheKeyName(null, methodName, parameterTypes);
+
+        // lookup cache
+        Method method = static_tag_cache.get(key);
+        if (method == null) {
+            synchronized (static_tag_cache) {
+                method = MethodFinderUtils.lookupBestMethod(methods, methodName, parameterTypes);
+                if (method != null) {
+                    static_tag_cache.put(key, method);
+                }
+            }
+        }
+        return method;
     }
 
     // 生成一个字符串作为 Method Cache 的 Key

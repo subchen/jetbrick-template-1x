@@ -142,6 +142,9 @@ public class JetEngine {
         for (String function : config.getImportFunctions()) {
             resolver.addFunctionClass(function);
         }
+        for (String tag : config.getImportTags()) {
+            resolver.addTagClass(tag);
+        }
         for (String variable : config.getImportVariables()) {
             int pos = variable.lastIndexOf(" ");
             String defination = variable.substring(0, pos);

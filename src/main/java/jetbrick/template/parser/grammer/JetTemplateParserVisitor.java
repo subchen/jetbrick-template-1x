@@ -217,18 +217,18 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	T visitExpr_compare_relational(@NotNull JetTemplateParser.Expr_compare_relationalContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link JetTemplateParser#define_directive}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDefine_directive(@NotNull JetTemplateParser.Define_directiveContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#type_arguments}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitType_arguments(@NotNull JetTemplateParser.Type_argumentsContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#define_directive}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDefine_directive(@NotNull JetTemplateParser.Define_directiveContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#expr_class_cast}.
@@ -250,6 +250,13 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitSet_expression(@NotNull JetTemplateParser.Set_expressionContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#tag_directive}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTag_directive(@NotNull JetTemplateParser.Tag_directiveContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#set_directive}.

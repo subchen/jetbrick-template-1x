@@ -53,6 +53,7 @@ directive   :   define_directive
             |   continue_directive
             |   stop_directive
             |   include_directive
+            |   tag_directive
             |   invalid_directive
             ;
 
@@ -106,6 +107,9 @@ stop_directive
 include_directive
             :   DIRECTIVE_OPEN_INCLUDE expression_list ')'
             ;
+tag_directive
+            :   DIRECTIVE_OPEN_TAG expression_list? ')' block DIRECTIVE_END
+            ;
 
 invalid_directive
             :   DIRECTIVE_DEFINE
@@ -115,6 +119,7 @@ invalid_directive
             |   DIRECTIVE_ELSEIF
             |   DIRECTIVE_FOR
             |   DIRECTIVE_INCLUDE
+            |   DIRECTIVE_TAG
             ;
 
 expression  :   '(' expression ')'                                           # expr_group

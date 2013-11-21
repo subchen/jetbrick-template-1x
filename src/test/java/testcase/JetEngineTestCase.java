@@ -36,10 +36,11 @@ public class JetEngineTestCase {
         Properties config = new Properties();
         config.put(JetConfig.IMPORT_PACKAGES, "testcase.model.*");
         config.put(JetConfig.IMPORT_VARIABLES, "User user, Book book");
+        config.put(JetConfig.IMPORT_TAGS, TagUtils.class.getName());
         //config.put(JetConfig.OUTPUT_ENCODING, "GBK");
         config.put(JetConfig.TEMPLATE_LOADER, ClasspathResourceLoader.class.getName());
         config.put(JetConfig.TEMPLATE_PATH, "/");
-        config.put(JetConfig.COMPILE_ALWAYS, "false");
+        //config.put(JetConfig.COMPILE_ALWAYS, "false");
         config.put(JetConfig.COMPILE_DEBUG, "true");
         config.put(JetConfig.TRIM_DIRECTIVE_COMMENTS, "true");
         return JetEngine.create(config);

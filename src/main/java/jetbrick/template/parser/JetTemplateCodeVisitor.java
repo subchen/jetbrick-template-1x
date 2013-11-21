@@ -70,6 +70,7 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Put_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Set_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Set_expressionContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Stop_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Tag_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.TemplateContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.TextContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.TypeContext;
@@ -80,6 +81,7 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Type_nameContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.ValueContext;
 import jetbrick.template.parser.support.*;
 import jetbrick.template.resource.Resource;
+import jetbrick.template.runtime.JetTagContext;
 import jetbrick.template.utils.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -103,10 +105,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private final String commentsSuffix;
 
     private SymbolScope scope; // 当前的作用域
-    private SymbolScope contextScope; // 全局 context 变量
-    private BlockCode textBlockCode; // 缓存全局文本内容
-    private BlockCode contextBlockCode; // 缓存全局 context 变量
-    private Map<String, String> textCodeCache; // 缓存文本内容
+    private SymbolScope contextScope; // 全局默认 context 变量所在的作用域 (哪些没有定义的变量)
+    private BlockCode contextBlockCode; // 缓存全局默认 context 变量 (哪些没有定义的变量)
+    private BlockCode textBlockCode; // 缓存全局文本内容 (放在 Class Field 中)
+    private Map<String, String> textCodeCache; // 文本内容缓存
     private Deque<String[]> forStack; // 维护嵌套 #for 的堆栈， 可以识别是否在嵌入在 #for 里面, 内部是否使用了 for.index
     private int uuid = 1;
 
@@ -146,19 +148,17 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // add render() method
         code.addLine("");
         code.addLine("  @Override");
-        code.addLine("  public void render(JetPageContext $ctx) throws Throwable {");
+        code.addLine("  public void render(final JetPageContext $ctx) throws Throwable {");
         scope = scope.push();
         scope.define(CONTEXT_NAME, TypedKlass.JetContext);
-        code.addLine("    JetContext " + CONTEXT_NAME + " = $ctx.getContext();");
-        code.addLine("    JetWriter $out = $ctx.getWriter();");
+        code.addLine("    final JetContext " + CONTEXT_NAME + " = $ctx.getContext();");
+        code.addLine("    final JetWriter $out = $ctx.getWriter();");
 
         contextScope = scope; // 全局 context 变量
-        contextBlockCode = scope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
+        contextBlockCode = contextScope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
         Code blockCode = ctx.block().accept(this);
-
-        // add context variable definition
-        code.addChild(contextBlockCode);
-        code.addChild(blockCode);
+        code.addChild(contextBlockCode); // add context variable definition
+        code.addChild(blockCode); // add children
 
         code.addLine("    $out.flush();");
         scope = scope.pop(); // exit render() method
@@ -623,6 +623,75 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         source.append("); // line: ");
         source.append(ctx.getStart().getLine());
         return scope.createLineCode(source.toString());
+    }
+
+    @Override
+    public Code visitTag_directive(Tag_directiveContext ctx) {
+        String text = ctx.getChild(0).getText();
+        String name = text.substring(5, text.length() - 1).trim();
+
+        BlockCode code = scope.createBlockCode(32);
+        String id = getUid("tag");
+
+        // save global variable
+        SymbolScope old_context_scope = contextScope;
+        BlockCode old_context_block_code = contextBlockCode;
+
+        // create JetTagContext
+        code.addLine("final JetTagContext " + id + " = new JetTagContext($ctx) {");
+        scope = scope.push();
+        code.addLine("  @Override");
+        code.addLine("  protected void render(final JetWriter $out) throws Throwable {");
+        scope = scope.push();
+
+        contextScope = scope; // Tag 用的全局 context 变量
+        contextBlockCode = contextScope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
+        Code block = ctx.block().accept(this);
+        code.addChild(contextBlockCode); // add context variable definition
+        code.addChild(block); // add body content
+
+        code.addLine("    $out.flush();");
+        scope = scope.pop();
+        code.addLine("  }");
+        scope = scope.pop();
+        code.addLine("};");
+
+        // reset to old scope
+        contextScope = old_context_scope;
+        contextBlockCode = old_context_block_code;
+
+        // finding tag function
+        Class<?>[] parameterTypes = JetTagContext.CLASS_ARRAY;
+        SegmentListCode expr_list_code = null;
+        Expression_listContext expression_list = ctx.expression_list();
+        if (expression_list != null) {
+            expr_list_code = (SegmentListCode) expression_list.accept(this);
+            parameterTypes = new Class[expr_list_code.size() + 1];
+            parameterTypes[0] = JetTagContext.class;
+            for (int i = 0; i < expr_list_code.size(); i++) {
+                parameterTypes[i + 1] = expr_list_code.getChild(i).getKlass();
+            }
+        }
+        Method method = resolver.resolveTagMethod(name, parameterTypes);
+        if (method == null) {
+            throw reportError("Undefined tag definition " + getMethodSignature(name, parameterTypes), ctx);
+        }
+
+        // source for invoke tag
+        StringBuilder source = new StringBuilder();
+        source.append(ClassUtils.getShortClassName(method.getDeclaringClass()));
+        source.append('.');
+        source.append(name);
+        source.append('(');
+        source.append(id);
+        if (expr_list_code != null) {
+            source.append(',').append(expr_list_code.getSource());
+        }
+        source.append(");");
+        code.addLine(source.toString());
+
+        //
+        return code;
     }
 
     @Override
@@ -1489,5 +1558,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             parser.notifyErrorListeners(((TerminalNode) node).getSymbol(), message, null);
         }
         return new SyntaxErrorException(message);
+    }
+
+    private String getMethodSignature(String name, Class<?>[] parameterTypes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(name).append('(');
+        for (int i = 0; i < parameterTypes.length; i++) {
+            if (i > 0) {
+                sb.append(',');
+            }
+            sb.append(parameterTypes[i].getSimpleName());
+        }
+        sb.append(')');
+        return sb.toString();
     }
 }

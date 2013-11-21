@@ -48,6 +48,11 @@ DIRECTIVE_OPEN_CONTINUE : '#continue' ARGUMENT_START      -> pushMode(INSIDE) ;
 DIRECTIVE_OPEN_STOP     : '#stop'     ARGUMENT_START      -> pushMode(INSIDE) ;
 DIRECTIVE_OPEN_INCLUDE  : '#include'  ARGUMENT_START      -> pushMode(INSIDE) ;
 
+DIRECTIVE_OPEN_TAG      : '#tag'      [ \t]+ ID ARGUMENT_START -> pushMode(INSIDE) ;
+
+fragment ID             : [_a-zA-Z$][_a-zA-Z$0-9]*        ;
+fragment ARGUMENT_START : [ \t]* '('                      ;
+
 DIRECTIVE_DEFINE        : '#define'                       ;
 DIRECTIVE_SET           : '#set'                          ;
 DIRECTIVE_PUT           : '#put'                          ;
@@ -58,11 +63,11 @@ DIRECTIVE_INCLUDE       : '#include'                      ;
 DIRECTIVE_BREAK         : '#break'                        ;
 DIRECTIVE_CONTINUE      : '#continue'                     ;
 DIRECTIVE_STOP          : '#stop'                         ;
+DIRECTIVE_TAG           : '#tag'                          ;
 
 DIRECTIVE_ELSE          : '#else'     '()'?               ;
 DIRECTIVE_END           : '#end'      '()'?               ;
 
-fragment ARGUMENT_START :  [ \t]* '(';
 
 // *******************************************************************
 // -------- INSIDE mode for directive --------------------------------
@@ -110,8 +115,8 @@ OP_BITWISE_SHL          : '<<'                             ;
 
 // Following operators are conflict with Java Generic Type definition.
 // Sample: List<List<String>>
-//OP_BITWISE_SHR        : '>>'                           ;
-//OP_BITWISE_SHR_2      : '>>>'                          ;
+//OP_BITWISE_SHR        : '>>'                             ;
+//OP_BITWISE_SHR_2      : '>>>'                            ;
 
 OP_INSTANCEOF           : 'instanceof' | 'is'              ;
 OP_NEW                  : 'new'                            ;

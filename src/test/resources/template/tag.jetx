@@ -1,0 +1,6 @@
+#tag testTag()
+    name: ${user.name}
+#end
+#tag testTag("HELLO!")
+    name: ${user.name}
+#end
