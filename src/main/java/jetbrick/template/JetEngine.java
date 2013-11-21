@@ -133,6 +133,9 @@ public class JetEngine {
         for (String pkg : config.getImportPackages()) {
             resolver.addImportPackage(pkg);
         }
+        for (String klassName : config.getImportClasses()) {
+            resolver.addImportClass(klassName);
+        }
         for (String method : config.getImportMethods()) {
             resolver.addMethodClass(method);
         }

@@ -32,6 +32,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String DEFAULT_CONFIG_FILE = "jetbrick-template.properties";
 
     public static final String IMPORT_PACKAGES = "import.packages";
+    public static final String IMPORT_CLASSES = "import.classes";
     public static final String IMPORT_METHODS = "import.methods";
     public static final String IMPORT_FUNCTIONS = "import.functions";
     public static final String IMPORT_VARIABLES = "import.variables";
@@ -52,6 +53,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private final Logger log = LoggerFactory.getLogger(JetConfig.class);
 
     private List<String> importPackages;
+    private List<String> importClasses;
     private List<String> importMethods;
     private List<String> importFunctions;
     private List<String> importVariables;
@@ -108,6 +110,10 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public List<String> getImportPackages() {
         return importPackages;
+    }
+
+    public List<String> getImportClasses() {
+        return importClasses;
     }
 
     public List<String> getImportMethods() {
