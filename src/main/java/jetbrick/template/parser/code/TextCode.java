@@ -19,12 +19,10 @@
  */
 package jetbrick.template.parser.code;
 
-import jetbrick.template.utils.StringEscapeUtils;
-
 /**
  * 用于存储文本内容，方便后面进行 trim 分析
  */
-public class TextCode implements Code {
+public class TextCode extends Code {
     private final String id;
     private String text;
 
@@ -135,6 +133,10 @@ public class TextCode implements Code {
         }
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String getText() {
         return text;
     }
@@ -143,36 +145,11 @@ public class TextCode implements Code {
         return text == null || text.length() == 0;
     }
 
-    public String getTextValueFieldSource() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("private static final String ");
-        sb.append(id);
-        sb.append(" = \"");
-        sb.append(StringEscapeUtils.escapeJava(text));
-        sb.append("\";");
-        return sb.toString();
-    }
-
-    public String getTextBytesFieldSource() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("private static final byte[] ");
-        sb.append(id);
-        sb.append("_bytes = JetUtils.asBytes(");
-        sb.append(id);
-        sb.append(", $ENC);");
-        return sb.toString();
-    }
-
     @Override
-    public String getSource() {
+    public String toString() {
         if (text != null) {
             return "$out.print(" + id + ", " + id + "_bytes);";
         }
         return null;
-    }
-
-    @Override
-    public String toString() {
-        return getSource();
     }
 }

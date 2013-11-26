@@ -132,15 +132,19 @@ public final class JetTemplate {
 
         JetTemplateCodeVisitor visitor = new JetTemplateCodeVisitor(engine, engine.getVariableResolver(), parser, resource);
         Code code = parser.template().accept(visitor);
-        return code.getSource();
+        return code.toString();
     }
 
     public void render(Map<String, Object> context, Writer out) {
-        render(new JetContext(context), out);
+        JetContext ctx = new JetContext(context);
+        JetWriter writer = JetWriter.create(out, encoding);
+        render(new JetPageContext(this, ctx, writer));
     }
 
     public void render(Map<String, Object> context, OutputStream out) {
-        render(new JetContext(context), out);
+        JetContext ctx = new JetContext(context);
+        JetWriter writer = JetWriter.create(out, encoding);
+        render(new JetPageContext(this, ctx, writer));
     }
 
     public void render(JetContext context, Writer out) {

@@ -21,7 +21,7 @@ package testcase;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Properties;
+import java.util.*;
 import jetbrick.template.*;
 import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.loader.ClasspathResourceLoader;
@@ -30,7 +30,7 @@ import jetbrick.template.utils.UnsafeByteArrayOutputStream;
 
 public class JetEngineTestCase {
     private static final JetEngine engine = getJetEngine();
-    private static final JetContext context = getJetContext();
+    private static Map<String, Object> context = getContext();
 
     private static JetEngine getJetEngine() {
         Properties config = new Properties();
@@ -46,8 +46,8 @@ public class JetEngineTestCase {
         return JetEngine.create(config);
     }
 
-    private static JetContext getJetContext() {
-        JetContext context = new JetContext();
+    private static Map<String, Object> getContext() {
+        Map<String, Object> context = new HashMap<String, Object>();
         testcase.model.User user = testcase.model.User.newInstance();
         context.put("user", user);
         context.put("book", user.getBookList().get(0));

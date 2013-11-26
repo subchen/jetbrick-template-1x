@@ -92,102 +92,56 @@ import org.slf4j.LoggerFactory;
 // Visitor 模式访问器，用来生成 Java 代码
 public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> implements JetTemplateParserVisitor<Code> {
     private static final Logger log = LoggerFactory.getLogger(JetTemplateCodeVisitor.class);
-    private static final String CONTEXT_NAME = "context";
 
     private final JetEngine engine;
+    private final Resource resource;
     private final JetTemplateParser parser;
     private final VariableResolver resolver;
-    private final Resource resource;
-    private final String encoding;
     private final boolean trimDirectiveLine;
     private final boolean trimDirectiveComments;
     private final String commentsPrefix;
     private final String commentsSuffix;
 
-    private SymbolScope scope; // 当前的作用域
-    private SymbolScope contextScope; // 全局默认 context 变量所在的作用域 (哪些没有定义的变量)
-    private BlockCode contextBlockCode; // 缓存全局默认 context 变量 (哪些没有定义的变量)
-    private BlockCode textBlockCode; // 缓存全局文本内容 (放在 Class Field 中)
-    private Map<String, String> textCodeCache; // 文本内容缓存
+    private TemplateClassCode tcc; // 
+    private ScopeCode scopeCode; // 当前作用域对应的 Code
+    private Map<String, TextCode> textCache; // 文本内容缓存(可以减少冗余 Text)
     private Deque<String[]> forStack; // 维护嵌套 #for 的堆栈， 可以识别是否在嵌入在 #for 里面, 内部是否使用了 for.index
-    private int uuid = 1;
+    private int uuid = 1; // 计数器
 
     public JetTemplateCodeVisitor(JetEngine engine, VariableResolver resolver, JetTemplateParser parser, Resource resource) {
         this.engine = engine;
         this.parser = parser;
         this.resolver = resolver;
         this.resource = resource;
-        this.encoding = engine.getConfig().getOutputEncoding();
         this.trimDirectiveLine = engine.getConfig().isTrimDirectiveLine();
         this.trimDirectiveComments = engine.getConfig().isTrimDirectiveComments();
         this.commentsPrefix = engine.getConfig().getTrimDirectiveCommentsPrefix();
         this.commentsSuffix = engine.getConfig().getTrimDirectiveCommentsSuffix();
 
-        this.scope = new SymbolScope(null);
-        this.textCodeCache = new HashMap<String, String>(32);
+        this.textCache = new HashMap<String, TextCode>(32);
         this.forStack = new ArrayDeque<String[]>(8);
     }
 
     @Override
     public Code visitTemplate(TemplateContext ctx) {
-        BlockCode code = scope.createBlockCode(128);
-        if (resource.getPackageName() != null) {
-            code.addLine("package " + resource.getPackageName() + ";");
-            code.addLine("");
-        }
-        code.addLine("import java.util.*;");
-        code.addLine("import jetbrick.template.JetContext;");
-        code.addLine("import jetbrick.template.runtime.*;");
-        code.addLine("");
-
-        code.addLine("@SuppressWarnings({\"all\", \"warnings\", \"unchecked\", \"unused\", \"cast\"})");
-        code.addLine("public final class " + resource.getClassName() + " extends JetPage {");
-        scope = scope.push();
-        textBlockCode = scope.createBlockCode(32); // 在当前作用域中建立 textBlockCode
-
-        // add render() method
-        code.addLine("");
-        code.addLine("  @Override");
-        code.addLine("  public void render(final JetPageContext $ctx) throws Throwable {");
-        scope = scope.push();
-        scope.define(CONTEXT_NAME, TypedKlass.JetContext);
-        code.addLine("    final JetContext " + CONTEXT_NAME + " = $ctx.getContext();");
-        code.addLine("    final JetWriter $out = $ctx.getWriter();");
-
-        contextScope = scope; // 全局 context 变量
-        contextBlockCode = contextScope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
-        Code blockCode = ctx.block().accept(this);
-        code.addChild(contextBlockCode); // add context variable definition
-        code.addChild(blockCode); // add children
-
-        code.addLine("    $out.flush();");
-        scope = scope.pop(); // exit render() method
-        code.addLine("  }");
-
-        // add getName() method
-        code.addLine("");
-        code.addLine("  @Override");
-        code.addLine("  public String getName() {");
-        code.addLine("    return \"" + StringEscapeUtils.escapeJava(resource.getName()) + "\";");
-        code.addLine("  }");
-
-        // add text fields definition
-        code.addLine("");
-        code.addLine("  public static final String $ENC = \"" + encoding + "\";");
-        code.addChild(textBlockCode);
-
-        scope = scope.pop(); // exit class
-        code.addLine("}");
-
-        return code;
+        tcc = new TemplateClassCode();
+        tcc.setPackageName(resource.getPackageName());
+        tcc.setClassName(resource.getClassName());
+        tcc.setTemplateName(resource.getName());
+        tcc.setEncoding(engine.getConfig().getOutputEncoding());
+        
+        scopeCode = tcc.getMethodCode();
+        scopeCode.define(Code.CONTEXT_NAME, TypedKlass.JetContext);
+        scopeCode.setBodyCode(ctx.block().accept(this));
+        return tcc;
     }
 
     @Override
     public Code visitBlock(BlockContext ctx) {
-        BlockCode code = scope.createBlockCode(32);
-        if (ctx.getChildCount() == 0) return code;
+        int size = ctx.getChildCount();
+        BlockCode code = scopeCode.createBlockCode(size);
+        if (size == 0) return code;
 
-        int size = ctx.children.size();
         for (int i = 0; i < size; i++) {
             ParseTree node = ctx.children.get(i);
             Code c = node.accept(this);
@@ -226,15 +180,14 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
                 if (!textCode.isEmpty()) {
                     // 如果有相同内容的Text，则从缓存中读取
-                    String source = textCodeCache.get(textCode.getText());
-                    if (source == null) {
-                        source = c.getSource();
-                        textCodeCache.put(textCode.getText(), source);
+                    TextCode old = textCache.get(textCode.getText());
+                    if (old == null) {
+                        old = textCode;
+                        textCache.put(textCode.getText(), textCode);
                         // add text into field
-                        textBlockCode.addLine(textCode.getTextValueFieldSource());
-                        textBlockCode.addLine(textCode.getTextBytesFieldSource());
+                        tcc.addField(textCode.getId(), textCode.getText());
                     }
-                    code.addLine(source);
+                    code.addLine(old.toString());
                 }
             } else {
                 code.addChild(c);
@@ -263,13 +216,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     @Override
     public Code visitValue(ValueContext ctx) {
         Code code = ctx.expression().accept(this);
-        String source = code.getSource();
+        String source = code.toString();
 
         // 如果返回值是 void，那么不需要 print 语句。
         if (code instanceof SegmentCode) {
             Class<?> klass = ((SegmentCode) code).getKlass();
             if (Void.TYPE.equals(klass)) {
-                return scope.createLineCode(source + "; // line: " + ctx.getStart().getLine());
+                return scopeCode.createLineCode(source + "; // line: " + ctx.getStart().getLine());
             }
         }
 
@@ -282,7 +235,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             // 防止编译出错 (也可以生成一个空行)
             source = "(Object)null";
         }
-        return scope.createLineCode("$out.print(" + source + "); // line: " + ctx.getStart().getLine());
+        return scopeCode.createLineCode("$out.print(" + source + "); // line: " + ctx.getStart().getLine());
     }
 
     @Override
@@ -293,7 +246,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     @Override
     public Code visitDefine_directive(Define_directiveContext ctx) {
         List<Define_expressionContext> define_expression_list = ctx.define_expression();
-        BlockCode code = scope.createBlockCode(define_expression_list.size());
+        BlockCode code = scopeCode.createBlockCode(define_expression_list.size());
 
         for (Define_expressionContext node : define_expression_list) {
             Code c = node.accept(this);
@@ -309,18 +262,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentCode code = (SegmentCode) ctx.type().accept(this);
         String name = assert_java_identifier(ctx.IDENTIFIER(), true);
 
-        if (!scope.define(name, code.getTypedKlass())) {
+        if (!scopeCode.define(name, code.getTypedKlass())) {
             throw reportError("Duplicate local variable " + name, ctx.IDENTIFIER());
         }
 
-        String typeName = code.getTypedKlass().asBoxedTypedKlass().getSource();
-        return scope.createLineCode(typeName + " " + name + " = (" + typeName + ") " + CONTEXT_NAME + ".get(\"" + name + "\"); // line: " + ctx.getStart().getLine());
+        String typeName = code.getTypedKlass().asBoxedTypedKlass().toString();
+        return scopeCode.createLineCode(typeName + " " + name + " = (" + typeName + ") " + Code.CONTEXT_NAME + ".get(\"" + name + "\"); // line: " + ctx.getStart().getLine());
     }
 
     @Override
     public Code visitSet_directive(Set_directiveContext ctx) {
         List<Set_expressionContext> set_expression_list = ctx.set_expression();
-        BlockCode code = scope.createBlockCode(set_expression_list.size());
+        BlockCode code = scopeCode.createBlockCode(set_expression_list.size());
 
         for (Set_expressionContext node : set_expression_list) {
             Code c = node.accept(this);
@@ -336,33 +289,43 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String name = assert_java_identifier(ctx.IDENTIFIER(), true);
         SegmentCode code = (SegmentCode) ctx.expression().accept(this);
 
+        boolean defining = false; // 是否同时定义一个变量
+
         TypedKlass lhs = null; // 变量类型
         TypeContext type = ctx.type();
         if (type != null) {
+            defining = true;
             // 定义一个变量
             SegmentCode c = (SegmentCode) type.accept(this);
             lhs = c.getTypedKlass();
-            if (!scope.define(name, lhs)) {
+            if (!scopeCode.define(name, lhs)) {
                 throw reportError("Duplicate local variable " + name, ctx.IDENTIFIER());
             }
         } else {
             // 直接赋值，如果变量没有定义，则先定义
-            lhs = scope.resolve(name);
-            if (lhs == null) {
+            lhs = scopeCode.resolve(name, false);
+            defining = (lhs == null);
+            if (defining) {
                 lhs = code.getTypedKlass();
-                scope.define(name, lhs);
+                scopeCode.define(name, lhs);
             }
         }
 
         // 进行赋值语句类型检查
         if (!ClassUtils.isAssignable(lhs.getKlass(), code.getKlass())) { // 是否支持正常赋值
             if (!ClassUtils.isAssignable(code.getKlass(), lhs.getKlass())) { // 是否支持强制类型转换
-                throw reportError("Type mismatch: cannot convert from " + code.getTypedKlass().getSource() + " to " + lhs.getSource(), ctx);
+                throw reportError("Type mismatch: cannot convert from " + code.getTypedKlass().toString() + " to " + lhs.toString(), ctx);
             }
         }
 
-        String source = lhs.getSource() + " " + name + " = (" + lhs.getSource() + ") " + code.getSource() + "; // line: " + ctx.getStart().getLine();
-        return scope.createLineCode(source);
+        BlockCode c = scopeCode.createBlockCode(2);
+        String source = name + " = (" + lhs.getSource() + ") " + code.toString() + "; // line: " + ctx.getStart().getLine();
+        if (defining) {
+            source = lhs.getSource() + " " + source;
+        }
+        c.addLine(source);
+        c.addLine(Code.CONTEXT_NAME + ".put(\"" + name + "\", " + name + ");");
+        return c;
     }
 
     @Override
@@ -378,37 +341,32 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (!String.class.equals(name.getKlass())) {
             throw reportError("The first parameter type is not String.class for #put directive", ctx);
         }
-        assert_not_void_expression(value, expression_list.get(1));
+        assert_not_void_expression(value);
 
-        return scope.createLineCode(CONTEXT_NAME + ".put(" + name.getSource() + ", " + value.getSource() + "); // line: " + ctx.getStart().getLine());
+        return scopeCode.createLineCode(Code.CONTEXT_NAME + ".put(" + name.toString() + ", " + value.toString() + ", true); // line: " + ctx.getStart().getLine());
     }
 
     @Override
     public Code visitIf_directive(If_directiveContext ctx) {
-        BlockCode code = scope.createBlockCode(16);
+        BlockCode code = scopeCode.createBlockCode(16);
 
-        ExpressionContext expression = ctx.expression();
-        SegmentCode expr_code = (SegmentCode) expression.accept(this);
-        code.addLine("if (" + get_if_expression_source(expr_code, expression) + ") { // line: " + ctx.getStart().getLine());
-        scope = scope.push();
-
-        Code block_code = ctx.block().accept(this);
-        code.addChild(block_code);
-        scope = scope.pop();
+        SegmentCode expr_code = (SegmentCode) ctx.expression().accept(this);
+        code.addLine("if (" + get_if_expression_source(expr_code) + ") { // line: " + ctx.getStart().getLine());
+        scopeCode = scopeCode.push();
+        code.addChild(ctx.block().accept(this));
+        scopeCode = scopeCode.pop();
         code.addLine("}");
 
         // elseif ...
         List<Elseif_directiveContext> elseif_directive_list = ctx.elseif_directive();
         for (Elseif_directiveContext elseif_directive : elseif_directive_list) {
-            Code c = elseif_directive.accept(this);
-            code.addChild(c);
+            code.addChild(elseif_directive.accept(this));
         }
 
         // else ...
         Else_directiveContext else_directive = ctx.else_directive();
         if (else_directive != null) {
-            Code c = else_directive.accept(this);
-            code.addChild(c);
+            code.addChild(else_directive.accept(this));
         }
 
         return code;
@@ -416,16 +374,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitElseif_directive(Elseif_directiveContext ctx) {
-        BlockCode code = scope.createBlockCode(16);
+        BlockCode code = scopeCode.createBlockCode(16);
 
-        ExpressionContext expression = ctx.expression();
-        SegmentCode expr_code = (SegmentCode) expression.accept(this);
-        code.addLine("else if (" + get_if_expression_source(expr_code, expression) + ") { // line: " + ctx.getStart().getLine());
-        scope = scope.push();
-
-        Code block_code = ctx.block().accept(this);
-        code.addChild(block_code);
-        scope = scope.pop();
+        SegmentCode expr_code = (SegmentCode) ctx.expression().accept(this);
+        code.addLine("else if (" + get_if_expression_source(expr_code) + ") { // line: " + ctx.getStart().getLine());
+        scopeCode = scopeCode.push();
+        code.addChild(ctx.block().accept(this));
+        scopeCode = scopeCode.pop();
         code.addLine("}");
 
         return code;
@@ -433,16 +388,15 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitElse_directive(Else_directiveContext ctx) {
-        BlockCode code = scope.createBlockCode(16);
+        BlockCode code = scopeCode.createBlockCode(16);
 
         if (ctx.getParent() instanceof If_directiveContext) {
             code.addLine("else { // line: " + ctx.getStart().getLine());
         }
 
-        scope = scope.push();
-        Code block_code = ctx.block().accept(this);
-        code.addChild(block_code);
-        scope = scope.pop();
+        scopeCode = scopeCode.push();
+        code.addChild(ctx.block().accept(this));
+        scopeCode = scopeCode.pop();
 
         if (ctx.getParent() instanceof If_directiveContext) {
             code.addLine("}");
@@ -453,17 +407,17 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitFor_directive(For_directiveContext ctx) {
-        BlockCode code = scope.createBlockCode(16);
+        BlockCode code = scopeCode.createBlockCode(16);
         String id_for = getUid("for");
         String id_it = getUid("it");
 
-        scope = scope.push();
+        scopeCode = scopeCode.push();
         // 注意：for循环变量的作用域要放在 for 内部， 防止出现变量重定义错误
         ForExpressionCode for_expr_code = (ForExpressionCode) ctx.for_expression().accept(this);
         // for block
         forStack.push(new String[] { id_for, "false" });
         Code for_block_code = ctx.block().accept(this);
-        scope = scope.pop();
+        scopeCode = scopeCode.pop();
 
         // for-else
         Else_directiveContext else_directive = ctx.else_directive();
@@ -475,7 +429,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (need_for_status) {
             code.addLine("JetForStatus " + id_for + " = new JetForStatus();");
         }
-        code.addLine("Iterator<?> " + id_it + " = JetUtils.asIterator(" + for_expr_code.getSource() + ");");
+        code.addLine("Iterator<?> " + id_it + " = JetUtils.asIterator(" + for_expr_code.toString() + ");");
         code.addLine("while (" + id_it + ".hasNext()) { // line: " + ctx.getStart().getLine());
 
         // class item = (class) it.next() ...
@@ -501,7 +455,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitFor_expression(For_expressionContext ctx) {
         String name = ctx.IDENTIFIER().getText();
         SegmentCode code = (SegmentCode) ctx.expression().accept(this);
-        assert_not_void_expression(code, ctx.expression());
+        assert_not_void_expression(code);
 
         TypedKlass resultKlass = null;
         TypeContext type = ctx.type();
@@ -530,11 +484,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 必须是 Boxed 对象，因为需要强制类型转换 from iterator.next()
         resultKlass = resultKlass.asBoxedTypedKlass();
 
-        if (!scope.define(name, resultKlass)) {
+        if (!scopeCode.define(name, resultKlass)) {
             throw reportError("Duplicate local variable " + name, ctx.IDENTIFIER());
         }
 
-        return new ForExpressionCode(resultKlass, name, code.getSource());
+        return new ForExpressionCode(resultKlass, name, code.toString(), ctx);
     }
 
     @Override
@@ -545,12 +499,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = get_if_expression_source(c, expression);
+            source = get_if_expression_source(c);
         } else {
             source = "true";
         }
         source = "if (" + source + ") break; // line: " + ctx.getStart().getLine();
-        return scope.createLineCode(source);
+        return scopeCode.createLineCode(source);
     }
 
     @Override
@@ -561,12 +515,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = get_if_expression_source(c, expression);
+            source = get_if_expression_source(c);
         } else {
             source = "true";
         }
         source = "if (" + source + ") continue; // line: " + ctx.getStart().getLine();
-        return scope.createLineCode(source);
+        return scopeCode.createLineCode(source);
     }
 
     @Override
@@ -575,12 +529,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = get_if_expression_source(c, expression);
+            source = get_if_expression_source(c);
         } else {
             source = "true";
         }
         source = "if (" + source + ") return; // line: " + ctx.getStart().getLine();
-        return scope.createLineCode(source);
+        return scopeCode.createLineCode(source);
     }
 
     @Override
@@ -609,7 +563,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 如果 file 是常量，那么进行 file.exists() 校验
         if (fileExpression instanceof Expr_constantContext) {
-            String file = fileCode.getSource();
+            String file = fileCode.toString();
             file = file.substring(1, file.length() - 1);
             file = StringEscapeUtils.unescapeJava(file);
             file = PathUtils.getAbsolutionName(resource.getName(), file);
@@ -621,12 +575,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 生成代码
         StringBuilder source = new StringBuilder();
         source.append("JetUtils.asInclude($ctx, ");
-        source.append(fileCode.getSource());
+        source.append(fileCode.toString());
         source.append(", (Map<String, Object>)");
-        source.append((parametersCode != null) ? parametersCode.getSource() : "null");
+        source.append((parametersCode != null) ? parametersCode.toString() : "null");
         source.append("); // line: ");
         source.append(ctx.getStart().getLine());
-        return scope.createLineCode(source.toString());
+        return scopeCode.createLineCode(source.toString());
     }
 
     @Override
@@ -634,35 +588,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String text = ctx.getChild(0).getText();
         String name = text.substring(5, text.length() - 1).trim();
 
-        BlockCode code = scope.createBlockCode(32);
-        String id = getUid("tag");
-
-        // save global variable
-        SymbolScope old_context_scope = contextScope;
-        BlockCode old_context_block_code = contextBlockCode;
-
-        // create JetTagContext
-        code.addLine("final JetTagContext " + id + " = new JetTagContext($ctx) {");
-        scope = scope.push();
-        code.addLine("  @Override");
-        code.addLine("  protected void render(final JetWriter $out) throws Throwable {");
-        scope = scope.push();
-
-        contextScope = scope; // Tag 用的全局 context 变量
-        contextBlockCode = contextScope.createBlockCode(8); // 在当前作用域中建立 contextBlockCode
-        Code block = ctx.block().accept(this);
-        code.addChild(contextBlockCode); // add context variable definition
-        code.addChild(block); // add body content
-
-        code.addLine("    $out.flush();");
-        scope = scope.pop();
-        code.addLine("  }");
-        scope = scope.pop();
-        code.addLine("};");
-
-        // reset to old scope
-        contextScope = old_context_scope;
-        contextBlockCode = old_context_block_code;
+        TagCode tagCode = scopeCode.createTagCode();
+        tagCode.setTagId(getUid("tag"));
+        scopeCode = tagCode.getMethodCode();
+        scopeCode.define(Code.CONTEXT_NAME, TypedKlass.JetContext);
+        scopeCode.setBodyCode(ctx.block().accept(this)); // add body content
+        scopeCode = scopeCode.pop();
 
         // finding tag function
         Class<?>[] parameterTypes = JetTagContext.CLASS_ARRAY;
@@ -681,21 +612,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("Undefined tag definition: " + getMethodSignature(name, parameterTypes), ctx);
         }
 
-        // source for invoke tag
-        StringBuilder source = new StringBuilder();
-        source.append(ClassUtils.getShortClassName(method.getDeclaringClass()));
-        source.append('.');
-        source.append(name);
-        source.append('(');
-        source.append(id);
-        if (expr_list_code != null) {
-            source.append(',').append(expr_list_code.getSource());
-        }
-        source.append(");");
-        code.addLine(source.toString());
-
-        //
-        return code;
+        tagCode.setMethod(method);
+        tagCode.setExpressionListCode(expr_list_code);
+        return tagCode;
     }
 
     @Override
@@ -706,8 +625,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     @Override
     public Code visitExpr_group(Expr_groupContext ctx) {
         SegmentCode code = (SegmentCode) ctx.expression().accept(this);
-        String source = "(" + code.getSource() + ")";
-        return new SegmentCode(code.getTypedKlass(), source);
+        String source = "(" + code.toString() + ")";
+        return new SegmentCode(code.getTypedKlass(), source, ctx);
     }
 
     @Override
@@ -721,9 +640,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Expression_listContext expression_list = ctx.expression_list();
         if (expression_list != null) {
             Code code = expression_list.accept(this);
-            source = "Arrays.asList(" + code.getSource() + ")";
+            source = "Arrays.asList(" + code.toString() + ")";
         }
-        return new SegmentCode(List.class, source);
+        return new SegmentCode(List.class, source, ctx);
     }
 
     @Override
@@ -732,9 +651,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Hash_map_entry_listContext hash_map_entry_list = ctx.hash_map_entry_list();
         if (hash_map_entry_list != null) {
             Code code = hash_map_entry_list.accept(this);
-            source = "JetUtils.asMap(" + code.getSource() + ")";
+            source = "JetUtils.asMap(" + code.toString() + ")";
         }
-        return new SegmentCode(Map.class, source);
+        return new SegmentCode(Map.class, source, ctx);
     }
 
     @Override
@@ -758,34 +677,35 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             String[] forStatus = forStack.peek();
             forStatus[1] = "true"; // 存在 for 变量，则变成 true
             name = forStatus[0]; // 取出 forStatus 的原始变量名
-            return new SegmentCode(TypedKlass.JetForStatus, name);
+            return new SegmentCode(TypedKlass.JetForStatus, name, ctx);
         }
 
         // 找到变量的类型
-        TypedKlass resultKlass = scope.resolve(name);
+        TypedKlass resultKlass = scopeCode.resolve(name, false);
         if (resultKlass == null) {
-            // 没有定义过，则查找全局定义
-            resultKlass = resolver.resolveVariable(name);
-            if (contextScope.define(name, resultKlass)) {
-                if (resultKlass == TypedKlass.Object) {
-                    log.warn("line " + ctx.getStart().getLine() + ": Implicit definition for context variable: " + resultKlass.getSource() + " " + name);
-                }
-                // 注意：不光要在Global作用域定义，也要在当前的作用域定义，防止后面重定义
-                scope.define(name, resultKlass);
+            // 没有定义过，继续向上深度查找
+            resultKlass = scopeCode.resolve(name, true);
 
-                String klass = resultKlass.asBoxedTypedKlass().getSource();
-                contextBlockCode.addLine(klass + " " + name + " = (" + klass + ") " + CONTEXT_NAME + ".get(\"" + name + "\");");
+            // 没有定义过，则查找全局定义
+            if (resultKlass == null) {
+                resultKlass = resolver.resolveVariable(name);
+            }
+            if (scopeCode.define(name, resultKlass, true)) {
+                if (resultKlass == TypedKlass.Object) {
+                    log.warn("line " + ctx.getStart().getLine() + ": Implicit definition for context variable: " + resultKlass.toString() + " " + name);
+                }
             }
         }
 
-        return new SegmentCode(resultKlass, name);
+        return new SegmentCode(resultKlass, name, ctx);
     }
 
     @Override
     public Code visitExpr_field_access(Expr_field_accessContext ctx) {
-        ExpressionContext expression = get_not_null_constantContext(ctx.expression());
-        SegmentCode code = (SegmentCode) expression.accept(this);
+        SegmentCode code = (SegmentCode) ctx.expression().accept(this);
         String name = ctx.IDENTIFIER().getText();
+
+        assert_not_null_constantContext(code.getNode());
 
         // 进行类型推导，找到方法的返回类型
         code = code.asBoxedSegmentCode();
@@ -810,7 +730,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         // 生成code
-        StringBuilder source = new StringBuilder();
+        StringBuilder sb = new StringBuilder(64);
         TypedKlass resultKlass = null;
         String op = ctx.getChild(1).getText();
         if (member instanceof Method) {
@@ -819,38 +739,38 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (method.getParameterTypes().length == 0) {
                 // getXXX() or isXXX()
                 if ("?.".equals(op)) { // 安全调用，防止 NullPointException
-                    source.append("((");
-                    source.append(code.getSource());
-                    source.append("==null)?");
-                    source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
-                    source.append(':');
-                    source.append(code.getSource());
-                    source.append('.');
-                    source.append(method.getName());
-                    source.append("())");
+                    sb.append("((");
+                    sb.append(code.toString());
+                    sb.append("==null)?");
+                    sb.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
+                    sb.append(':');
+                    sb.append(code.toString());
+                    sb.append('.');
+                    sb.append(method.getName());
+                    sb.append("())");
                 } else {
-                    source.append(code.getSource());
-                    source.append('.');
-                    source.append(method.getName());
-                    source.append("()");
+                    sb.append(code.toString());
+                    sb.append('.');
+                    sb.append(method.getName());
+                    sb.append("()");
                 }
             } else {
                 // get(String)
                 if ("?.".equals(op)) { // 安全调用，防止 NullPointException
-                    source.append("((");
-                    source.append(code.getSource());
-                    source.append("==null)?");
-                    source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
-                    source.append(':');
-                    source.append(code.getSource());
-                    source.append(".get(\"");
-                    source.append(name);
-                    source.append("\"))");
+                    sb.append("((");
+                    sb.append(code.toString());
+                    sb.append("==null)?");
+                    sb.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
+                    sb.append(':');
+                    sb.append(code.toString());
+                    sb.append(".get(\"");
+                    sb.append(name);
+                    sb.append("\"))");
                 } else {
-                    source.append(code.getSource());
-                    source.append(".get(\"");
-                    source.append(name);
-                    source.append("\")");
+                    sb.append(code.toString());
+                    sb.append(".get(\"");
+                    sb.append(name);
+                    sb.append("\")");
                 }
             }
         } else {
@@ -861,23 +781,23 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 resultKlass = TypedKlass.create(Integer.TYPE);
             }
             if ("?.".equals(op)) { // 安全调用，防止 NullPointException
-                source.append("((");
-                source.append(code.getSource());
-                source.append("==null)?");
-                source.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
-                source.append(':');
-                source.append(code.getSource());
-                source.append('.');
-                source.append(name);
-                source.append(')');
+                sb.append("((");
+                sb.append(code.toString());
+                sb.append("==null)?");
+                sb.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
+                sb.append(':');
+                sb.append(code.toString());
+                sb.append('.');
+                sb.append(name);
+                sb.append(')');
             } else {
-                source.append(code.getSource());
-                source.append('.');
-                source.append(name);
+                sb.append(code.toString());
+                sb.append('.');
+                sb.append(name);
             }
         }
 
-        return new SegmentCode(resultKlass, source.toString());
+        return new SegmentCode(resultKlass, sb.toString(), ctx);
     }
 
     @Override
@@ -895,8 +815,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         // 查找方法
-        ExpressionContext expression = get_not_null_constantContext(ctx.expression());
-        SegmentCode code = (SegmentCode) expression.accept(this);
+        SegmentCode code = (SegmentCode) ctx.expression().accept(this);
+        assert_not_null_constantContext(code.getNode());
+
         code = code.asBoxedSegmentCode();
         Class<?> beanClass = code.getKlass();
         String name = ctx.IDENTIFIER().getText();
@@ -910,64 +831,58 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (bean_method == null && tool_method == null) {
             // reportError
             StringBuilder err = new StringBuilder(128);
-            err.append("The method ");
-            err.append(name);
-            err.append('(');
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (i > 0) err.append(',');
-                err.append(parameterTypes[i].getName());
-            }
-            err.append(") is undefined for the type ");
+            err.append("The method ").append(getMethodSignature(name, parameterTypes));
+            err.append(" is undefined for the type ");
             err.append(beanClass.getName());
             err.append('.');
             throw reportError(err.toString(), ctx.IDENTIFIER());
         }
 
         // 生成code
-        StringBuilder source = new StringBuilder();
+        StringBuilder sb = new StringBuilder(64);
         String op = ctx.getChild(1).getText();
         if (tool_method != null) {
             // tool method
-            source.append(ClassUtils.getShortClassName(tool_method.getDeclaringClass()));
-            source.append('.');
-            source.append(name);
-            source.append('(');
-            source.append(code.getSource());
+            sb.append(ClassUtils.getShortClassName(tool_method.getDeclaringClass()));
+            sb.append('.');
+            sb.append(name);
+            sb.append('(');
+            sb.append(code.toString());
             if (tool_advanced) {
-                source.append(",$ctx");
+                sb.append(",$ctx");
             }
             if (expr_list_code != null) {
-                source.append(',');
+                sb.append(',');
             }
         } else {
             if ("?.".equals(op)) { // 安全调用，防止 NullPointException
-                source.append('(');
-                source.append(code.getSource());
-                source.append("==null)?null:");
-                source.append(code.getSource());
-                source.append('.');
-                source.append(name);
-                source.append('(');
+                sb.append('(');
+                sb.append(code.toString());
+                sb.append("==null)?null:");
+                sb.append(code.toString());
+                sb.append('.');
+                sb.append(name);
+                sb.append('(');
             } else {
-                source.append(code.getSource());
-                source.append('.');
-                source.append(name);
-                source.append('(');
+                sb.append(code.toString());
+                sb.append('.');
+                sb.append(name);
+                sb.append('(');
             }
         }
         if (expr_list_code != null) {
-            source.append(expr_list_code.getSource());
+            sb.append(expr_list_code.toString());
         }
-        source.append(')');
+        sb.append(')');
 
         if ("?.".equals(op)) { // 为了安全起见，用()包起来
-            source.insert(0, '(').append(')');
+            sb.insert(0, '(').append(')');
         }
 
         // 得到方法的返回类型
         Method method = (bean_method == null) ? tool_method : bean_method;
         TypedKlass typedKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
-        return new SegmentCode(typedKlass, source.toString());
+        return new SegmentCode(typedKlass, sb.toString(), ctx);
     }
 
     @Override
@@ -993,48 +908,50 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             advanced = true;
         }
         if (method == null) {
-            throw reportError("Undefined function " + name + "(...).", ctx.IDENTIFIER());
+            throw reportError("Undefined function " + getMethodSignature(name, parameterTypes) + ".", ctx.IDENTIFIER());
         }
 
         // 生成code
-        StringBuilder source = new StringBuilder();
-        source.append(ClassUtils.getShortClassName(method.getDeclaringClass()));
-        source.append('.');
-        source.append(name);
-        source.append('(');
+        StringBuilder sb = new StringBuilder(64);
+        sb.append(ClassUtils.getShortClassName(method.getDeclaringClass()));
+        sb.append('.');
+        sb.append(name);
+        sb.append('(');
         if (advanced) {
-            source.append("$ctx");
+            sb.append("$ctx");
         }
         if (expr_list_code != null) {
-            if (advanced) source.append(',');
-            source.append(expr_list_code.getSource());
+            if (advanced) sb.append(',');
+            sb.append(expr_list_code.toString());
         }
-        source.append(')');
+        sb.append(')');
 
         TypedKlass typedKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
-        return new SegmentCode(typedKlass, source.toString());
+        return new SegmentCode(typedKlass, sb.toString(), ctx);
     }
 
     @Override
     public Code visitExpr_array_get(Expr_array_getContext ctx) {
-        ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
-        ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-        SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
-        SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
+        SegmentCode lhs = (SegmentCode) ctx.expression(0).accept(this);
+        SegmentCode rhs = (SegmentCode) ctx.expression(1).accept(this);
+
+        assert_not_null_constantContext(lhs.getNode());
+        assert_not_null_constantContext(rhs.getNode());
+
         Class<?> lhsKlass = lhs.getKlass();
         if (lhsKlass.isArray()) {
             if (!ClassUtils.isAssignable(Integer.TYPE, rhs.getKlass())) {
-                throw reportError("Type mismatch: cannot convert from " + rhs.getKlassName() + " to int.", rhs_expression);
+                throw reportError("Type mismatch: cannot convert from " + rhs.getKlassName() + " to int.", lhs.getNode());
             }
-            String source = lhs.getSource() + "[" + rhs.getSource() + "]";
-            return new SegmentCode(lhsKlass.getComponentType(), lhs.getTypeArgs(), source);
+            String source = lhs.toString() + "[" + rhs.toString() + "]";
+            return new SegmentCode(lhsKlass.getComponentType(), lhs.getTypeArgs(), source, ctx);
         } else {
             TypedKlass resultKlass = null;
 
             // try to List.get(index) or Map.get(name) or JetContext.get(name)
             if (List.class.isAssignableFrom(lhsKlass)) {
                 if (!ClassUtils.isAssignable(Integer.TYPE, rhs.getKlass())) {
-                    throw reportError("The method get(int) in the type List is not applicable for the arguments (" + rhs.getKlassName() + ")", rhs_expression);
+                    throw reportError("The method get(int) in the type List is not applicable for the arguments (" + rhs.getKlassName() + ")", rhs.getNode());
                 }
                 // 取出可能的List泛型
                 if (lhs.getTypeArgs() != null && lhs.getTypeArgs().length == 1) {
@@ -1047,7 +964,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 }
             } else if (JetContext.class.isAssignableFrom(lhsKlass)) {
                 if (!String.class.equals(rhs.getKlass())) {
-                    throw reportError("The method get(String) in the type JetContext is not applicable for the arguments (" + rhs.getKlassName() + ")", rhs_expression);
+                    throw reportError("The method get(String) in the type JetContext is not applicable for the arguments (" + rhs.getKlassName() + ")", rhs.getNode());
                 }
                 resultKlass = TypedKlass.Object;
             } else {
@@ -1058,8 +975,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 resultKlass = TypedKlass.Object;
             }
 
-            String source = lhs.getSource() + ".get(" + rhs.getSource() + ")";
-            return new SegmentCode(resultKlass, source);
+            String source = lhs.toString() + ".get(" + rhs.toString() + ")";
+            return new SegmentCode(resultKlass, source, ctx);
         }
     }
 
@@ -1087,12 +1004,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             // reportError
             StringBuilder err = new StringBuilder(128);
             err.append("The constructor ");
-            err.append('(');
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (i > 0) err.append(',');
-                err.append(parameterTypes[i].getName());
-            }
-            err.append(") is undefined for the type ");
+            err.append(getMethodSignature(beanClass.getSimpleName(), parameterTypes));
+            err.append(" is undefined for the type ");
             err.append(beanClass.getName());
             err.append('.');
             throw reportError(err.toString(), ctx.type());
@@ -1100,13 +1013,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 生成代码
         StringBuilder source = new StringBuilder(32);
-        source.append("(new ").append(code.getSource()).append('(');
+        source.append("(new ").append(code.toString()).append('(');
         if (expr_list_code != null) {
-            source.append(expr_list_code.getSource());
+            source.append(expr_list_code.toString());
         }
         source.append("))");
 
-        return new SegmentCode(code.getTypedKlass(), source.toString());
+        return new SegmentCode(code.getTypedKlass(), source.toString(), ctx);
     }
 
     @Override
@@ -1116,31 +1029,31 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("Cannot specify an array dimension after an empty dimension", ctx.type());
         }
 
-        StringBuilder typeSource = new StringBuilder(code.getSource());
+        StringBuilder typeSource = new StringBuilder(code.toString());
 
         // 生成代码
         StringBuilder source = new StringBuilder(32);
-        source.append("(new ").append(code.getSource());
+        source.append("(new ").append(code.toString());
         for (ExpressionContext expression : ctx.expression()) {
             SegmentCode c = (SegmentCode) expression.accept(this);
             if (!ClassUtils.isAssignable(Integer.TYPE, c.getKlass())) {
                 throw reportError("Type mismatch: cannot convert from " + c.getKlassName() + " to int.", expression);
             }
-            source.append('[').append(c.getSource()).append(']');
+            source.append('[').append(c.toString()).append(']');
             typeSource.append("[]");
         }
         source.append(')');
 
         TypedKlass resultKlass = resolver.resolveTypedKlass(typeSource.toString());
-        return new SegmentCode(resultKlass, source.toString());
+        return new SegmentCode(resultKlass, source.toString(), ctx);
     }
 
     @Override
     public Code visitExpr_class_cast(Expr_class_castContext ctx) {
         SegmentCode code = (SegmentCode) ctx.type().accept(this);
         Code expr_code = ctx.expression().accept(this);
-        String source = "((" + code.getSource() + ")" + expr_code.getSource() + ")";
-        return new SegmentCode(code.getTypedKlass(), source);
+        String source = "((" + code.toString() + ")" + expr_code.toString() + ")";
+        return new SegmentCode(code.getTypedKlass(), source, ctx);
     }
 
     @Override
@@ -1151,15 +1064,17 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (!ClassUtils.isAssignable(lhs.getKlass(), rhs.getKlass()) && !ClassUtils.isAssignable(lhs.getKlass(), rhs.getKlass())) {
             throw reportError("Incompatible conditional operand types " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx.getChild(1));
         }
-        String source = "(" + lhs.getSource() + " instanceof " + rhs.getSource() + ")";
-        return new SegmentCode(Boolean.TYPE, source);
+        String source = "(" + lhs.toString() + " instanceof " + rhs.toString() + ")";
+        return new SegmentCode(Boolean.TYPE, source, ctx);
     }
 
     @Override
     public Code visitExpr_math_unary_suffix(Expr_math_unary_suffixContext ctx) {
-        ExpressionContext expression = get_not_null_constantContext(ctx.expression());
+        ExpressionContext expression = ctx.expression();
         SegmentCode code = (SegmentCode) expression.accept(this);
         String op = ctx.getChild(1).getText();
+
+        assert_not_null_constantContext(expression);
 
         // ++, --
         if (expression.getChildCount() == 1 && expression.getChild(0) instanceof ConstantContext) {
@@ -1172,15 +1087,17 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The UnaryOperator \"" + op + "\" is not applicable for the operand " + code.getKlassName(), ctx.getChild(1));
         }
 
-        String source = "(" + code.getSource() + op + ")";
-        return new SegmentCode(code.getTypedKlass(), source);
+        String source = "(" + code.toString() + op + ")";
+        return new SegmentCode(code.getTypedKlass(), source, ctx);
     }
 
     @Override
     public Code visitExpr_math_unary_prefix(Expr_math_unary_prefixContext ctx) {
-        ExpressionContext expression = get_not_null_constantContext(ctx.expression());
+        ExpressionContext expression = ctx.expression();
         SegmentCode code = (SegmentCode) expression.accept(this);
         String op = ctx.getChild(0).getText();
+
+        assert_not_null_constantContext(expression);
 
         // 类型检查
         Class<?> resultKlass;
@@ -1198,8 +1115,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The UnaryOperator \"" + op + "\" is not applicable for the operand " + code.getKlassName(), ctx.getChild(0));
         }
 
-        String source = "(" + op + code.getSource() + ")";
-        return new SegmentCode(code.getTypedKlass(), source);
+        String source = "(" + op + code.toString() + ")";
+        return new SegmentCode(code.getTypedKlass(), source, ctx);
     }
 
     @Override
@@ -1214,8 +1131,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx.getChild(1));
         }
 
-        String source = "(" + lhs.getSource() + op + rhs.getSource() + ")";
-        return new SegmentCode(resultKlass, source);
+        String source = "(" + lhs.toString() + op + rhs.toString() + ")";
+        return new SegmentCode(resultKlass, source, ctx);
     }
 
     @Override
@@ -1238,8 +1155,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx.getChild(1));
         }
 
-        String source = "(" + lhs.getSource() + op + rhs.getSource() + ")";
-        return new SegmentCode(resultKlass, source);
+        String source = "(" + lhs.toString() + op + rhs.toString() + ")";
+        return new SegmentCode(resultKlass, source, ctx);
     }
 
     @Override
@@ -1254,45 +1171,45 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError("The BinaryOperator \"" + op + "\" is not applicable for the operands " + lhs.getKlassName() + " and " + rhs.getKlassName(), ctx);
         }
 
-        String source = "(" + lhs.getSource() + op + rhs.getSource() + ")";
-        return new SegmentCode(resultKlass, source);
+        String source = "(" + lhs.toString() + op + rhs.toString() + ")";
+        return new SegmentCode(resultKlass, source, ctx);
     }
 
     @Override
     public Code visitExpr_compare_not(Expr_compare_notContext ctx) {
-        ExpressionContext expression = ctx.expression();
-        SegmentCode code = (SegmentCode) expression.accept(this);
-        String source = "(!" + get_if_expression_source(code, expression) + ")";
-        return new SegmentCode(Boolean.TYPE, source);
+        SegmentCode code = (SegmentCode) ctx.expression().accept(this);
+        String source = "(!" + get_if_expression_source(code) + ")";
+        return new SegmentCode(Boolean.TYPE, source, ctx);
     }
 
     @Override
     public Code visitExpr_compare_equality(Expr_compare_equalityContext ctx) {
-        ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
-        ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-        SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
-        SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
+        SegmentCode lhs = (SegmentCode) ctx.expression(0).accept(this);
+        SegmentCode rhs = (SegmentCode) ctx.expression(1).accept(this);
         TerminalNode op = (TerminalNode) ctx.getChild(1);
 
-        assert_not_void_expression(lhs, lhs_expression);
-        assert_not_void_expression(rhs, rhs_expression);
+        assert_not_void_expression(lhs);
+        assert_not_void_expression(rhs);
+        assert_not_null_constantContext(lhs.getNode());
+        assert_not_null_constantContext(rhs.getNode());
 
         StringBuilder source = new StringBuilder(32);
         source.append("==".equals(op.getText()) ? "JetUtils.asEquals(" : "JetUtils.asNotEquals(");
-        source.append(lhs.getSource());
+        source.append(lhs.toString());
         source.append(',');
-        source.append(rhs.getSource());
+        source.append(rhs.toString());
         source.append(')');
-        return new SegmentCode(Boolean.TYPE, source.toString());
+        return new SegmentCode(Boolean.TYPE, source.toString(), ctx);
     }
 
     @Override
     public Code visitExpr_compare_relational(Expr_compare_relationalContext ctx) {
-        ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
-        ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-        SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
-        SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
+        SegmentCode lhs = (SegmentCode) ctx.expression(0).accept(this);
+        SegmentCode rhs = (SegmentCode) ctx.expression(1).accept(this);
         TerminalNode op = (TerminalNode) ctx.getChild(1);
+
+        assert_not_null_constantContext(lhs.getNode());
+        assert_not_null_constantContext(rhs.getNode());
 
         Class<?> c1 = lhs.getKlass();
         Class<?> c2 = rhs.getKlass();
@@ -1329,24 +1246,26 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
         StringBuilder source = new StringBuilder(32);
         source.append("(JetUtils.asCompareWith(");
-        source.append(lhs.getSource());
+        source.append(lhs.toString());
         source.append(',');
-        source.append(rhs.getSource());
+        source.append(rhs.toString());
         source.append(')');
         source.append(suffix);
         source.append(')');
-        return new SegmentCode(Boolean.TYPE, source.toString());
+        return new SegmentCode(Boolean.TYPE, source.toString(), ctx);
     }
 
     @Override
     public Code visitExpr_compare_condition(Expr_compare_conditionContext ctx) {
-        ExpressionContext lhs_expression = get_not_null_constantContext(ctx.expression(0));
-        ExpressionContext rhs_expression = get_not_null_constantContext(ctx.expression(1));
-        SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
-        SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
+        SegmentCode lhs = (SegmentCode) ctx.expression(0).accept(this);
+        SegmentCode rhs = (SegmentCode) ctx.expression(1).accept(this);
         String op = ctx.getChild(1).getText();
-        String source = "(" + get_if_expression_source(lhs, lhs_expression) + op + get_if_expression_source(rhs, rhs_expression) + ")";
-        return new SegmentCode(Boolean.TYPE, source);
+
+        assert_not_null_constantContext(lhs.getNode());
+        assert_not_null_constantContext(rhs.getNode());
+
+        String source = "(" + get_if_expression_source(lhs) + op + get_if_expression_source(rhs) + ")";
+        return new SegmentCode(Boolean.TYPE, source, ctx);
     }
 
     @Override
@@ -1354,10 +1273,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentCode condition = (SegmentCode) ctx.expression(0).accept(this);
         SegmentCode lhs = (SegmentCode) ctx.expression(1).accept(this);
         SegmentCode rhs = (SegmentCode) ctx.expression(2).accept(this);
-        String source = "(" + get_if_expression_source(condition, ctx.expression(0)) + "?" + lhs.getSource() + ":" + rhs.getSource() + ")";
+        String source = "(" + get_if_expression_source(condition) + "?" + lhs.toString() + ":" + rhs.toString() + ")";
 
         TypedKlass klass = PromotionUtils.getResultClassForConditionalOperator(lhs.getTypedKlass(), rhs.getTypedKlass());
-        return new SegmentCode(klass, source);
+        return new SegmentCode(klass, source, ctx);
     }
 
     @Override
@@ -1366,10 +1285,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String text = token.getText();
         switch (token.getType()) {
         case JetTemplateParser.STRING_DOUBLE:
-            return new SegmentCode(String.class, text);
+            return new SegmentCode(String.class, text, ctx);
         case JetTemplateParser.STRING_SINGLE:
             text = StringEscapeUtils.asCanonicalJavaString(text);
-            return new SegmentCode(String.class, text);
+            return new SegmentCode(String.class, text, ctx);
         case JetTemplateParser.INTEGER:
         case JetTemplateParser.INTEGER_HEX:
         case JetTemplateParser.FLOATING_POINT:
@@ -1385,13 +1304,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             } else {
                 klass = Integer.TYPE;
             }
-            return new SegmentCode(klass, text);
+            return new SegmentCode(klass, text, ctx);
         case JetTemplateParser.KEYWORD_TRUE:
-            return new SegmentCode(Boolean.TYPE, text);
+            return new SegmentCode(Boolean.TYPE, text, ctx);
         case JetTemplateParser.KEYWORD_FALSE:
-            return new SegmentCode(Boolean.TYPE, text);
+            return new SegmentCode(Boolean.TYPE, text, ctx);
         case JetTemplateParser.KEYWORD_NULL:
-            return new SegmentCode(TypedKlass.NULL, text);
+            return new SegmentCode(TypedKlass.NULL, text, ctx);
         default:
             throw reportError("Unexpected token type :" + token.getType(), ctx);
         }
@@ -1404,7 +1323,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         for (ExpressionContext expression : expression_list) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            assert_not_void_expression(c, expression);
+            assert_not_void_expression(c);
             code.addChild((SegmentCode) c);
         }
         return code;
@@ -1442,7 +1361,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         List<Type_array_suffixContext> type_array_suffix = ctx.type_array_suffix();
         for (Type_array_suffixContext c : type_array_suffix) {
             Code code = c.accept(this);
-            array_suffix = array_suffix + code.getSource();
+            array_suffix = array_suffix + code.toString();
         }
 
         if (array_suffix.length() > 0) {
@@ -1456,12 +1375,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 返回带有的泛型信息的 Class
         TypedKlass typedKlass = TypedKlass.create(klass, typeArgs);
-        return new SegmentCode(typedKlass, typedKlass.getSource());
+        return new SegmentCode(typedKlass, typedKlass.toString(), ctx);
     }
 
     @Override
     public Code visitType_array_suffix(Type_array_suffixContext ctx) {
-        return new SegmentCode((TypedKlass) null, "[]");
+        return new SegmentCode((TypedKlass) null, "[]", ctx);
     }
 
     @Override
@@ -1489,7 +1408,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
 
         // List<?>
-        return new SegmentCode(TypedKlass.WildcharTypedKlass, "?");
+        return new SegmentCode(TypedKlass.WildcharTypedKlass, "?", ctx);
     }
 
     // -----------------------------------------------------------
@@ -1503,7 +1422,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
             return name;
         }
-        if (CONTEXT_NAME.equals(name)) {
+        if (Code.CONTEXT_NAME.equals(name)) {
             if (isDefining) {
                 throw reportError("Duplicate local variable \"" + name + "\" is a reserved identifier.", node);
             }
@@ -1539,26 +1458,26 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     }
 
     // 检测 void 类型
-    private void assert_not_void_expression(SegmentCode code, ParseTree node) {
+    private void assert_not_void_expression(SegmentCode code) {
         if (Void.TYPE.equals(code.getKlass()) || Void.class.equals(code.getKlass())) {
-            throw reportError("Unexpected void type in here.", node);
+            throw reportError("Unexpected void type in here.", code.getNode());
         }
     }
 
-    private ExpressionContext get_not_null_constantContext(ExpressionContext node) {
-        if (node instanceof Expr_constantContext && node.getStart().getType() == JetTemplateParser.KEYWORD_NULL) {
+    // 检测非 null 常量
+    private void assert_not_null_constantContext(ParserRuleContext node) {
+        if (node.getStart().getType() == JetTemplateParser.KEYWORD_NULL) {
             throw reportError("Unexpected token: invalid keyword null in here.", node);
         }
-        return node;
     }
 
     // 确保返回的代码类型必须是 boolean 类型的
-    private String get_if_expression_source(SegmentCode code, ParseTree node) {
+    private String get_if_expression_source(SegmentCode code) {
         if (Boolean.TYPE.equals(code.getKlass())) {
-            return code.getSource();
+            return code.toString();
         } else {
-            assert_not_void_expression(code, node);
-            return "JetUtils.asBoolean(" + code.getSource() + ")";
+            assert_not_void_expression(code);
+            return "JetUtils.asBoolean(" + code.toString() + ")";
         }
     }
 
@@ -1577,6 +1496,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         return new SyntaxErrorException(message);
     }
 
+    // 得到一个方法描述字符串
     private String getMethodSignature(String name, Class<?>[] parameterTypes) {
         StringBuilder sb = new StringBuilder();
         sb.append(name).append('(');

@@ -20,25 +20,28 @@
 package jetbrick.template.parser.code;
 
 import jetbrick.template.parser.support.TypedKlass;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  * 用于存储一个表达式节点
  */
-public class SegmentCode implements Code {
+public class SegmentCode extends Code {
     private final TypedKlass typedKlass; // 支持泛型描述的类型
     private final String source; // 翻译成的源代码
+    private final ParserRuleContext node; // 对应的 ParseTreeNode
 
-    public SegmentCode(Class<?> klass, String source) {
-        this(klass, TypedKlass.EMPTY_TYPE_ARGS, source);
+    public SegmentCode(Class<?> klass, String source, ParserRuleContext node) {
+        this(TypedKlass.create(klass), source, node);
     }
 
-    public SegmentCode(Class<?> klass, TypedKlass[] typeArgs, String source) {
-        this(TypedKlass.create(klass, typeArgs), source);
+    public SegmentCode(Class<?> klass, TypedKlass[] typeArgs, String source, ParserRuleContext node) {
+        this(TypedKlass.create(klass, typeArgs), source, node);
     }
 
-    public SegmentCode(TypedKlass typedKlass, String source) {
+    public SegmentCode(TypedKlass typedKlass, String source, ParserRuleContext node) {
         this.typedKlass = typedKlass;
         this.source = source;
+        this.node = node;
     }
 
     public TypedKlass getTypedKlass() {
@@ -83,7 +86,7 @@ public class SegmentCode implements Code {
         if (newSource == null) {
             return this;
         } else {
-            return new SegmentCode(typedKlass.asBoxedTypedKlass(), newSource);
+            return new SegmentCode(typedKlass.asBoxedTypedKlass(), newSource, node);
         }
     }
 
@@ -113,13 +116,12 @@ public class SegmentCode implements Code {
         if (newSource == null) {
             return this;
         } else {
-            return new SegmentCode(typedKlass.asUnboxedTypedKlass(), newSource);
+            return new SegmentCode(typedKlass.asUnboxedTypedKlass(), newSource, node);
         }
     }
-
-    @Override
-    public String getSource() {
-        return source;
+    
+    public ParserRuleContext getNode() {
+        return node;
     }
 
     @Override

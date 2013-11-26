@@ -58,14 +58,22 @@ public class JetContext {
     // 支持子模板返回变量到父模板
     public void put(String name, Object value) {
         context.put(name, value);
-        if (parent != null) {
-            parent.put(name, value);
+    }
+
+    public void put(String name, Object value, boolean toParent) {
+        context.put(name, value);
+        if (toParent && parent != null) {
+            parent.put(name, value, true);
         }
     }
 
     public void putAll(Map<String, Object> context) {
         this.context.putAll(context);
-        if (parent != null) {
+    }
+
+    public void putAll(Map<String, Object> context, boolean toParent) {
+        this.context.putAll(context);
+        if (toParent && parent != null) {
             parent.putAll(context);
         }
     }

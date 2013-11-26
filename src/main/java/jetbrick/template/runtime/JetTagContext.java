@@ -25,33 +25,27 @@ import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.utils.UnsafeCharArrayWriter;
 
 public abstract class JetTagContext {
-    public static final Class<?>[] CLASS_ARRAY = new Class<?>[] { JetTagContext.class };
+    public static final Class<?>[] CLASS_ARRAY = { JetTagContext.class };
     private final JetPageContext ctx;
 
     public JetTagContext(JetPageContext ctx) {
         this.ctx = ctx;
     }
 
-    /**
-     * 获取 <code>#tag</code> 的结果文本
-     */
     public String getBodyContent() {
         UnsafeCharArrayWriter out = new UnsafeCharArrayWriter();
         String encoding = ctx.getEngine().getConfig().getOutputEncoding();
         try {
-            render(JetWriter.create(out, encoding));
+            render(ctx.getContext(), JetWriter.create(out, encoding));
         } catch (Throwable e) {
             throw ExceptionUtils.uncheck(e);
         }
         return out.toString();
     }
 
-    /**
-     * 直接将 <code>#tag</code> 的内容输出到原始 JetWriter
-     */
     public void writeBodyContent() {
         try {
-            render(ctx.getWriter());
+            render(ctx.getContext(), ctx.getWriter());
         } catch (Throwable e) {
             throw ExceptionUtils.uncheck(e);
         }
@@ -73,5 +67,5 @@ public abstract class JetTagContext {
         return ctx.getContext();
     }
 
-    protected abstract void render(JetWriter out) throws Throwable;
+    protected abstract void render(final JetContext context, final JetWriter out) throws Throwable;
 }

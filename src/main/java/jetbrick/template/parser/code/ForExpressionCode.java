@@ -20,6 +20,7 @@
 package jetbrick.template.parser.code;
 
 import jetbrick.template.parser.support.TypedKlass;
+import org.antlr.v4.runtime.ParserRuleContext;
 
 /**
  * 专门用于存储 for_expression
@@ -27,13 +28,12 @@ import jetbrick.template.parser.support.TypedKlass;
 public class ForExpressionCode extends SegmentCode {
     private final String name; // 变量名
 
-    public ForExpressionCode(TypedKlass typedKlass, String name, String source) {
-        super(typedKlass, source);
+    public ForExpressionCode(TypedKlass typedKlass, String name, String source, ParserRuleContext node) {
+        super(typedKlass, source, node);
         this.name = name;
     }
 
     public String getName() {
         return name;
     }
-
 }

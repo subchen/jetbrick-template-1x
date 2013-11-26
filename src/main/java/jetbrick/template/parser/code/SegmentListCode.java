@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * 主要用于存储 expression_list 和 type_list
  */
-public class SegmentListCode implements Code {
+public class SegmentListCode extends Code {
     private final List<SegmentCode> children;
 
     public SegmentListCode(int initialCapacity) {
@@ -49,19 +49,14 @@ public class SegmentListCode implements Code {
     }
 
     @Override
-    public String getSource() {
+    public String toString() {
         StringBuilder sb = new StringBuilder(32);
         for (SegmentCode code : children) {
             if (sb.length() > 0) {
                 sb.append(',');
             }
-            sb.append(code.getSource());
+            sb.append(code.toString());
         }
         return sb.toString();
-    }
-
-    @Override
-    public String toString() {
-        return getSource();
     }
 }
