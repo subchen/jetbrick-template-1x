@@ -84,18 +84,25 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	T visitExpr_function_call(@NotNull JetTemplateParser.Expr_function_callContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link JetTemplateParser#expr_compare_equality}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExpr_compare_equality(@NotNull JetTemplateParser.Expr_compare_equalityContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#type_array_suffix}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitType_array_suffix(@NotNull JetTemplateParser.Type_array_suffixContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#macro_directive}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMacro_directive(@NotNull JetTemplateParser.Macro_directiveContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#expr_compare_equality}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_compare_equality(@NotNull JetTemplateParser.Expr_compare_equalityContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#value}.
@@ -166,6 +173,13 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitExpr_math_unary_suffix(@NotNull JetTemplateParser.Expr_math_unary_suffixContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#define_expression_list}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDefine_expression_list(@NotNull JetTemplateParser.Define_expression_listContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#expr_new_array}.

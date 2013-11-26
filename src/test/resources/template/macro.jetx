@@ -1,0 +1,7 @@
+#set(obj = "123")
+#macro test(int status)
+    name: ${user.name} ${obj} ${status}
+#end
+
+${test(0)}
+${test(1)}

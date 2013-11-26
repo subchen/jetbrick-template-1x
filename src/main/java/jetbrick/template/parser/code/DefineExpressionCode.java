@@ -19,18 +19,26 @@
  */
 package jetbrick.template.parser.code;
 
+import jetbrick.template.parser.support.TypedKlass;
+import org.antlr.v4.runtime.ParserRuleContext;
+
 /**
- * Visitor 模式的返回值，用来返回翻译成的源代码样式
+ * 专门用于存储 define_expression
  */
-public abstract class Code {
-    public static final Code EMPTY = new LineCode("");
+public class DefineExpressionCode extends SegmentCode {
+    private final String name; // 变量名
 
-    public static final String CONTEXT_NAME = "context";
+    public DefineExpressionCode(TypedKlass typedKlass, String name, ParserRuleContext node) {
+        super(typedKlass, null, node);
+        this.name = name;
+    }
 
-    /**
-     * 返回编译的源码
-     */
+    public String getName() {
+        return name;
+    }
+
     @Override
-    public abstract String toString();
-
+    public String toString() {
+        return getKlassName() + " " + name;
+    }
 }

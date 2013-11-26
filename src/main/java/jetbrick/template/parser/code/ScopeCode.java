@@ -106,6 +106,10 @@ public class ScopeCode extends Code {
         return new TagCode(this, indent);
     }
 
+    public MacroCode createMacroCode() {
+        return new MacroCode(this);
+    }
+    
     public void setBodyCode(Code code) {
         this.bodyCode = code;
     }

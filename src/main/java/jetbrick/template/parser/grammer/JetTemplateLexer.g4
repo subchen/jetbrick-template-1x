@@ -49,6 +49,7 @@ DIRECTIVE_OPEN_STOP     : '#stop'     ARGUMENT_START      -> pushMode(INSIDE) ;
 DIRECTIVE_OPEN_INCLUDE  : '#include'  ARGUMENT_START      -> pushMode(INSIDE) ;
 
 DIRECTIVE_OPEN_TAG      : '#tag'      [ \t]+ ID ARGUMENT_START -> pushMode(INSIDE) ;
+DIRECTIVE_OPEN_MACRO    : '#macro'    [ \t]+ ID ARGUMENT_START -> pushMode(INSIDE) ;
 
 fragment ID             : [_a-zA-Z$][_a-zA-Z$0-9]*        ;
 fragment ARGUMENT_START : [ \t]* '('                      ;
@@ -64,6 +65,7 @@ DIRECTIVE_BREAK         : '#break'                        ;
 DIRECTIVE_CONTINUE      : '#continue'                     ;
 DIRECTIVE_STOP          : '#stop'                         ;
 DIRECTIVE_TAG           : '#tag'                          ;
+DIRECTIVE_MACRO         : '#macro'                        ;
 
 DIRECTIVE_ELSE          : '#else'     '()'?               ;
 DIRECTIVE_END           : '#end'      '()'?               ;

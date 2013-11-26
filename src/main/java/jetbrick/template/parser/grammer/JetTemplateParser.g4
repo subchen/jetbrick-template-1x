@@ -54,11 +54,15 @@ directive   :   define_directive
             |   stop_directive
             |   include_directive
             |   tag_directive
+            |   macro_directive
             |   invalid_directive
             ;
 
 define_directive
-            :   DIRECTIVE_OPEN_DEFINE define_expression (',' define_expression)* ')'
+            :   DIRECTIVE_OPEN_DEFINE define_expression_list ')'
+            ;
+define_expression_list
+            :   define_expression (',' define_expression)*
             ;
 define_expression
             :   type IDENTIFIER
@@ -104,11 +108,17 @@ stop_directive
             :   DIRECTIVE_OPEN_STOP expression? ')'
             |   DIRECTIVE_STOP
             ;
+
 include_directive
             :   DIRECTIVE_OPEN_INCLUDE expression_list ')'
             ;
+
 tag_directive
             :   DIRECTIVE_OPEN_TAG expression_list? ')' block DIRECTIVE_END
+            ;
+
+macro_directive
+            :   DIRECTIVE_OPEN_MACRO define_expression_list? ')' block DIRECTIVE_END
             ;
 
 invalid_directive

@@ -32,6 +32,7 @@ import jetbrick.template.parser.grammer.JetTemplateParser.ConstantContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Continue_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Define_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Define_expressionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Define_expression_listContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.DirectiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Else_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Elseif_directiveContext;
@@ -66,6 +67,7 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Hash_map_entry_listCon
 import jetbrick.template.parser.grammer.JetTemplateParser.If_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Include_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Invalid_directiveContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Macro_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Put_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Set_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Set_expressionContext;
@@ -104,6 +106,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     private TemplateClassCode tcc; // 
     private ScopeCode scopeCode; // 当前作用域对应的 Code
+    private Map<String, MacroCode> macroMap; // 宏定义
     private Map<String, TextCode> textCache; // 文本内容缓存(可以减少冗余 Text)
     private Deque<String[]> forStack; // 维护嵌套 #for 的堆栈， 可以识别是否在嵌入在 #for 里面, 内部是否使用了 for.index
     private int uuid = 1; // 计数器
@@ -129,7 +132,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         tcc.setClassName(resource.getClassName());
         tcc.setTemplateName(resource.getName());
         tcc.setEncoding(engine.getConfig().getOutputEncoding());
-        
+
         scopeCode = tcc.getMethodCode();
         scopeCode.define(Code.CONTEXT_NAME, TypedKlass.JetContext);
         scopeCode.setBodyCode(ctx.block().accept(this));
@@ -245,14 +248,30 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitDefine_directive(Define_directiveContext ctx) {
-        List<Define_expressionContext> define_expression_list = ctx.define_expression();
+        SegmentListCode define_expression_list = (SegmentListCode) ctx.define_expression_list().accept(this);
         BlockCode code = scopeCode.createBlockCode(define_expression_list.size());
 
-        for (Define_expressionContext node : define_expression_list) {
-            Code c = node.accept(this);
-            if (c != null) {
-                code.addChild(c);
+        for (SegmentCode node : define_expression_list.getChildren()) {
+            DefineExpressionCode c = (DefineExpressionCode) node;
+            String name = c.getName();
+
+            if (!scopeCode.define(name, c.getTypedKlass())) {
+                throw reportError("Duplicate local variable " + name, c.getNode());
             }
+
+            String typeName = c.getTypedKlass().asBoxedTypedKlass().toString();
+            code.addLine(typeName + " " + name + " = (" + typeName + ") " + Code.CONTEXT_NAME + ".get(\"" + name + "\"); // line: " + c.getNode().getStart().getLine());
+        }
+        return code;
+    }
+
+    @Override
+    public Code visitDefine_expression_list(Define_expression_listContext ctx) {
+        List<Define_expressionContext> define_expression_list = ctx.define_expression();
+        SegmentListCode code = new SegmentListCode(define_expression_list.size());
+
+        for (Define_expressionContext define_expression : define_expression_list) {
+            code.addChild((SegmentCode) define_expression.accept(this));
         }
         return code;
     }
@@ -261,13 +280,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitDefine_expression(Define_expressionContext ctx) {
         SegmentCode code = (SegmentCode) ctx.type().accept(this);
         String name = assert_java_identifier(ctx.IDENTIFIER(), true);
-
-        if (!scopeCode.define(name, code.getTypedKlass())) {
-            throw reportError("Duplicate local variable " + name, ctx.IDENTIFIER());
-        }
-
-        String typeName = code.getTypedKlass().asBoxedTypedKlass().toString();
-        return scopeCode.createLineCode(typeName + " " + name + " = (" + typeName + ") " + Code.CONTEXT_NAME + ".get(\"" + name + "\"); // line: " + ctx.getStart().getLine());
+        return new DefineExpressionCode(code.getTypedKlass(), name, ctx);
     }
 
     @Override
@@ -542,7 +555,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Expression_listContext expression_list = ctx.expression_list();
         SegmentListCode childrenCode = (SegmentListCode) expression_list.accept(this);
         if (childrenCode.size() > 2) {
-            throw reportError("The arguments do not matched with #include directive.", ctx);
+            throw reportError("Arguments mismatch for #include directive.", ctx);
         }
 
         // argument 1: file
@@ -615,6 +628,45 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         tagCode.setMethod(method);
         tagCode.setExpressionListCode(expr_list_code);
         return tagCode;
+    }
+
+    @Override
+    public Code visitMacro_directive(Macro_directiveContext ctx) {
+        String text = ctx.getChild(0).getText();
+        String name = text.substring(7, text.length() - 1).trim();
+
+        MacroCode macroCode = scopeCode.createMacroCode();
+        macroCode.setName(name);
+
+        scopeCode = macroCode.getMethodCode();
+        scopeCode.define(Code.CONTEXT_NAME, TypedKlass.JetContext);
+
+        // 处理参数
+        Define_expression_listContext define_expression_list = ctx.define_expression_list();
+        if (define_expression_list != null) {
+            SegmentListCode define_list_code = (SegmentListCode) define_expression_list.accept(this);
+            macroCode.setDefineListCode(define_list_code);
+
+            // 设置参数 Context
+            for (SegmentCode node : define_list_code.getChildren()) {
+                DefineExpressionCode c = (DefineExpressionCode) node;
+                scopeCode.define(c.getName(), c.getTypedKlass());
+            }
+        }
+
+        scopeCode.setBodyCode(ctx.block().accept(this)); // add body content
+        scopeCode = scopeCode.pop();
+
+        if (macroMap == null) {
+            macroMap = new HashMap<String, MacroCode>(8);
+        }
+        MacroCode old = macroMap.put(name, macroCode);
+        if (old != null) {
+            throw reportError("Duplicated macro defination " + name, ctx);
+        }
+
+        tcc.addMacro(macroCode);
+        return Code.EMPTY;
     }
 
     @Override
@@ -901,6 +953,38 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 查找方法
         String name = ctx.IDENTIFIER().getText();
+
+        // 优先查找 macro
+        MacroCode macroCode = null;
+        if (macroMap != null) {
+            macroCode = macroMap.get(name);
+            if (macroCode != null) {
+                // macro 参数匹配
+                SegmentListCode defineListCode = macroCode.getDefineListCode();
+                int size = (defineListCode == null) ? 0 : defineListCode.size();
+                if (parameterTypes.length != size) {
+                    throw reportError("Arguments mismatch for #macro " + getMethodSignature(name, parameterTypes) + ".", ctx.IDENTIFIER());
+                }
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    if (!ClassUtils.isAssignable(parameterTypes[i], defineListCode.getChild(i).getKlass())) {
+                        throw reportError("Arguments mismatch for #macro " + getMethodSignature(name, parameterTypes) + ".", ctx.IDENTIFIER());
+                    }
+                }
+
+                // 生成 macro 调用 code
+                StringBuilder sb = new StringBuilder(64);
+                sb.append("$macro_").append(name);
+                sb.append('(');
+                sb.append(Code.CONTEXT_NAME).append(",$out");
+                if (expr_list_code != null) {
+                    sb.append(',').append(expr_list_code.toString());
+                }
+                sb.append(')');
+                return new SegmentCode(TypedKlass.VOID, sb.toString(), ctx);
+            }
+        }
+
+        // 查找扩展方法
         boolean advanced = false;
         Method method = resolver.resolveFunction(name, parameterTypes);
         if (method == null) {
@@ -1413,7 +1497,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     // -----------------------------------------------------------
     // 变量必须是合法的 java 变量
-    private String assert_java_identifier(TerminalNode node, boolean isDefining) {
+    private String assert_java_identifier(ParseTree node, boolean isDefining) {
         String name = node.getText();
 
         if ("for".equals(name)) {
@@ -1496,7 +1580,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         return new SyntaxErrorException(message);
     }
 
-    // 得到一个方法描述字符串
+    // 等到一个方法描述字符串
     private String getMethodSignature(String name, Class<?>[] parameterTypes) {
         StringBuilder sb = new StringBuilder();
         sb.append(name).append('(');

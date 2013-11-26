@@ -36,6 +36,7 @@ public class TypedKlass {
     public static final TypedKlass[] EMPTY_TYPE_ARGS = new TypedKlass[0];
     public static final TypedKlass NULL = new TypedKlass(null, EMPTY_TYPE_ARGS);
     public static final TypedKlass WildcharTypedKlass = new TypedKlass(Object.class, EMPTY_TYPE_ARGS);
+    public static final TypedKlass VOID = create(java.lang.Void.TYPE);
     public static final TypedKlass Object = create(Object.class);
     public static final TypedKlass JetForStatus = create(JetForStatus.class);
     public static final TypedKlass JetWriter = create(JetWriter.class);

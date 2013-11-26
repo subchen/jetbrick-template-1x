@@ -33,6 +33,7 @@ public class TemplateClassCode extends Code {
     private String encoding; // 模板默认输出编码
     private List<String[]> fields = new ArrayList<String[]>(32); // 全局文本字段
     private MethodCode methodCode = new MethodCode(null, "    ", false); // 方法体
+    private List<MacroCode> macroCodeList; // 宏定义
 
     public void setPackageName(String packageName) {
         this.packageName = packageName;
@@ -52,6 +53,13 @@ public class TemplateClassCode extends Code {
 
     public void addField(String id, String text) {
         fields.add(new String[] { id, text });
+    }
+
+    public void addMacro(MacroCode macroCode) {
+        if (macroCodeList == null) {
+            macroCodeList = new ArrayList<MacroCode>(8);
+        }
+        macroCodeList.add(macroCode);
     }
 
     public MethodCode getMethodCode() {
@@ -77,6 +85,11 @@ public class TemplateClassCode extends Code {
         sb.append(methodCode.toString());
         sb.append("  }\n");
         sb.append("\n");
+        if (macroCodeList != null) {
+            for (MacroCode c : macroCodeList) {
+                sb.append(c.toString()).append('\n');
+            }
+        }
         sb.append("  @Override\n");
         sb.append("  public String getName() {\n");
         sb.append("    return \"" + StringEscapeUtils.escapeJava(templateName) + "\";\n");
@@ -90,4 +103,5 @@ public class TemplateClassCode extends Code {
         sb.append("}\n");
         return sb.toString();
     }
+
 }
