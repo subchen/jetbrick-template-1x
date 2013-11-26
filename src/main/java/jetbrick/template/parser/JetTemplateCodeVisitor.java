@@ -378,6 +378,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (!String.class.equals(name.getKlass())) {
             throw reportError("The first parameter type is not String.class for #put directive", ctx);
         }
+        assert_not_void_expression(value, expression_list.get(1));
 
         return scope.createLineCode(CONTEXT_NAME + ".put(" + name.getSource() + ", " + value.getSource() + "); // line: " + ctx.getStart().getLine());
     }
@@ -386,8 +387,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitIf_directive(If_directiveContext ctx) {
         BlockCode code = scope.createBlockCode(16);
 
-        SegmentCode expr_code = (SegmentCode) ctx.expression().accept(this);
-        code.addLine("if (" + get_if_expression_source(expr_code) + ") { // line: " + ctx.getStart().getLine());
+        ExpressionContext expression = ctx.expression();
+        SegmentCode expr_code = (SegmentCode) expression.accept(this);
+        code.addLine("if (" + get_if_expression_source(expr_code, expression) + ") { // line: " + ctx.getStart().getLine());
         scope = scope.push();
 
         Code block_code = ctx.block().accept(this);
@@ -416,8 +418,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitElseif_directive(Elseif_directiveContext ctx) {
         BlockCode code = scope.createBlockCode(16);
 
-        SegmentCode expr_code = (SegmentCode) ctx.expression().accept(this);
-        code.addLine("else if (" + get_if_expression_source(expr_code) + ") { // line: " + ctx.getStart().getLine());
+        ExpressionContext expression = ctx.expression();
+        SegmentCode expr_code = (SegmentCode) expression.accept(this);
+        code.addLine("else if (" + get_if_expression_source(expr_code, expression) + ") { // line: " + ctx.getStart().getLine());
         scope = scope.push();
 
         Code block_code = ctx.block().accept(this);
@@ -498,6 +501,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitFor_expression(For_expressionContext ctx) {
         String name = ctx.IDENTIFIER().getText();
         SegmentCode code = (SegmentCode) ctx.expression().accept(this);
+        assert_not_void_expression(code, ctx.expression());
 
         TypedKlass resultKlass = null;
         TypeContext type = ctx.type();
@@ -541,7 +545,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = get_if_expression_source(c);
+            source = get_if_expression_source(c, expression);
         } else {
             source = "true";
         }
@@ -557,7 +561,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = get_if_expression_source(c);
+            source = get_if_expression_source(c, expression);
         } else {
             source = "true";
         }
@@ -571,7 +575,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String source;
         if (expression != null) {
             SegmentCode c = (SegmentCode) expression.accept(this);
-            source = get_if_expression_source(c);
+            source = get_if_expression_source(c, expression);
         } else {
             source = "true";
         }
@@ -674,7 +678,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
         Method method = resolver.resolveTagMethod(name, parameterTypes);
         if (method == null) {
-            throw reportError("Undefined tag definition " + getMethodSignature(name, parameterTypes), ctx);
+            throw reportError("Undefined tag definition: " + getMethodSignature(name, parameterTypes), ctx);
         }
 
         // source for invoke tag
@@ -1256,8 +1260,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitExpr_compare_not(Expr_compare_notContext ctx) {
-        SegmentCode code = (SegmentCode) ctx.expression().accept(this);
-        String source = "(!" + get_if_expression_source(code) + ")";
+        ExpressionContext expression = ctx.expression();
+        SegmentCode code = (SegmentCode) expression.accept(this);
+        String source = "(!" + get_if_expression_source(code, expression) + ")";
         return new SegmentCode(Boolean.TYPE, source);
     }
 
@@ -1268,6 +1273,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
         SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
         TerminalNode op = (TerminalNode) ctx.getChild(1);
+
+        assert_not_void_expression(lhs, lhs_expression);
+        assert_not_void_expression(rhs, rhs_expression);
 
         StringBuilder source = new StringBuilder(32);
         source.append("==".equals(op.getText()) ? "JetUtils.asEquals(" : "JetUtils.asNotEquals(");
@@ -1337,18 +1345,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentCode lhs = (SegmentCode) lhs_expression.accept(this);
         SegmentCode rhs = (SegmentCode) rhs_expression.accept(this);
         String op = ctx.getChild(1).getText();
-        String source = "(" + get_if_expression_source(lhs) + op + get_if_expression_source(rhs) + ")";
+        String source = "(" + get_if_expression_source(lhs, lhs_expression) + op + get_if_expression_source(rhs, rhs_expression) + ")";
         return new SegmentCode(Boolean.TYPE, source);
     }
 
     @Override
     public Code visitExpr_conditional_ternary(Expr_conditional_ternaryContext ctx) {
-        SegmentCode lhs = (SegmentCode) ctx.expression(0).accept(this);
-        SegmentCode rhs1 = (SegmentCode) ctx.expression(1).accept(this);
-        SegmentCode rhs2 = (SegmentCode) ctx.expression(2).accept(this);
-        String source = "(" + get_if_expression_source(lhs) + "?" + rhs1.getSource() + ":" + rhs2.getSource() + ")";
+        SegmentCode condition = (SegmentCode) ctx.expression(0).accept(this);
+        SegmentCode lhs = (SegmentCode) ctx.expression(1).accept(this);
+        SegmentCode rhs = (SegmentCode) ctx.expression(2).accept(this);
+        String source = "(" + get_if_expression_source(condition, ctx.expression(0)) + "?" + lhs.getSource() + ":" + rhs.getSource() + ")";
 
-        TypedKlass klass = PromotionUtils.getResultClassForConditionalOperator(rhs1.getTypedKlass(), rhs2.getTypedKlass());
+        TypedKlass klass = PromotionUtils.getResultClassForConditionalOperator(lhs.getTypedKlass(), rhs.getTypedKlass());
         return new SegmentCode(klass, source);
     }
 
@@ -1395,7 +1403,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentListCode code = new SegmentListCode(expression_list.size());
 
         for (ExpressionContext expression : expression_list) {
-            Code c = expression.accept(this);
+            SegmentCode c = (SegmentCode) expression.accept(this);
+            assert_not_void_expression(c, expression);
             code.addChild((SegmentCode) c);
         }
         return code;
@@ -1529,6 +1538,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         throw reportError(name + " cannot be used outside of a #for directive", ctx);
     }
 
+    // 检测 void 类型
+    private void assert_not_void_expression(SegmentCode code, ParseTree node) {
+        if (Void.TYPE.equals(code.getKlass()) || Void.class.equals(code.getKlass())) {
+            throw reportError("Unexpected void type in here.", node);
+        }
+    }
+
     private ExpressionContext get_not_null_constantContext(ExpressionContext node) {
         if (node instanceof Expr_constantContext && node.getStart().getType() == JetTemplateParser.KEYWORD_NULL) {
             throw reportError("Unexpected token: invalid keyword null in here.", node);
@@ -1537,10 +1553,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     }
 
     // 确保返回的代码类型必须是 boolean 类型的
-    private String get_if_expression_source(SegmentCode code) {
+    private String get_if_expression_source(SegmentCode code, ParseTree node) {
         if (Boolean.TYPE.equals(code.getKlass())) {
             return code.getSource();
         } else {
+            assert_not_void_expression(code, node);
             return "JetUtils.asBoolean(" + code.getSource() + ")";
         }
     }

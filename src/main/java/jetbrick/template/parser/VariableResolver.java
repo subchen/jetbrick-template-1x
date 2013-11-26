@@ -164,12 +164,13 @@ public class VariableResolver {
         for (Method method : klass.getMethods()) {
             int modifiers = method.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
-                String name = method.getName();
-
-                List<Method> list;
+                if (!Void.TYPE.equals(method.getReturnType())) {
+                    continue;
+                }
                 Class<?>[] parameterTypes = method.getParameterTypes();
                 if (parameterTypes.length > 0 && JetTagContext.class.equals(parameterTypes[0])) {
-                    list = tagMap.get(name);
+                    String name = method.getName();
+                    List<Method> list = tagMap.get(name);
                     if (list == null) {
                         list = new ArrayList<Method>(4);
                         tagMap.put(name, list);
