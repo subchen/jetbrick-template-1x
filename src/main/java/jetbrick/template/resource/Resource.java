@@ -19,21 +19,39 @@
  */
 package jetbrick.template.resource;
 
+import java.io.*;
 import javax.lang.model.SourceVersion;
+import jetbrick.template.utils.ExceptionUtils;
+import jetbrick.template.utils.IoUtils;
 
 public abstract class Resource {
     private final String name;
+    private final String encoding;
     private final String qualifiedClassName;
 
-    public Resource(String name) {
+    public Resource(String name, String encoding) {
         this.name = name;
+        this.encoding = encoding;
         this.qualifiedClassName = doGetQualifiedClassName();
     }
 
+    /**
+     * 标准的 name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * 默认编码方式
+     */
+    public String getEncoding() {
+        return encoding;
+    }
+
+    /**
+     * 完整的类名标识
+     */
     public String getQualifiedClassName() {
         return qualifiedClassName;
     }
@@ -48,13 +66,45 @@ public abstract class Resource {
         return pos < 0 ? qualifiedClassName : qualifiedClassName.substring(pos + 1);
     }
 
+    /**
+     * 获取绝对路径
+     */
     public abstract String getAbsolutePath();
 
-    public abstract long lastModified(); // 读取文件最后修改时间
+    /**
+     * 读取最后修改时间
+     */
+    public abstract long lastModified();
 
-    public abstract char[] getSource(); // 读取模板内容
+    /**
+     * 获取输入流
+     * @throws FileNotFoundException 
+     * @throws IOException 
+     */
+    public abstract InputStream getInputStream() throws IOException;
 
-    public abstract char[] getSource(String encoding); // 读取非模板的资源
+    /**
+     * 读取模板内容
+     */
+    public char[] getSource() {
+        return getSource(encoding);
+    }
+
+    /**
+     * 读取非模板的资源
+     */
+    public char[] getSource(String encoding) {
+        InputStream is = null;
+        try {
+            is = getInputStream();
+            if (is == null) return null;
+            return IoUtils.toCharArray(is, encoding);
+        } catch (IOException e) {
+            throw ExceptionUtils.uncheck(e);
+        } finally {
+            IoUtils.closeQuietly(is);
+        }
+    }
 
     // 返回一个用于生成Template类的完整类名 (规则同JSP)
     public String doGetQualifiedClassName() {

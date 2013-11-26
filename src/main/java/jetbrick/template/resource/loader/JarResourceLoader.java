@@ -58,13 +58,11 @@ public class JarResourceLoader implements ResourceLoader {
     static class JarResource extends Resource {
         private final File jar;
         private final String entry;
-        private final String encoding;
 
         public JarResource(String name, File jar, String entry, String encoding) {
-            super(name);
+            super(name, encoding);
             this.jar = jar;
             this.entry = entry;
-            this.encoding = encoding;
         }
 
         @Override
@@ -73,8 +71,11 @@ public class JarResourceLoader implements ResourceLoader {
         }
 
         @Override
-        public char[] getSource() {
-            return getSource(encoding);
+        public InputStream getInputStream() throws IOException {
+            JarFile jarFile = new JarFile(jar);
+            JarEntry jarEntry = jarFile.getJarEntry(entry);
+            if (jarEntry == null) return null;
+            return jarFile.getInputStream(jarEntry);
         }
 
         @Override

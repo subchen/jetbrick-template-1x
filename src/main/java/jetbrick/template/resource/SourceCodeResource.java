@@ -19,13 +19,17 @@
  */
 package jetbrick.template.resource;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Random;
+import jetbrick.template.utils.UnsafeByteArrayInputStream;
 
 public class SourceCodeResource extends Resource {
+    private static final String ENCODING = "utf-8";
     private final String source;
 
     public SourceCodeResource(String source) {
-        super("unknown_file_" + new Random().nextInt());
+        super("unknown_file_" + new Random().nextInt(), ENCODING);
         this.source = source;
     }
 
@@ -37,6 +41,11 @@ public class SourceCodeResource extends Resource {
     @Override
     public long lastModified() {
         return 0;
+    }
+
+    @Override
+    public InputStream getInputStream() throws IOException {
+        return new UnsafeByteArrayInputStream(source.getBytes(ENCODING));
     }
 
     @Override

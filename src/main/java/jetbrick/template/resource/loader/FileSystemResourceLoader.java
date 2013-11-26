@@ -19,9 +19,8 @@
  */
 package jetbrick.template.resource.loader;
 
-import java.io.File;
+import java.io.*;
 import jetbrick.template.resource.Resource;
-import jetbrick.template.utils.IoUtils;
 import jetbrick.template.utils.PathUtils;
 
 public class FileSystemResourceLoader implements ResourceLoader {
@@ -44,12 +43,10 @@ public class FileSystemResourceLoader implements ResourceLoader {
 
     static class FileSystemResource extends Resource {
         private final File file;
-        private final String encoding;
 
         public FileSystemResource(String name, File file, String encoding) {
-            super(name);
+            super(name, encoding);
             this.file = file;
-            this.encoding = encoding;
         }
 
         @Override
@@ -58,13 +55,8 @@ public class FileSystemResourceLoader implements ResourceLoader {
         }
 
         @Override
-        public char[] getSource() {
-            return IoUtils.toCharArray(file, encoding);
-        }
-
-        @Override
-        public char[] getSource(String encoding) {
-            return IoUtils.toCharArray(file, encoding);
+        public InputStream getInputStream() throws IOException {
+            return new FileInputStream(file);
         }
 
         @Override
