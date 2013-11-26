@@ -179,6 +179,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                     if (trimDirectiveLine) {
                         textCode.trimEmptyLine(trimLeft, trimRight);
                     }
+
+                    // trim 掉 #tag 和 #macro 指令最后一个多余的 '\n'
+                    if (next == null) {
+                        if (ctx.getParent() instanceof Tag_directiveContext || ctx.getParent() instanceof Macro_directiveContext) {
+                            textCode.trimLastNewLine();
+                        }
+                    }
                 }
 
                 if (!textCode.isEmpty()) {

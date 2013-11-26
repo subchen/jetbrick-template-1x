@@ -53,6 +53,7 @@ public class VariableResolver {
         //
         addMethodClass(JetMethods.class.getName());
         addFunctionClass(JetFunctions.class.getName());
+        addTagClass(JetTags.class.getName());
     }
 
     public void addImportPackage(String pkg) {

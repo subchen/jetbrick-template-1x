@@ -1,3 +1,2 @@
     NAME: JACK 123
-    name: Jack 123
-HELLO!
+    name: Jack 123HELLO!

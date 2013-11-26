@@ -133,6 +133,19 @@ public class TextCode extends Code {
         }
     }
 
+    public void trimLastNewLine() {
+        if (text == null) return;
+
+        int length = text.length();
+        if (text.charAt(length - 1) == '\n') {
+            length--;
+            if (length > 0 && text.charAt(length - 1) == '\r') {
+                length--;
+            }
+        }
+        text = text.substring(0, length);
+    }
+
     public String getId() {
         return id;
     }
@@ -152,4 +165,5 @@ public class TextCode extends Code {
         }
         return null;
     }
+
 }

@@ -36,6 +36,7 @@ public final class JetTags {
         String bodyContext = ctx.getBodyContent();
         ctx.getContext().put("bodyContext", bodyContext);
 
+        name = ctx.getPageContext().getAbsolutionName(name);
         JetTemplate template = ctx.getEngine().getTemplate(name);
         template.render(ctx.getContext(), ctx.getWriter());
     }

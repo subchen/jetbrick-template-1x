@@ -2,6 +2,7 @@
 #tag testTag()
     name: ${user.name} ${obj}
 #end
+
 #tag testTag("HELLO!")
     name: ${user.name} ${obj}
 #end

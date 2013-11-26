@@ -1,0 +1,3 @@
+header
+    hello from main
+footer
