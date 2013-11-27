@@ -46,14 +46,15 @@ public class TagCode extends Code {
     public void setMethod(Method method) {
         this.method = method;
     }
-    
+
     public void setExpressionListCode(SegmentListCode expressionListCode) {
         this.expressionListCode = expressionListCode;
     }
-    
+
     public MethodCode getMethodCode() {
         return methodCode;
     }
+
     public void setLine(int line) {
         this.line = line;
     }
@@ -74,7 +75,7 @@ public class TagCode extends Code {
         sb.append('.').append(method.getName());
         sb.append('(');
         sb.append(tagId);
-        if (expressionListCode != null) {
+        if (expressionListCode != null && expressionListCode.size() > 0) {
             sb.append(',').append(expressionListCode.toString());
         }
         sb.append("); // line: ").append(line).append('\n');

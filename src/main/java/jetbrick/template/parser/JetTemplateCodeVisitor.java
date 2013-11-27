@@ -59,6 +59,8 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Expr_math_unary_suffix
 import jetbrick.template.parser.grammer.JetTemplateParser.Expr_method_invocationContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Expr_new_arrayContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Expr_new_objectContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_static_field_accessContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Expr_static_method_invocationContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.ExpressionContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Expression_listContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.For_directiveContext;
@@ -71,6 +73,7 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Macro_directiveContext
 import jetbrick.template.parser.grammer.JetTemplateParser.Put_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Set_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Set_expressionContext;
+import jetbrick.template.parser.grammer.JetTemplateParser.Static_type_nameContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Stop_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Tag_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.TemplateContext;
@@ -84,7 +87,8 @@ import jetbrick.template.parser.grammer.JetTemplateParser.ValueContext;
 import jetbrick.template.parser.support.*;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.runtime.JetTagContext;
-import jetbrick.template.utils.*;
+import jetbrick.template.utils.PathUtils;
+import jetbrick.template.utils.StringEscapeUtils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.*;
@@ -616,24 +620,16 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         scopeCode = scopeCode.pop();
 
         // finding tag function
-        Class<?>[] parameterTypes = JetTagContext.CLASS_ARRAY;
-        SegmentListCode expr_list_code = null;
         Expression_listContext expression_list = ctx.expression_list();
-        if (expression_list != null) {
-            expr_list_code = (SegmentListCode) expression_list.accept(this);
-            parameterTypes = new Class[expr_list_code.size() + 1];
-            parameterTypes[0] = JetTagContext.class;
-            for (int i = 0; i < expr_list_code.size(); i++) {
-                parameterTypes[i + 1] = expr_list_code.getChild(i).getKlass();
-            }
-        }
+        SegmentListCode segmentListCode = (expression_list == null) ? SegmentListCode.EMPTY : (SegmentListCode) expression_list.accept(this);
+        Class<?>[] parameterTypes = segmentListCode.getParameterTypes(JetTagContext.class);
         Method method = resolver.resolveTagMethod(name, parameterTypes);
         if (method == null) {
             throw reportError("Undefined tag definition: " + getMethodSignature(name, parameterTypes), ctx);
         }
 
         tagCode.setMethod(method);
-        tagCode.setExpressionListCode(expr_list_code);
+        tagCode.setExpressionListCode(segmentListCode);
         return tagCode;
     }
 
@@ -861,17 +857,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitExpr_method_invocation(Expr_method_invocationContext ctx) {
-        // 查找方法的参数类型
-        Class<?> parameterTypes[] = ArrayUtils.EMPTY_CLASS_ARRAY;
-        SegmentListCode expr_list_code = null;
+        // 处理参数
         Expression_listContext expression_list = ctx.expression_list();
-        if (expression_list != null) {
-            expr_list_code = (SegmentListCode) expression_list.accept(this);
-            parameterTypes = new Class<?>[expr_list_code.size()];
-            for (int i = 0; i < expr_list_code.size(); i++) {
-                parameterTypes[i] = expr_list_code.getChild(i).getKlass();
-            }
-        }
+        SegmentListCode segmentListCode = (expression_list == null) ? SegmentListCode.EMPTY : (SegmentListCode) expression_list.accept(this);
+        Class<?>[] parameterTypes = segmentListCode.getParameterTypes();
 
         // 查找方法
         SegmentCode code = (SegmentCode) ctx.expression().accept(this);
@@ -910,7 +899,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (tool_advanced) {
                 sb.append(",$ctx");
             }
-            if (expr_list_code != null) {
+            if (segmentListCode != null && segmentListCode.size() > 0) {
                 sb.append(',');
             }
         } else {
@@ -929,8 +918,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 sb.append('(');
             }
         }
-        if (expr_list_code != null) {
-            sb.append(expr_list_code.toString());
+        if (segmentListCode != null && segmentListCode.size() > 0) {
+            sb.append(segmentListCode.toString());
         }
         sb.append(')');
 
@@ -946,17 +935,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
     @Override
     public Code visitExpr_function_call(Expr_function_callContext ctx) {
-        // 查找方法的参数类型
-        Class<?> parameterTypes[] = ArrayUtils.EMPTY_CLASS_ARRAY;
+        // 处理参数
         Expression_listContext expression_list = ctx.expression_list();
-        SegmentListCode expr_list_code = null;
-        if (expression_list != null) {
-            expr_list_code = (SegmentListCode) expression_list.accept(this);
-            parameterTypes = new Class<?>[expr_list_code.size()];
-            for (int i = 0; i < expr_list_code.size(); i++) {
-                parameterTypes[i] = expr_list_code.getChild(i).getKlass();
-            }
-        }
+        SegmentListCode segmentListCode = (expression_list == null) ? SegmentListCode.EMPTY : (SegmentListCode) expression_list.accept(this);
+        Class<?>[] parameterTypes = segmentListCode.getParameterTypes();
 
         // 查找方法
         String name = ctx.IDENTIFIER().getText();
@@ -983,8 +965,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 sb.append("$macro_").append(name);
                 sb.append('(');
                 sb.append(Code.CONTEXT_NAME).append(",$out");
-                if (expr_list_code != null) {
-                    sb.append(',').append(expr_list_code.toString());
+                if (segmentListCode != null && segmentListCode.size() > 0) {
+                    sb.append(',').append(segmentListCode.toString());
                 }
                 sb.append(')');
                 return new SegmentCode(TypedKlass.VOID, sb.toString(), ctx);
@@ -1011,14 +993,82 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (advanced) {
             sb.append("$ctx");
         }
-        if (expr_list_code != null) {
+        if (segmentListCode != null && segmentListCode.size() > 0) {
             if (advanced) sb.append(',');
-            sb.append(expr_list_code.toString());
+            sb.append(segmentListCode.toString());
         }
         sb.append(')');
 
         TypedKlass typedKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
         return new SegmentCode(typedKlass, sb.toString(), ctx);
+    }
+
+    @Override
+    public Code visitExpr_static_field_access(Expr_static_field_accessContext ctx) {
+        SegmentCode static_type_name_code = (SegmentCode) ctx.static_type_name().accept(this);
+        String typeName = static_type_name_code.toString();
+        String name = ctx.IDENTIFIER().getText();
+
+        Class<?> beanClass = resolver.resolveClass(typeName);
+        if (beanClass == null) {
+            throw reportError("java.lang.ClassNotFoundException: " + typeName, static_type_name_code.getNode());
+        }
+        Field field = resolver.resolveStaticField(beanClass, name);
+        if (field == null) {
+            throw reportError(name + " is not a static field for type " + beanClass.getName(), ctx.IDENTIFIER());
+        }
+
+        String source = typeName + '.' + name;
+        TypedKlass resultKlass = TypedKlassUtils.getFieldTypedKlass(field);
+        return new SegmentCode(resultKlass, source, ctx);
+    }
+
+    @Override
+    public Code visitExpr_static_method_invocation(Expr_static_method_invocationContext ctx) {
+        SegmentCode static_type_name_code = (SegmentCode) ctx.static_type_name().accept(this);
+        String typeName = static_type_name_code.toString();
+        String name = ctx.IDENTIFIER().getText();
+
+        // 获取静态 Class
+        Class<?> beanClass = resolver.resolveClass(typeName);
+        if (beanClass == null) {
+            throw reportError("java.lang.ClassNotFoundException: " + typeName, static_type_name_code.getNode());
+        }
+
+        // 处理参数
+        Expression_listContext expression_list = ctx.expression_list();
+        SegmentListCode segmentListCode = (expression_list == null) ? SegmentListCode.EMPTY : (SegmentListCode) expression_list.accept(this);
+        Class<?>[] parameterTypes = segmentListCode.getParameterTypes();
+
+        Method method = resolver.resolveStaticMethod(beanClass, name, parameterTypes);
+        if (method == null) {
+            throw reportError("The static method " + getMethodSignature(name, parameterTypes) + " is undefined for the type " + beanClass.getName(), ctx.IDENTIFIER());
+        }
+
+        // 生成代码
+        StringBuilder sb = new StringBuilder();
+        sb.append(ClassUtils.getShortClassName(method.getDeclaringClass()));
+        sb.append('.');
+        sb.append(name);
+        sb.append('(');
+        sb.append(segmentListCode.toString());
+        sb.append(')');
+
+        TypedKlass resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
+        return new SegmentCode(resultKlass, sb.toString(), ctx);
+    }
+
+    @Override
+    public Code visitStatic_type_name(Static_type_nameContext ctx) {
+        List<TerminalNode> name_list = ctx.IDENTIFIER();
+        StringBuilder sb = new StringBuilder();
+        for (TerminalNode node : name_list) {
+            if (sb.length() > 0) {
+                sb.append('.');
+            }
+            sb.append(node.getText());
+        }
+        return new SegmentCode(TypedKlass.NULL, sb.toString(), ctx);
     }
 
     @Override
@@ -1075,21 +1125,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitExpr_new_object(Expr_new_objectContext ctx) {
         SegmentCode code = (SegmentCode) ctx.type().accept(this);
 
-        SegmentListCode expr_list_code = null;
         Expression_listContext expression_list = ctx.expression_list();
-        if (expression_list != null) {
-            expr_list_code = (SegmentListCode) expression_list.accept(this);
-        }
+        SegmentListCode segmentListCode = (expression_list == null) ? SegmentListCode.EMPTY : (SegmentListCode) expression_list.accept(this);
+        Class<?>[] parameterTypes = segmentListCode.getParameterTypes();
 
         // 查找对应的构造函数
         Class<?> beanClass = code.getKlass();
-        Class<?> parameterTypes[] = ArrayUtils.EMPTY_CLASS_ARRAY;
-        if (expr_list_code != null) {
-            parameterTypes = new Class<?>[expr_list_code.size()];
-            for (int i = 0; i < expr_list_code.size(); i++) {
-                parameterTypes[i] = expr_list_code.getChild(i).getKlass();
-            }
-        }
         Constructor<?> constructor = resolver.resolveConstructor(beanClass, parameterTypes);
         if (constructor == null) {
             // reportError
@@ -1105,8 +1146,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 生成代码
         StringBuilder source = new StringBuilder(32);
         source.append("(new ").append(code.toString()).append('(');
-        if (expr_list_code != null) {
-            source.append(expr_list_code.toString());
+        if (segmentListCode != null && segmentListCode.size() > 0) {
+            source.append(segmentListCode.toString());
         }
         source.append("))");
 

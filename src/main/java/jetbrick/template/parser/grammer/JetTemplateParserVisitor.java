@@ -161,6 +161,13 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	T visitExpr_identifier(@NotNull JetTemplateParser.Expr_identifierContext ctx);
 
 	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#expr_static_method_invocation}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_static_method_invocation(@NotNull JetTemplateParser.Expr_static_method_invocationContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#if_directive}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -180,6 +187,13 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitDefine_expression_list(@NotNull JetTemplateParser.Define_expression_listContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#expr_static_field_access}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_static_field_access(@NotNull JetTemplateParser.Expr_static_field_accessContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#expr_new_array}.
@@ -292,6 +306,13 @@ public interface JetTemplateParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitConstant(@NotNull JetTemplateParser.ConstantContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link JetTemplateParser#static_type_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStatic_type_name(@NotNull JetTemplateParser.Static_type_nameContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link JetTemplateParser#put_directive}.

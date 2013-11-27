@@ -19,17 +19,24 @@
  */
 package jetbrick.template.parser.code;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import jetbrick.template.utils.ArrayUtils;
 
 /**
  * 主要用于存储 expression_list 和 type_list
  */
+
 public class SegmentListCode extends Code {
+    public static final SegmentListCode EMPTY = new SegmentListCode(0);
+
     private final List<SegmentCode> children;
 
     public SegmentListCode(int initialCapacity) {
-        children = new ArrayList<SegmentCode>(initialCapacity);
+        if (initialCapacity == 0) {
+            this.children = Collections.emptyList();
+        } else {
+            this.children = new ArrayList<SegmentCode>(initialCapacity);
+        }
     }
 
     public void addChild(SegmentCode code) {
@@ -48,8 +55,28 @@ public class SegmentListCode extends Code {
         return children.size();
     }
 
+    public Class<?>[] getParameterTypes() {
+        return getParameterTypes(null);
+    }
+
+    public Class<?>[] getParameterTypes(Class<?> suffix) {
+        int size = children.size();
+        if (size == 0 && suffix == null) {
+            return ArrayUtils.EMPTY_CLASS_ARRAY;
+        }
+        int padding = (suffix == null) ? 0 : 1;
+        Class<?>[] parameterTypes = new Class[size + padding];
+        parameterTypes[0] = suffix;
+        for (int i = 0; i < size; i++) {
+            parameterTypes[i + padding] = getChild(i).getKlass();
+        }
+        return parameterTypes;
+    }
+
     @Override
     public String toString() {
+        if (children.size() == 0) return "";
+
         StringBuilder sb = new StringBuilder(32);
         for (SegmentCode code : children) {
             if (sb.length() > 0) {

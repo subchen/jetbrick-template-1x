@@ -39,7 +39,7 @@ public class BlockCode extends Code {
     }
 
     public void addLine(String source) {
-        children.add(new LineCode(indent + source+ "\n"));
+        children.add(new LineCode(indent + source + "\n"));
     }
 
     @Override

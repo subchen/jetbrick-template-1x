@@ -126,6 +126,7 @@ OP_CONDITIONAL_TERNARY  : '?'                              ;
 
 COMMA                   : ','                              ;
 COLON                   : ':'                              ;
+AT                      : '@'                              ;
 
 KEYWORD_TRUE            : 'true'                           ;
 KEYWORD_FALSE           : 'false'                          ;

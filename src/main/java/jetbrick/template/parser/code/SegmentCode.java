@@ -119,7 +119,7 @@ public class SegmentCode extends Code {
             return new SegmentCode(typedKlass.asUnboxedTypedKlass(), newSource, node);
         }
     }
-    
+
     public ParserRuleContext getNode() {
         return node;
     }

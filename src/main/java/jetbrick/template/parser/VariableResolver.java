@@ -42,10 +42,12 @@ public class VariableResolver {
 
     private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(64);
     private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>(128);
-    private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>(128);
-    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(64);
     private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>();
-    private static final Map<String, Method> static_tag_cache = new WeakHashMap<String, Method>();
+    private static final Map<String, Method> static_tool_method_cache = new WeakHashMap<String, Method>(128);
+    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(64);
+    private static final Map<String, Method> static_tag_method_cache = new WeakHashMap<String, Method>();
+    private static final Map<String, Field> static_field_cache = new WeakHashMap<String, Field>(16);
+    private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>(16);
 
     public VariableResolver() {
         addImportPackage("java.lang");
@@ -313,12 +315,12 @@ public class VariableResolver {
         String key = getPrivateCacheKeyName(null, methodName, targetParameterTypes);
 
         // lookup cache
-        Method method = static_method_cache.get(key);
+        Method method = static_tool_method_cache.get(key);
         if (method == null) {
-            synchronized (static_method_cache) {
+            synchronized (static_tool_method_cache) {
                 method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
                 if (method != null) {
-                    static_method_cache.put(key, method);
+                    static_tool_method_cache.put(key, method);
                 }
             }
         }
@@ -340,12 +342,12 @@ public class VariableResolver {
         String key = getPrivateCacheKeyName(null, methodName, targetParameterTypes);
 
         // lookup cache
-        Method method = static_method_cache.get(key);
+        Method method = static_tool_method_cache.get(key);
         if (method == null) {
-            synchronized (static_method_cache) {
+            synchronized (static_tool_method_cache) {
                 method = MethodFinderUtils.lookupBestMethod(methods, methodName, targetParameterTypes);
                 if (method != null) {
-                    static_method_cache.put(key, method);
+                    static_tool_method_cache.put(key, method);
                 }
             }
         }
@@ -423,12 +425,56 @@ public class VariableResolver {
         String key = getPrivateCacheKeyName(null, methodName, parameterTypes);
 
         // lookup cache
-        Method method = static_tag_cache.get(key);
+        Method method = static_tag_method_cache.get(key);
         if (method == null) {
-            synchronized (static_tag_cache) {
+            synchronized (static_tag_method_cache) {
                 method = MethodFinderUtils.lookupBestMethod(methods, methodName, parameterTypes);
                 if (method != null) {
-                    static_tag_cache.put(key, method);
+                    static_tag_method_cache.put(key, method);
+                }
+            }
+        }
+        return method;
+    }
+
+    public Field resolveStaticField(Class<?> beanClass, String name) {
+        String key = getPrivateCacheKeyName(beanClass.getName(), name, null);
+
+        // lookup cache
+        Field field = static_field_cache.get(key);
+        if (field == null) {
+            synchronized (static_field_cache) {
+                try {
+                    field = beanClass.getField(name);
+                    if (field != null) {
+                        if (Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers())) {
+                            static_field_cache.put(key, field);
+                        }
+                    }
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        }
+        return field;
+    }
+
+    public Method resolveStaticMethod(Class<?> beanClass, String name, Class<?>[] parameterTypes) {
+        String key = getPrivateCacheKeyName(beanClass.getName(), name, parameterTypes);
+
+        // lookup cache
+        Method method = static_method_cache.get(key);
+        if (method == null) {
+            synchronized (static_method_cache) {
+                try {
+                    method = MethodFinderUtils.lookupMethod(beanClass, name, parameterTypes);
+                    if (method != null) {
+                        if (Modifier.isPublic(method.getModifiers()) && Modifier.isStatic(method.getModifiers())) {
+                            static_method_cache.put(key, method);
+                        }
+                    }
+                } catch (Exception e) {
+                    return null;
                 }
             }
         }
