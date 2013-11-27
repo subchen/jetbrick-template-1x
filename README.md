@@ -13,6 +13,9 @@ jetbrick-template 是一个新一代 Java 模板引擎，具有高性能和高�
 * 支持方法重载
 * 支持类似于 Groovy 的方法扩展
 * 支持函数扩展
+* 支持自定义 Tag
+* 支持自定义 Macro
+* 支持 Layout
 
 文档 Documents
 =================
@@ -61,7 +64,7 @@ JetEngine engine = JetEngine.create();
 JetTemplate template = engine.getTemplate("/sample.jetx");
 
 // 创建 context 对象
-JetContext context = new JetContext();
+Map<String, Object> context = new HashMap<String, Object>();
 context.put("user", user);
 context.put("books", books);
 
