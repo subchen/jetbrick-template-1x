@@ -47,6 +47,14 @@ public class JetContext {
         }
     }
 
+    protected JetContext getParent() {
+        return parent;
+    }
+
+    protected Map<String, Object> getContext() {
+        return context;
+    }
+
     public Object get(String name) {
         Object value = context.get(name);
         if (value == null && parent != null) {
@@ -55,26 +63,29 @@ public class JetContext {
         return value;
     }
 
-    // 支持子模板返回变量到父模板
+    /**
+     * 只修改自己 Context，不影响 Parent
+     * #set 指令用
+     */
     public void put(String name, Object value) {
         context.put(name, value);
     }
 
-    public void put(String name, Object value, boolean toParent) {
-        context.put(name, value);
-        if (toParent && parent != null) {
-            parent.put(name, value, true);
-        }
-    }
-
+    /**
+     * 同 put(name, value)
+     */
     public void putAll(Map<String, Object> context) {
         this.context.putAll(context);
     }
 
-    public void putAll(Map<String, Object> context, boolean toParent) {
-        this.context.putAll(context);
-        if (toParent && parent != null) {
-            parent.putAll(context);
+    /**
+     * 修改所有的父 Context （支持子模板返回变量到父模板）
+     * #put 指令用
+     */
+    public void putAsParents(String name, Object value) {
+        context.put(name, value);
+        if (parent != null) {
+            parent.putAsParents(name, value);
         }
     }
 }

@@ -148,11 +148,21 @@ public final class JetTemplate {
     }
 
     public void render(JetContext context, Writer out) {
+        if (context.getParent() == null) {
+            // 没有 parent 的情况代表是用户自己 new 出来的 context
+            // 为了防止 #set 污染 context，这里重新 new 一个新的。
+            context = new JetContext(context.getContext());
+        }
         JetWriter writer = JetWriter.create(out, encoding);
         render(new JetPageContext(this, context, writer));
     }
 
     public void render(JetContext context, OutputStream out) {
+        if (context.getParent() == null) {
+            // 没有 parent 的情况代表是用户自己 new 出来的 context
+            // 为了防止 #set 污染 context，这里重新 new 一个新的。
+            context = new JetContext(context.getContext());
+        }
         JetWriter writer = JetWriter.create(out, encoding);
         render(new JetPageContext(this, context, writer));
     }

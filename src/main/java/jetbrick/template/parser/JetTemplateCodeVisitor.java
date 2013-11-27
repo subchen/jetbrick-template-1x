@@ -367,7 +367,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
         assert_not_void_expression(value);
 
-        return scopeCode.createLineCode(Code.CONTEXT_NAME + ".put(" + name.toString() + ", " + value.toString() + ", true); // line: " + ctx.getStart().getLine());
+        return scopeCode.createLineCode(Code.CONTEXT_NAME + ".putAsParents(" + name.toString() + ", " + value.toString() + "); // line: " + ctx.getStart().getLine());
     }
 
     @Override
