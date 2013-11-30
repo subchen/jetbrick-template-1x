@@ -89,7 +89,19 @@ public final class StringUtils {
         StringBuilder sb = new StringBuilder(128);
         for (int i = line - show_lines; i < line; i++) {
             if (i >= 0) {
-                sb.append(String.format("%4d: %s%n", i + 1, sourceLines[i]));
+                String sourceLine = sourceLines[i];
+
+                // 1 个 Tab 变成 4 个空格
+                if (i == line - 1) {
+                    int origin_column = column;
+                    for (int j = 0; j < origin_column; j++) {
+                        if (sourceLine.charAt(j) == '\t') {
+                            column += 3;
+                        }
+                    }
+                }
+                sourceLine = sourceLine.replaceAll("\\t", "    ");
+                sb.append(String.format("%4d: %s%n", i + 1, sourceLine));
             }
         }
         if (start > stop) {
