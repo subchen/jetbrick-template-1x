@@ -77,6 +77,11 @@ public class JetWebContext extends JetContext {
     }
 
     @Override
+    protected boolean isSimpleModel() {
+        return false;
+    }
+
+    @Override
     public Object get(String name) {
         if (name == null) return null;
 

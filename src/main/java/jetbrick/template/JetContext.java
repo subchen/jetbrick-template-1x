@@ -47,8 +47,8 @@ public class JetContext {
         }
     }
 
-    protected JetContext getParent() {
-        return parent;
+    protected boolean isSimpleModel() {
+        return parent == null && JetContext.class.equals(getClass());
     }
 
     protected Map<String, Object> getContext() {
