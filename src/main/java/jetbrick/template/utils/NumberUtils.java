@@ -22,7 +22,7 @@ package jetbrick.template.utils;
 import java.text.DecimalFormat;
 
 public final class NumberUtils {
-    private static final String DEFAULT_NUMBER_FORMAT = "###,##0.##";
+    private static final String DEFAULT_NUMBER_FORMAT = "###,##0.00";
 
     public static String format(Number value, String format) {
         return value == null ? null : new DecimalFormat(format).format(value);
