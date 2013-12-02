@@ -58,20 +58,13 @@ public class JetTemplateServlet extends HttpServlet {
         JetEngine engine = JetWebEngineLoader.getJetEngine();
         response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
 
-        String path = request.getPathInfo();
-        if (path == null || path.length() == 0) {
-            path = request.getServletPath();
-        }
-        if (path.endsWith("/")) {
-            path = path + "index" + engine.getConfig().getTemplateSuffix();
-        }
-
+        String uri = request.getRequestURI();
         try {
-            JetTemplate template = engine.getTemplate(path);
+            JetTemplate template = engine.getTemplate(uri);
             JetContext context = new JetWebContext(request, response);
             template.render(context, response.getOutputStream());
         } catch (ResourceNotFoundException e) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + uri);
         }
     }
 }

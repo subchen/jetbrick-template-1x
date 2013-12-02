@@ -54,20 +54,13 @@ public class JetTemplateFilter implements Filter {
         JetEngine engine = JetWebEngineLoader.getJetEngine();
         response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
 
-        String path = req.getPathInfo();
-        if ((path == null) || (path.length() == 0)) {
-            path = req.getServletPath();
-        }
-        if (path.endsWith("/")) {
-            path = path + "index" + engine.getConfig().getTemplateSuffix();
-        }
-
+        String uri = req.getRequestURI();
         try {
-            JetTemplate template = engine.getTemplate(path);
+            JetTemplate template = engine.getTemplate(uri);
             JetContext context = new JetWebContext(req, resp);
             template.render(context, resp.getOutputStream());
         } catch (ResourceNotFoundException e) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + path);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Template not found: " + uri);
         }
     }
 
