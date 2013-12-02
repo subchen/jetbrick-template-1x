@@ -1,3 +1,17 @@
+Version 1.1.0 (2013-12-02)
+-----------------------------
+
+* [新增] #12 增加自定义 Tag 功能
+* [新增] #13 增加 #macro 宏定义
+* [修复] #14 如果运算符的操作数的返回值是 void, 那么就会出现编译错误
+* [新增] #15 增加对类的静态字段和静态方法的直接访问
+* [新增] #18 增加默认的 layout Tag 实现
+* [新增] #19 与Nutz集成，实现JetTemplateView (Thanks wendal1985@gmail.com)
+* [修复] #20 The column of error line is wrong when the line contains '\t'
+* [修复] #21 NumberUtils.format(123) should be "123.00".
+* [修复] #22 对于 ${bean.property}，优先使用 getXXX()
+* [修复] #23 Fixed request uri in JetTemplateServlet/JetTemplateFilter
+
 Version 1.0.2 (2013-11-22)
 -----------------------------
 

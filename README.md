@@ -13,9 +13,9 @@ jetbrick-template 是一个新一代 Java 模板引擎，具有高性能和高�
 * 支持方法重载
 * 支持类似于 Groovy 的方法扩展
 * 支持函数扩展
-* 支持自定义 Tag
-* 支持自定义 Macro
-* 支持 Layout
+* 支持自定义标签 #tag
+* 支持宏定义 #macro
+* 支持布局 Layout
 
 文档 Documents
 =================
