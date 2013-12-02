@@ -21,7 +21,6 @@ package jetbrick.template.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Random;
 import jetbrick.template.utils.UnsafeByteArrayInputStream;
 
 public class SourceCodeResource extends Resource {
@@ -29,7 +28,7 @@ public class SourceCodeResource extends Resource {
     private final String source;
 
     public SourceCodeResource(String source) {
-        super("unknown_file_" + new Random().nextInt(), ENCODING);
+        super("unknown_file_" + System.currentTimeMillis(), ENCODING);
         this.source = source;
     }
 
