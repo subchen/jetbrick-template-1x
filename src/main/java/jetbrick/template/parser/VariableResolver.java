@@ -246,12 +246,6 @@ public class VariableResolver {
     }
 
     private Member doResolveProperty(Class<?> beanClass, String name) {
-        // public field
-        try {
-            return beanClass.getField(name);
-        } catch (NoSuchFieldException e) {
-        }
-
         // public method
         Method[] methods = beanClass.getMethods();
 
@@ -266,6 +260,12 @@ public class VariableResolver {
                     return method;
                 }
             }
+        }
+
+        // public field
+        try {
+            return beanClass.getField(name);
+        } catch (NoSuchFieldException e) {
         }
 
         try {
