@@ -165,7 +165,7 @@ public class JetTemplateParser extends Parser {
 			setState(73);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << TEXT_PLAIN) | (1L << TEXT_CDATA) | (1L << TEXT_ESCAPED_CHAR) | (1L << TEXT_SINGLE_CHAR) | (1L << VALUE_OPEN) | (1L << VALUE_ESCAPED_OPEN) | (1L << DIRECTIVE_OPEN_DEFINE) | (1L << DIRECTIVE_OPEN_SET) | (1L << DIRECTIVE_OPEN_PUT) | (1L << DIRECTIVE_OPEN_IF) | (1L << DIRECTIVE_OPEN_FOR) | (1L << DIRECTIVE_OPEN_BREAK) | (1L << DIRECTIVE_OPEN_CONTINUE) | (1L << DIRECTIVE_OPEN_STOP) | (1L << DIRECTIVE_OPEN_INCLUDE) | (1L << DIRECTIVE_OPEN_TAG) | (1L << DIRECTIVE_OPEN_MACRO) | (1L << DIRECTIVE_DEFINE) | (1L << DIRECTIVE_SET) | (1L << DIRECTIVE_PUT) | (1L << DIRECTIVE_IF) | (1L << DIRECTIVE_ELSEIF) | (1L << DIRECTIVE_FOR) | (1L << DIRECTIVE_INCLUDE) | (1L << DIRECTIVE_BREAK) | (1L << DIRECTIVE_CONTINUE) | (1L << DIRECTIVE_STOP) | (1L << DIRECTIVE_TAG))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << TEXT_PLAIN) | (1L << TEXT_CDATA) | (1L << TEXT_ESCAPED_CHAR) | (1L << TEXT_SINGLE_CHAR) | (1L << VALUE_OPEN) | (1L << VALUE_ESCAPED_OPEN) | (1L << DIRECTIVE_OPEN_DEFINE) | (1L << DIRECTIVE_OPEN_SET) | (1L << DIRECTIVE_OPEN_PUT) | (1L << DIRECTIVE_OPEN_IF) | (1L << DIRECTIVE_OPEN_FOR) | (1L << DIRECTIVE_OPEN_BREAK) | (1L << DIRECTIVE_OPEN_CONTINUE) | (1L << DIRECTIVE_OPEN_STOP) | (1L << DIRECTIVE_OPEN_INCLUDE) | (1L << DIRECTIVE_OPEN_TAG) | (1L << DIRECTIVE_OPEN_MACRO) | (1L << DIRECTIVE_DEFINE) | (1L << DIRECTIVE_SET) | (1L << DIRECTIVE_PUT) | (1L << DIRECTIVE_IF) | (1L << DIRECTIVE_ELSEIF) | (1L << DIRECTIVE_FOR) | (1L << DIRECTIVE_INCLUDE) | (1L << DIRECTIVE_BREAK) | (1L << DIRECTIVE_CONTINUE) | (1L << DIRECTIVE_STOP) | (1L << DIRECTIVE_TAG) | (1L << DIRECTIVE_MACRO))) != 0)) {
 				{
 				setState(71);
 				switch (_input.LA(1)) {
@@ -205,6 +205,7 @@ public class JetTemplateParser extends Parser {
 				case DIRECTIVE_CONTINUE:
 				case DIRECTIVE_STOP:
 				case DIRECTIVE_TAG:
+				case DIRECTIVE_MACRO:
 					{
 					setState(70); directive();
 					}
@@ -457,6 +458,7 @@ public class JetTemplateParser extends Parser {
 			case DIRECTIVE_FOR:
 			case DIRECTIVE_INCLUDE:
 			case DIRECTIVE_TAG:
+			case DIRECTIVE_MACRO:
 				enterOuterAlt(_localctx, 12);
 				{
 				setState(99); invalid_directive();
@@ -1349,6 +1351,7 @@ public class JetTemplateParser extends Parser {
 
 	public static class Invalid_directiveContext extends ParserRuleContext {
 		public TerminalNode DIRECTIVE_IF() { return getToken(JetTemplateParser.DIRECTIVE_IF, 0); }
+		public TerminalNode DIRECTIVE_MACRO() { return getToken(JetTemplateParser.DIRECTIVE_MACRO, 0); }
 		public TerminalNode DIRECTIVE_INCLUDE() { return getToken(JetTemplateParser.DIRECTIVE_INCLUDE, 0); }
 		public TerminalNode DIRECTIVE_SET() { return getToken(JetTemplateParser.DIRECTIVE_SET, 0); }
 		public TerminalNode DIRECTIVE_TAG() { return getToken(JetTemplateParser.DIRECTIVE_TAG, 0); }
@@ -1376,7 +1379,7 @@ public class JetTemplateParser extends Parser {
 			{
 			setState(229);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DIRECTIVE_DEFINE) | (1L << DIRECTIVE_SET) | (1L << DIRECTIVE_PUT) | (1L << DIRECTIVE_IF) | (1L << DIRECTIVE_ELSEIF) | (1L << DIRECTIVE_FOR) | (1L << DIRECTIVE_INCLUDE) | (1L << DIRECTIVE_TAG))) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << DIRECTIVE_DEFINE) | (1L << DIRECTIVE_SET) | (1L << DIRECTIVE_PUT) | (1L << DIRECTIVE_IF) | (1L << DIRECTIVE_ELSEIF) | (1L << DIRECTIVE_FOR) | (1L << DIRECTIVE_INCLUDE) | (1L << DIRECTIVE_TAG) | (1L << DIRECTIVE_MACRO))) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			consume();
@@ -2820,7 +2823,7 @@ public class JetTemplateParser extends Parser {
 		"\u01a6\n\36\3\36\7\36\u01a9\n\36\f\36\16\36\u01ac\13\36\3\37\3\37\3\37"+
 		"\3 \3 \3 \3 \3!\3!\3!\7!\u01b8\n!\f!\16!\u01bb\13!\3\"\3\"\5\"\u01bf\n"+
 		"\"\3\"\2#\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60\62\64\66"+
-		"8:<>@B\2\13\3\2\5\b\4\2\27\35!!\3\2=>\3\2:<\3\289\3\2\61\64\3\2/\60\3"+
+		"8:<>@B\2\13\3\2\5\b\4\2\27\35!\"\3\2=>\3\2:<\3\289\3\2\61\64\3\2/\60\3"+
 		"\2-.\4\2JLNR\u01ef\2D\3\2\2\2\4K\3\2\2\2\6N\3\2\2\2\bX\3\2\2\2\nf\3\2"+
 		"\2\2\fh\3\2\2\2\16l\3\2\2\2\20t\3\2\2\2\22w\3\2\2\2\24\u0083\3\2\2\2\26"+
 		"\u0089\3\2\2\2\30\u0094\3\2\2\2\32\u00a3\3\2\2\2\34\u00a8\3\2\2\2\36\u00ab"+

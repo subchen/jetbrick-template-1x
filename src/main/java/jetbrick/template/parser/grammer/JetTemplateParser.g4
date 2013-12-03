@@ -130,6 +130,7 @@ invalid_directive
             |   DIRECTIVE_FOR
             |   DIRECTIVE_INCLUDE
             |   DIRECTIVE_TAG
+            |   DIRECTIVE_MACRO
             ;
 
 expression  :   '(' expression ')'                                           # expr_group
