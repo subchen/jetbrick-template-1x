@@ -127,6 +127,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         this.textCache = new HashMap<String, TextCode>(32);
         this.forStack = new ArrayDeque<String[]>(8);
+
+        // 专门处理是否存在未完成的解析
+        Token token = parser.getCurrentToken();
+        if (token.getType() != Token.EOF) {
+            throw reportError("Invalid " + token.getText() + " directive in here.", token);
+        }
     }
 
     @Override
@@ -1630,11 +1636,13 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         return "$" + prefix + "_" + (uuid++);
     }
 
-    private RuntimeException reportError(String message, ParseTree node) {
+    private RuntimeException reportError(String message, Object node) {
         if (node instanceof ParserRuleContext) {
             parser.notifyErrorListeners(((ParserRuleContext) node).getStart(), message, null);
         } else if (node instanceof TerminalNode) {
             parser.notifyErrorListeners(((TerminalNode) node).getSymbol(), message, null);
+        } else if (node instanceof Token) {
+            parser.notifyErrorListeners((Token) node, message, null);
         }
         return new SyntaxErrorException(message);
     }
