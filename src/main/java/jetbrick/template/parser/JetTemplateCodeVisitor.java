@@ -162,10 +162,21 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                     ParseTree next = (i < size - 1) ? ctx.children.get(i + 1) : null;
 
                     boolean trimLeft;
+                    boolean keepLeftNewLine = false;
                     if (prev == null) {
                         trimLeft = !(ctx.getParent() instanceof TemplateContext);
                     } else {
-                        trimLeft = (prev instanceof DirectiveContext);
+                        trimLeft = prev instanceof DirectiveContext;
+                        if (trimLeft) {
+                            // inline directive, 对于一个内联的 #if, #for 指令，后面有要求保留一个 NewLine
+                            // @see https://github.com/subchen/jetbrick-template/issues/25
+                            ParserRuleContext directive = (ParserRuleContext) ((DirectiveContext) prev).getChild(0);
+                            if (directive instanceof If_directiveContext || directive instanceof For_directiveContext) {
+                                if (directive.getStart().getLine() == directive.getStop().getLine()) {
+                                    keepLeftNewLine = true; // 保留一个 NewLine
+                                }
+                            }
+                        }
                     }
 
                     boolean trimRight;
@@ -181,7 +192,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                     }
                     // trim 指令两边的空白内容
                     if (trimDirectiveLine) {
-                        textCode.trimEmptyLine(trimLeft, trimRight);
+                        textCode.trimEmptyLine(trimLeft, trimRight, keepLeftNewLine);
                     }
 
                     // trim 掉 #tag 和 #macro 指令最后一个多余的 '\n'

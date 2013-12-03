@@ -31,16 +31,27 @@ public class TextCode extends Code {
         this.text = text;
     }
 
-    public void trimEmptyLine(boolean trimLeft, boolean trimRight) {
+    public void trimEmptyLine(boolean trimLeft, boolean trimRight, boolean keepLeftNewLine) {
         int lpos = 0;
         if (trimLeft) {
             int len = text.length();
             for (int i = 0; i < len; i++) {
                 char c = text.charAt(i);
-                if (c == ' ' || c == '\t' || c == '\r') {
+                if (c == ' ' || c == '\t') {
                     continue;
+                } else if (c == '\r') {
+                    if (keepLeftNewLine) {
+                        lpos = i;
+                        break;
+                    } else {
+                        continue;
+                    }
                 } else if (c == '\n') {
-                    lpos = i + 1;
+                    if (keepLeftNewLine) {
+                        lpos = i;
+                    } else {
+                        lpos = i + 1;
+                    }
                     break;
                 } else {
                     break;
