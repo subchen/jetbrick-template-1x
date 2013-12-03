@@ -136,8 +136,9 @@ IDENTIFIER              : [_a-zA-Z$][_a-zA-Z$0-9]*         ;
 
 INTEGER                 : INT [lLfFdD]?                    ;
 INTEGER_HEX             : '0x' HEX+ [lL]?                  ;
-FLOATING_POINT          : INT ('.' INT)? EXP? [fFdD]?      ;
+FLOATING_POINT          : INT ('.' FRAC)? EXP? [fFdD]?     ;
 fragment INT            : '0' | [1-9] [0-9]*               ;
+fragment FRAC           : [0-9]+                           ;
 fragment EXP            : [Ee] [+\-]? INT                  ;
 
 STRING_DOUBLE           : '"'  (ESC|.)*? '"'               ;
