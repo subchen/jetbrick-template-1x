@@ -195,11 +195,13 @@ public class PromotionUtils {
         if (c2.isAssignableFrom(c1)) return k2;
 
         // 注意：后面的算法不是很好，应该返回的是一个Set<Class>，而不是一个Class
-        if (c1.getSuperclass().isAssignableFrom(c2)) {
-            return TypedKlass.create(c1.getSuperclass());
+        Class<?> c1_super = c1.getSuperclass();
+        if (c1_super != null && c1_super.isAssignableFrom(c2)) {
+            return TypedKlass.create(c1_super);
         }
-        if (c2.getSuperclass().isAssignableFrom(c1)) {
-            return TypedKlass.create(c2.getSuperclass());
+        Class<?> c2_super = c2.getSuperclass();
+        if (c2_super != null && c2_super.isAssignableFrom(c1)) {
+            return TypedKlass.create(c2_super);
         }
         for (Class<?> c : c1.getInterfaces()) {
             if (c.isAssignableFrom(c2)) {
