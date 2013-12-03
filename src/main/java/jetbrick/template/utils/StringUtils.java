@@ -93,10 +93,13 @@ public final class StringUtils {
 
                 // 1 个 Tab 变成 4 个空格
                 if (i == line - 1) {
-                    int origin_column = column;
+                    int origin_column = Math.min(column, sourceLine.length() - 1);
                     for (int j = 0; j < origin_column; j++) {
-                        if (sourceLine.charAt(j) == '\t') {
+                        char c = sourceLine.charAt(j);
+                        if (c == '\t') {
                             column += 3;
+                        } else if (c >= '\u2E80' && c <= '\uFE4F') {
+                            column++; // 中日韩统一表意文字（CJK Unified Ideographs）
                         }
                     }
                 }
