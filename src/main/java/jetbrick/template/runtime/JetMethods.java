@@ -184,6 +184,13 @@ public final class JetMethods {
         return value.toString();
     }
 
+    /**
+     * 如果 value 为 null，那么就返回 defaultValue
+     */
+    public static Object asDefault(Object value, Object defaultValue) {
+        return (value == null) ? defaultValue : value;
+    }
+
     //---- json -------------------------------------------------------
     public static String asJSON(Object object) {
         return JSONUtils.toJSONString(object);
