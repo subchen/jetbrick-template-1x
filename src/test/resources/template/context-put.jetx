@@ -1,2 +1,3 @@
 #put("abc", 123)
 #put("abc", "def")
+#put("abc", "def", "123", 111)

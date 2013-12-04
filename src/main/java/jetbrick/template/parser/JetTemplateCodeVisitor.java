@@ -372,19 +372,22 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     @Override
     public Code visitPut_directive(Put_directiveContext ctx) {
         List<ExpressionContext> expression_list = ctx.expression();
-        if (expression_list.size() != 2) {
-            throw reportError("Only two arguments can be accepted for #put directive", ctx);
+        int size = expression_list.size();
+        if (size == 0 || size % 2 == 1) {
+            throw reportError("Mismatched arguments count for #put directive", ctx);
         }
 
-        SegmentCode name = (SegmentCode) expression_list.get(0).accept(this);
-        SegmentCode value = (SegmentCode) expression_list.get(1).accept(this);
-
-        if (!String.class.equals(name.getKlass())) {
-            throw reportError("The first parameter type is not String.class for #put directive", ctx);
+        BlockCode code = scopeCode.createBlockCode(size / 2);
+        for (int i = 0; i < size; i += 2) {
+            SegmentCode name = (SegmentCode) expression_list.get(i).accept(this);
+            SegmentCode value = (SegmentCode) expression_list.get(i + 1).accept(this);
+            if (!String.class.equals(name.getKlass())) {
+                throw reportError("The argument type can't cast to String.class for #put directive", name.getNode());
+            }
+            assert_not_void_expression(value);
+            code.addLine(Code.CONTEXT_NAME + ".putAsParents(" + name.toString() + ", " + value.toString() + "); // line: " + ctx.getStart().getLine());
         }
-        assert_not_void_expression(value);
-
-        return scopeCode.createLineCode(Code.CONTEXT_NAME + ".putAsParents(" + name.toString() + ", " + value.toString() + "); // line: " + ctx.getStart().getLine());
+        return code;
     }
 
     @Override
