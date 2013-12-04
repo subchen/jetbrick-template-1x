@@ -40,4 +40,15 @@ public final class JetTags {
         JetTemplate template = ctx.getEngine().getTemplate(name);
         template.render(ctx.getContext(), ctx.getWriter());
     }
+
+    /**
+     * 将一个 Block 的内容保存到一个 Context 变量中。
+     * 
+     * @param ctx Tag 上下文对象
+     * @param name 保存到 JetContext 的变量名
+     */
+    public static void block(JetTagContext ctx, String name) {
+        String bodyContent = ctx.getBodyContent();
+        ctx.getContext().put(name, bodyContent);
+    }
 }

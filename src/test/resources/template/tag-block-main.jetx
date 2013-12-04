@@ -1,0 +1,7 @@
+#tag block("bodyContext1")
+    BODY 1111
+#end
+#tag block("bodyContext2")
+    BODY 2222
+#end
+#include("tag-block-layout.jetx")

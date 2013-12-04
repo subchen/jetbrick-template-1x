@@ -1,0 +1,8 @@
+This is a header.
+<div>
+    ${bodyContext1}
+</div>
+<div>
+    ${bodyContext2}
+</div>
+This is a footer.
