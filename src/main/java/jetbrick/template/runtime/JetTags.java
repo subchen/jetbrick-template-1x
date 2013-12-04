@@ -27,14 +27,14 @@ import jetbrick.template.JetTemplate;
 public final class JetTags {
 
     /**
-     * 实现 layout 的 tag.
+     * 实现 layout 的 tag, 将内容插入到 ${bodyContent}
      * 
      * @param ctx Tag 上下文对象
      * @param name layout 模板路径
      */
     public static void layout(JetTagContext ctx, String name) {
-        String bodyContext = ctx.getBodyContent();
-        ctx.getContext().put("bodyContext", bodyContext);
+        String bodyContent = ctx.getBodyContent();
+        ctx.getContext().put("bodyContent", bodyContent);
 
         name = ctx.getPageContext().getAbsolutionName(name);
         JetTemplate template = ctx.getEngine().getTemplate(name);

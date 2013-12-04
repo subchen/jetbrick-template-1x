@@ -144,7 +144,6 @@ public final class JetUtils {
         JetContext context = new JetContext(ctx.getContext(), parameters);
         JetWriter writer = ctx.getWriter();
         template.render(context, writer);
-        writer.println(); // append CRLF for #include directive
     }
 
     // render 子模板，并返回生成的内容
