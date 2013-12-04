@@ -23,8 +23,8 @@ import java.io.*;
 import java.util.Map;
 import jetbrick.template.parser.*;
 import jetbrick.template.parser.code.Code;
-import jetbrick.template.parser.grammer.JetTemplateLexer;
-import jetbrick.template.parser.grammer.JetTemplateParser;
+import jetbrick.template.parser.grammer.*;
+import jetbrick.template.parser.grammer.JetTemplateParser.TemplateContext;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.runtime.*;
 import jetbrick.template.utils.ExceptionUtils;
@@ -130,8 +130,9 @@ public final class JetTemplate {
         parser.addErrorListener(new JetTemplateErrorListener());
         parser.setErrorHandler(new JetTemplateErrorStrategy());
 
+        TemplateContext templateParseTree = parser.template();
         JetTemplateCodeVisitor visitor = new JetTemplateCodeVisitor(engine, engine.getVariableResolver(), parser, resource);
-        Code code = parser.template().accept(visitor);
+        Code code = templateParseTree.accept(visitor);
         return code.toString();
     }
 
