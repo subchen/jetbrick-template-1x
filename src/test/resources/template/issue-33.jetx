@@ -1,0 +1,2 @@
+#define(User noUser)
+${noUser?.status}

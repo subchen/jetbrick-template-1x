@@ -816,9 +816,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 if ("?.".equals(op)) { // 安全调用，防止 NullPointException
                     sb.append("((");
                     sb.append(code.toString());
-                    sb.append("==null)?");
-                    sb.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
-                    sb.append(':');
+                    sb.append("==null)?null:");
                     sb.append(code.toString());
                     sb.append('.');
                     sb.append(method.getName());
@@ -834,9 +832,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 if ("?.".equals(op)) { // 安全调用，防止 NullPointException
                     sb.append("((");
                     sb.append(code.toString());
-                    sb.append("==null)?");
-                    sb.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
-                    sb.append(':');
+                    sb.append("==null)?null:");
                     sb.append(code.toString());
                     sb.append(".get(\"");
                     sb.append(name);
@@ -858,9 +854,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if ("?.".equals(op)) { // 安全调用，防止 NullPointException
                 sb.append("((");
                 sb.append(code.toString());
-                sb.append("==null)?");
-                sb.append(PrimitiveClassUtils.getDefaultValueAsSource(resultKlass.getKlass()));
-                sb.append(':');
+                sb.append("==null)?null:");
                 sb.append(code.toString());
                 sb.append('.');
                 sb.append(name);
