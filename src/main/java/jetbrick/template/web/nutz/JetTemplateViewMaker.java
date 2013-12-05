@@ -24,7 +24,9 @@ import org.nutz.ioc.Ioc;
 import org.nutz.mvc.*;
 
 /**
- * nutz与JetTemplate集成
+ * nutz与JetTemplate集成.
+ * 
+ * @since 1.1.0
  * @author wendal(wendal1985@gmail.com)
  */
 public class JetTemplateViewMaker implements ViewMaker {
@@ -32,7 +34,7 @@ public class JetTemplateViewMaker implements ViewMaker {
     public JetTemplateViewMaker() {
         JetWebEngineLoader.setServletContext(Mvcs.getServletContext());
     }
-    
+
     @Override
     public View make(Ioc ioc, String type, final String value) {
         if (JetWebEngineLoader.getTemplateSuffix().equals(type)) {

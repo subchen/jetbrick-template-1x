@@ -51,6 +51,7 @@ import org.springframework.core.io.Resource;
  * &lt;/bean&gt;
  * </pre>
  *
+ * @since 1.1.1
  * @author 应卓(yingzhor@gmail.com)
  */
 public class JetEngineFactoryBean implements FactoryBean<JetEngine>, InitializingBean {

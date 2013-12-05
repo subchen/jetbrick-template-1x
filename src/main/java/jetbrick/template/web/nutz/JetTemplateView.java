@@ -31,6 +31,8 @@ import org.nutz.mvc.view.AbstractPathView;
 
 /**
  * nutz与JetTemplate集成
+ * 
+ * @since 1.1.0
  * @author wendal(wendal1985@gmail.com)
  */
 public class JetTemplateView extends AbstractPathView {

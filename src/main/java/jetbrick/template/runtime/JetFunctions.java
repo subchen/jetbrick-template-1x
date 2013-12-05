@@ -48,10 +48,16 @@ public final class JetFunctions {
         return ArrayUtils.range(start, stop, step);
     }
 
+    /**
+     * @since 1.0.2
+     */
     public static Iterator<Integer> iterator(int start, int stop) {
         return ArrayUtils.iterator(start, stop, 1);
     }
 
+    /**
+     * @since 1.0.2
+     */
     public static Iterator<Integer> iterator(int start, int stop, int step) {
         return ArrayUtils.iterator(start, stop, step);
     }

@@ -31,6 +31,8 @@ public final class JetTags {
      * 
      * @param ctx Tag 上下文对象
      * @param name layout 模板路径
+     * 
+     * @since 1.1.0
      */
     public static void layout(JetTagContext ctx, String name) {
         String bodyContent = ctx.getBodyContent();
@@ -46,6 +48,8 @@ public final class JetTags {
      * 
      * @param ctx Tag 上下文对象
      * @param name 保存到 JetContext 的变量名
+     * 
+     * @since 1.1.1
      */
     public static void block(JetTagContext ctx, String name) {
         String bodyContent = ctx.getBodyContent();

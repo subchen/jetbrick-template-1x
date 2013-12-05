@@ -96,6 +96,7 @@ public class JetEngine {
 
     /**
      * 直接从源代码中创建一个新的模板对象
+     * @since 1.1.0
      */
     public JetTemplate createTemplate(String source) {
         Resource resource = new SourceCodeResource(source);

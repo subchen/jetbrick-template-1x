@@ -186,6 +186,7 @@ public final class JetMethods {
 
     /**
      * 如果 value 为 null，那么就返回 defaultValue
+     * @since 1.1.1
      */
     public static Object asDefault(Object value, Object defaultValue) {
         return (value == null) ? defaultValue : value;
