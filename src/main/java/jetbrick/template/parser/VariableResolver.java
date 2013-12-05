@@ -492,7 +492,7 @@ public class VariableResolver {
         if (parameterTypes != null) {
             for (Class<?> type : parameterTypes) {
                 sb.append('/');
-                sb.append(type.getName());
+                sb.append(type == null ? "<null>" : type.getName());
             }
         }
         return sb.toString();

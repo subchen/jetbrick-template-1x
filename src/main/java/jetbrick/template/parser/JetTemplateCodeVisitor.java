@@ -1652,7 +1652,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (i > 0) {
                 sb.append(',');
             }
-            sb.append(parameterTypes[i].getSimpleName());
+            Class<?> type = parameterTypes[i];
+            sb.append(type == null ? "<null>" : type.getSimpleName());
         }
         sb.append(')');
         return sb.toString();
