@@ -19,6 +19,8 @@
  */
 package jetbrick.template.runtime;
 
+import java.util.Map;
+import jetbrick.template.JetContext;
 import jetbrick.template.JetTemplate;
 
 /**
@@ -30,17 +32,35 @@ public final class JetTags {
      * 实现 layout 的 tag, 将内容插入到 ${bodyContent}
      * 
      * @param ctx Tag 上下文对象
-     * @param name layout 模板路径
+     * @param file layout 模板路径
      * 
      * @since 1.1.0
      */
-    public static void layout(JetTagContext ctx, String name) {
+    public static void layout(JetTagContext ctx, String file) {
+        layout(ctx, file, null);
+    }
+
+    /**
+     * 实现 layout 的 tag, 将内容插入到 ${bodyContent}，支持传递参数
+     * 
+     * @param ctx Tag 上下文对象
+     * @param file layout 模板路径
+     * 
+     * @since 1.1.1
+     */
+    public static void layout(JetTagContext ctx, String file, Map<String, Object> parameters) {
+        JetContext context;
+        if (parameters == null || parameters.size() == 0) {
+            context = ctx.getContext();
+        } else {
+            context = new JetContext(ctx.getContext(), parameters);
+        }
         String bodyContent = ctx.getBodyContent();
         ctx.getContext().put("bodyContent", bodyContent);
 
-        name = ctx.getPageContext().getAbsolutionName(name);
-        JetTemplate template = ctx.getEngine().getTemplate(name);
-        template.render(ctx.getContext(), ctx.getWriter());
+        file = ctx.getPageContext().getAbsolutionName(file);
+        JetTemplate template = ctx.getEngine().getTemplate(file);
+        template.render(context, ctx.getWriter());
     }
 
     /**
