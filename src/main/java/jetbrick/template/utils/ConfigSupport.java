@@ -90,12 +90,18 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
                 }
 
                 type = String.class; // String is the default Class
+
                 // try to lookup generic type for List<?>
                 Type genericType = field.getGenericType();
                 if (genericType instanceof ParameterizedType) {
                     Type[] actualTypeArgs = ((ParameterizedType) genericType).getActualTypeArguments();
                     if (actualTypeArgs != null && actualTypeArgs.length > 0) {
-                        type = (Class<?>) actualTypeArgs[0];
+                        Type actualType = actualTypeArgs[0];
+                        if ((actualType instanceof Class)) {
+                            type = (Class<?>) actualType;
+                        } else if (actualType instanceof ParameterizedType) {
+                            type = (Class<?>) ((ParameterizedType) actualType).getRawType();
+                        }
                     }
                 }
                 for (String val : value.split(",")) {
