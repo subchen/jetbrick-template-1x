@@ -32,7 +32,7 @@ public class VariableResolver {
     private final Logger log = LoggerFactory.getLogger(VariableResolver.class);
 
     private Set<String> importedPackageList = new HashSet<String>(); // 全局 import 的 Package
-    private Map<String, Class<?>> importedClassMap = new HashMap<String, Class<?>>(); // 全局 import 独立的 Class
+    private Map<String, Class<?>> importedClassMap = new HashMap<String, Class<?>>(64); // 全局 import 独立的 Class
     private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(); // 全局定义的变量
     private Map<String, List<Method>> methodMap1 = new HashMap<String, List<Method>>(64); // 全局导入的 method 类
     private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetPageContext）
@@ -205,7 +205,7 @@ public class VariableResolver {
         Class<?> klass = ClassUtils.getClass(klassName);
         if (klass != null) return klass;
 
-        // 现查单个类的导入情况
+        // 先查单个类的导入情况
         klass = importedClassMap.get(klassName);
         if (klass != null) return klass;
 
@@ -214,7 +214,10 @@ public class VariableResolver {
         if (lpos < 0 || lpos == klassName.lastIndexOf('.')) {
             for (String pkg : importedPackageList) {
                 klass = ClassUtils.getClass(pkg + "." + klassName);
-                if (klass != null) return klass;
+                if (klass != null) {
+                    importedClassMap.put(klassName, klass); // cache for speed
+                    return klass;
+                }
             }
         }
         return null;
