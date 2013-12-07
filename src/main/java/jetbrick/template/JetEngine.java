@@ -167,14 +167,14 @@ public class JetEngine {
 
     private class ConcurrentResourceCache extends ConcurrentCache<String, Resource> {
         @Override
-        public Resource doGetValue(String name) {
+        protected Resource doGetValue(String name) {
             return JetEngine.this.resourceLoader.load(name);
         }
     }
 
     private class ConcurrentTemplateCache extends ConcurrentCache<String, JetTemplate> {
         @Override
-        public JetTemplate doGetValue(String name) {
+        protected JetTemplate doGetValue(String name) {
             Resource resource = JetEngine.this.getResource(name);
             return new JetTemplate(JetEngine.this, resource);
         }

@@ -23,7 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public abstract class ConcurrentCache<K, V> {
-
     private final ConcurrentMap<K, VolatileReference<V>> cache = new ConcurrentHashMap<K, VolatileReference<V>>();
 
     public V get(K key) {
@@ -51,6 +50,8 @@ public abstract class ConcurrentCache<K, V> {
         return value;
     }
 
+    protected abstract V doGetValue(K key);
+
     public void remove(K key) {
         cache.remove(key);
     }
@@ -59,5 +60,15 @@ public abstract class ConcurrentCache<K, V> {
         cache.clear();
     }
 
-    public abstract V doGetValue(K key);
+    static class VolatileReference<T> {
+        private volatile T value;
+
+        public T get() {
+            return value;
+        }
+
+        public void set(T value) {
+            this.value = value;
+        }
+    }
 }
