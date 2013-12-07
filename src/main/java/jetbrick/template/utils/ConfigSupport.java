@@ -57,7 +57,7 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
 
         Field[] fields = getClass().getDeclaredFields();
         for (Field field : fields) {
-            String name = WordUtils.toSpecialName(field.getName(), '.');
+            String name = WordUtils.toPropertyName(field.getName());
             String value = config.getProperty(name);
             if (value == null) continue;
             setFieldValue(field, value);

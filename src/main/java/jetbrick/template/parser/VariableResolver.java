@@ -29,10 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class VariableResolver {
-    private final Logger log = LoggerFactory.getLogger(VariableResolver.class);
+    private static final Logger log = LoggerFactory.getLogger(VariableResolver.class);
 
     private Set<String> importedPackageList = new HashSet<String>(); // 全局 import 的 Package
-    private Map<String, Class<?>> importedClassMap = new HashMap<String, Class<?>>(64); // 全局 import 独立的 Class
+    private Map<String, Class<?>> importedClassMap = Collections.synchronizedMap(new HashMap<String, Class<?>>(64)); // 全局 import 独立的 Class
     private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(); // 全局定义的变量
     private Map<String, List<Method>> methodMap1 = new HashMap<String, List<Method>>(64); // 全局导入的 method 类
     private Map<String, List<Method>> methodMap2 = new HashMap<String, List<Method>>(32); // 全局导入的 method 类 （带 JetPageContext）
@@ -40,14 +40,14 @@ public class VariableResolver {
     private Map<String, List<Method>> functionMap2 = new HashMap<String, List<Method>>(); // 全局导入的 function 类 （带 JetPageContext）
     private Map<String, List<Method>> tagMap = new HashMap<String, List<Method>>(); // 全局导入的 tag 类 （带 JetTagContext）
 
-    private static final Map<String, Member> bean_field_cache = new WeakHashMap<String, Member>(64);
-    private static final Map<String, Method> bean_method_cache = new WeakHashMap<String, Method>(128);
-    private static final Map<String, Constructor<?>> bean_constructor_cache = new WeakHashMap<String, Constructor<?>>();
-    private static final Map<String, Method> static_tool_method_cache = new WeakHashMap<String, Method>(128);
-    private static final Map<String, Method> static_function_cache = new WeakHashMap<String, Method>(64);
-    private static final Map<String, Method> static_tag_method_cache = new WeakHashMap<String, Method>();
-    private static final Map<String, Field> static_field_cache = new WeakHashMap<String, Field>(16);
-    private static final Map<String, Method> static_method_cache = new WeakHashMap<String, Method>(16);
+    private static final Map<String, Member> bean_field_cache = Collections.synchronizedMap(new HashMap<String, Member>(64));
+    private static final Map<String, Method> bean_method_cache = Collections.synchronizedMap(new HashMap<String, Method>(128));
+    private static final Map<String, Constructor<?>> bean_constructor_cache = Collections.synchronizedMap(new HashMap<String, Constructor<?>>());
+    private static final Map<String, Method> static_tool_method_cache = Collections.synchronizedMap(new HashMap<String, Method>(128));
+    private static final Map<String, Method> static_function_cache = Collections.synchronizedMap(new HashMap<String, Method>(64));
+    private static final Map<String, Method> static_tag_method_cache = Collections.synchronizedMap(new HashMap<String, Method>());
+    private static final Map<String, Field> static_field_cache = Collections.synchronizedMap(new HashMap<String, Field>(16));
+    private static final Map<String, Method> static_method_cache = Collections.synchronizedMap(new HashMap<String, Method>(16));
 
     public VariableResolver() {
         addImportPackage("java.lang");

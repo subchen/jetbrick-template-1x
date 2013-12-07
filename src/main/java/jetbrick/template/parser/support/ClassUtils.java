@@ -59,9 +59,10 @@ public class ClassUtils {
         try {
             if (abbreviation_map.containsKey(qualifiedClassName)) {
                 String clsName = "[" + abbreviation_map.get(qualifiedClassName);
-                return Class.forName(clsName, true, classLoader).getComponentType();
+                // 注意： ClassLoader.loadClass() 不支持 'B', '[I' 这样的名称，而 Class.forName() 支持
+                return Class.forName(clsName, false, classLoader).getComponentType();
             } else {
-                return Class.forName(toJvmClassName(qualifiedClassName), true, classLoader);
+                return Class.forName(toJvmClassName(qualifiedClassName), false, classLoader);
             }
         } catch (ClassNotFoundException e) {
             // 尝试当做一个内部类去识别

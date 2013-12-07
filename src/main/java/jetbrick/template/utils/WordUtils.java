@@ -29,7 +29,11 @@ public final class WordUtils {
         return toSpecialName(s, '-');
     }
 
-    public static String toSpecialName(String s, char ch) {
+    public static String toPropertyName(String s) {
+        return toSpecialName(s, '.');
+    }
+
+    private static String toSpecialName(String s, char ch) {
         if (s == null || s.length() == 0) return s;
 
         StringBuilder sb = new StringBuilder();
