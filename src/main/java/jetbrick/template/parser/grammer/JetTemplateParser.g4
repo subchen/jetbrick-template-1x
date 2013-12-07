@@ -38,6 +38,7 @@ text        :   TEXT_PLAIN
             |   TEXT_CDATA
             |   TEXT_SINGLE_CHAR
             |   TEXT_ESCAPED_CHAR
+            |   TEXT_DIRECTIVE_LIKE
             ;
 
 value       :   VALUE_OPEN         expression '}'

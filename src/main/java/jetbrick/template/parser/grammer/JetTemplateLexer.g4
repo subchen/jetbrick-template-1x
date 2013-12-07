@@ -70,6 +70,10 @@ DIRECTIVE_MACRO         : '#macro'                        ;
 DIRECTIVE_ELSE          : '#else'     '()'?               ;
 DIRECTIVE_END           : '#end'      '()'?               ;
 
+// It is a text which like a directive.
+// It must be put after directive defination to avoid confliction.
+TEXT_DIRECTIVE_LIKE     : '#' [a-zA-Z0-9]+                ;
+
 
 // *******************************************************************
 // -------- INSIDE mode for directive --------------------------------
