@@ -95,5 +95,4 @@ public class JetWebEngineLoader implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         engine = null;
     }
-
 }

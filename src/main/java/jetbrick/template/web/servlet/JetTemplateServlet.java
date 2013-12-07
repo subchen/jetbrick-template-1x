@@ -58,7 +58,11 @@ public class JetTemplateServlet extends HttpServlet {
         JetEngine engine = JetWebEngineLoader.getJetEngine();
         response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
 
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
+        String pathInfo = request.getPathInfo();
+        if (pathInfo != null && pathInfo.length() > 0) {
+            uri = uri + pathInfo;
+        }
         try {
             JetTemplate template = engine.getTemplate(uri);
             JetContext context = new JetWebContext(request, response);
