@@ -70,9 +70,18 @@ public final class JetUtils {
         return Collections.singleton(value).iterator();
     }
 
-    public static Map<?, ?> asMap(Object... values) {
+    /**
+     * 返回一个 Map。类似于 Arrays.asList(...)。
+     * 
+     * <p>注意：这里必须去掉泛型类型，使用 rawtypes, 防止生成的模板出现编译错误。</p>
+     */
+    @SuppressWarnings("rawtypes")
+    public static Map asMap(Object... values) {
         if (values == null || values.length == 0) {
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
+        }
+        if (values.length % 2 == 1) {
+            throw new IllegalArgumentException("Mismatched arguments count.");
         }
         Map<Object, Object> map = new HashMap<Object, Object>(values.length);
         for (int i = 0; i < values.length; i += 2) {

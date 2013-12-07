@@ -1,0 +1,3 @@
+#tag layout("tag-layout-page.jetx", {"name": "jetbrick"})
+    hello from main
+#end
