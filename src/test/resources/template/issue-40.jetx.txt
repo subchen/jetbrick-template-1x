@@ -1,0 +1,5 @@
+$(function() {
+    $('#form1').add();
+    $(document).add();
+    $.post();
+})
