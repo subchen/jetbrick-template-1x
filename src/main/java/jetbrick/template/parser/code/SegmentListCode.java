@@ -25,7 +25,6 @@ import jetbrick.template.utils.ArrayUtils;
 /**
  * 主要用于存储 expression_list 和 type_list
  */
-
 public class SegmentListCode extends Code {
     public static final SegmentListCode EMPTY = new SegmentListCode(0);
 

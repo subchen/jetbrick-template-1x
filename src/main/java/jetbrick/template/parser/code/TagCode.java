@@ -22,9 +22,6 @@ package jetbrick.template.parser.code;
 import java.lang.reflect.Method;
 import jetbrick.template.parser.support.ClassUtils;
 
-/**
- * 模板 Class
- */
 public class TagCode extends Code {
     private final MethodCode methodCode;
     private final String indent;
