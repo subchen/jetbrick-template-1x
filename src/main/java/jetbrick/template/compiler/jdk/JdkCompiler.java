@@ -41,10 +41,20 @@ public class JdkCompiler extends JavaCompiler {
     public JdkCompiler(JetTemplateClassLoader classloader) {
         super(classloader);
 
-        this.jc = ToolProvider.getSystemJavaCompiler();
-        if (jc == null) {
+        javax.tools.JavaCompiler jcc = ToolProvider.getSystemJavaCompiler();
+        if (jcc == null) {
+            // JDT 支持 ServiceLoader 方式载入。
+            ServiceLoader<javax.tools.JavaCompiler> serviceLoader = ServiceLoader.load(javax.tools.JavaCompiler.class);
+            Iterator<javax.tools.JavaCompiler> iterator = serviceLoader.iterator();
+            if (iterator.hasNext()) {
+                jcc = iterator.next();
+            }
+        }
+        if (jcc == null) {
             throw new IllegalStateException("Can't get system java compiler. Please add jdk tools.jar to your classpath.");
         }
+
+        this.jc = jcc;
         this.fileManager = jc.getStandardFileManager(null, null, null);
         this.options = Arrays.asList("-encoding", encoding, "-g", "-nowarn");
 
