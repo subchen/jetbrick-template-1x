@@ -32,6 +32,10 @@ public class TextCode extends Code {
     }
 
     public void trimEmptyLine(boolean trimLeft, boolean trimRight, boolean keepLeftNewLine) {
+        if (text == null || text.length() == 0) {
+            return;
+        }
+
         int lpos = 0;
         if (trimLeft) {
             int len = text.length();
@@ -82,7 +86,9 @@ public class TextCode extends Code {
     }
 
     public void trimComments(boolean trimLeft, boolean trimRight, String prefix, String suffix) {
-        if (text == null) return;
+        if (text == null || text.length() == 0) {
+            return;
+        }
 
         int lpos = 0;
         int text_len = text.length();
@@ -145,7 +151,9 @@ public class TextCode extends Code {
     }
 
     public void trimLastNewLine() {
-        if (text == null) return;
+        if (text == null || text.length() == 0) {
+            return;
+        }
 
         int length = text.length();
         if (text.charAt(length - 1) == '\n') {
