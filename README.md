@@ -50,7 +50,7 @@ jetbrick-template 指令集和老牌的模板引擎 Velocity 非常相似，易�
 
 1. 创建自定义配置的 `JetEngine` 对象。推荐使用单例模式创建。
 2. 根据模板路径，获取一个模板对象 `JetTemplate`。
-3. 创建一个 `JetContext` 对象，并加入你的 data objects。
+3. 创建一个 `Map<String, Object>` 对象，并加入你的 data objects。
 5. 准备一个待输出的对象，`OutputStream` 或者 `Writer`。
 6. 根据你的 data objects 来渲染模板，并获得输出结果。
 
