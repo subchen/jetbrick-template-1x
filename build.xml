@@ -14,6 +14,7 @@
     </path>
 
     <path id="sources.resources">
+        <!--
         <fileset dir="${basedir}">
             <include name="src/**" />
             <include name="NOTICE" />
@@ -23,6 +24,10 @@
             <include name="pom.xml" />
             <include name="build.properties" />
             <include name="build.xml" />
+        </fileset>
+        -->
+        <fileset dir="${basedir}/src/main/java">
+            <include name="**" />
         </fileset>
     </path>
 
