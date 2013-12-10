@@ -62,6 +62,7 @@ public class TagCode extends Code {
         sb.append(indent).append("final JetTagContext " + tagId + " = new JetTagContext($ctx) { // line: ").append(line).append('\n');
         sb.append(indent).append("  @Override\n");
         sb.append(indent).append("  protected void render(final JetContext ").append(Code.CONTEXT_NAME).append(", final JetWriter $out) throws Throwable {\n");
+        sb.append(indent).append("    final JetPageContext $ctx = super.getPageContext($out);\n");
         sb.append(methodCode.toString());
         sb.append(indent).append("  }\n");
         sb.append(indent).append("};\n");

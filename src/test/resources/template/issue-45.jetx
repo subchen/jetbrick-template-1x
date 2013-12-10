@@ -1,0 +1,16 @@
+000000000000000000000000000000
+#tag block("TEST")
+    1234567890
+    #include("includes/issue-45-1.jetx")
+    AAAAAAAAAA
+#end
+#include("includes/issue-45-2.jetx")
+111111111111111111111111111111
+
+#macro test()
+    1234567890
+    #include("includes/issue-45-1.jetx")
+    AAAAAAAAAA
+#end
+
+${test()}

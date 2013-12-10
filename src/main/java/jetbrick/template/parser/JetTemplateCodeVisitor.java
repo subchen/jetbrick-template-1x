@@ -977,8 +977,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 // 生成 macro 调用 code
                 StringBuilder sb = new StringBuilder(64);
                 sb.append("$macro_").append(name);
-                sb.append('(');
-                sb.append(Code.CONTEXT_NAME).append(",$out");
+                sb.append("($ctx");
                 if (segmentListCode != null && segmentListCode.size() > 0) {
                     sb.append(',').append(segmentListCode.toString());
                 }

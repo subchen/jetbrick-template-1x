@@ -26,7 +26,7 @@ public class MacroCode extends Code {
     private int line;
 
     public MacroCode(ScopeCode scopeCode) {
-        this.methodCode = new MethodCode(scopeCode, "    ", true);
+        this.methodCode = new MethodCode(scopeCode, "    ", false);
     }
 
     public void setName(String name) {
@@ -55,7 +55,7 @@ public class MacroCode extends Code {
         sb.append("  // line: ").append(line).append('\n');
         sb.append("  protected static void $macro_");
         sb.append(name);
-        sb.append("(final JetContext ").append(Code.CONTEXT_NAME).append(", final JetWriter $out");
+        sb.append("(final JetPageContext $ctx");
         if (defineListCode != null && defineListCode.size() > 0) {
             sb.append(',').append(defineListCode.toString());
         }

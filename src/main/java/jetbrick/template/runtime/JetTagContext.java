@@ -67,5 +67,14 @@ public abstract class JetTagContext {
         return ctx.getContext();
     }
 
+    // 专门给 tag 内部用的 ctx
+    protected JetPageContext getPageContext(JetWriter out) {
+        if (out == ctx.getWriter()) {
+            return ctx;
+        } else {
+            return new JetPageContext(ctx.getTemplate(), ctx.getContext(), out);
+        }
+    }
+
     protected abstract void render(final JetContext context, final JetWriter out) throws Throwable;
 }
