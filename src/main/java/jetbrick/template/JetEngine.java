@@ -20,7 +20,10 @@
 package jetbrick.template;
 
 import java.io.File;
-import java.util.Properties;
+import java.lang.annotation.Annotation;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import jetbrick.template.compiler.JavaCompiler;
 import jetbrick.template.compiler.JetTemplateClassLoader;
 import jetbrick.template.parser.VariableResolver;
@@ -28,8 +31,13 @@ import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.SourceCodeResource;
 import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.*;
+import jetbrick.template.utils.AnnotationClassFile.AnnotationFilter;
+import jetbrick.template.utils.ClassLookupUtils.ClassFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JetEngine {
+    private static final Logger log = LoggerFactory.getLogger(JetEngine.class);
     public static final String VERSION = Version.getVersion(JetEngine.class);
 
     private final JetConfig config;
@@ -152,7 +160,45 @@ public class JetEngine {
             String id = variable.substring(pos + 1);
             resolver.addGlobalVariable(defination, id);
         }
+
+        if (config.isImportAutoscan()) {
+            log.info("Starting to autoscan the JetMethods, JetFunctions, JetTags implements...");
+            autoScanClassImplements(resolver);
+        }
+
         return resolver;
+    }
+
+    // 自动扫描 annotation
+    private void autoScanClassImplements(VariableResolver resolver) {
+        JetClassFileFilter filter = new JetClassFileFilter();
+
+        long ts = System.currentTimeMillis();
+        Collection<Class<?>> klasses;
+        List<String> scanPackages = config.getImportAutoscanPackages();
+        if (scanPackages.size() == 0) {
+            klasses = ClassLookupUtils.getClasses(filter);
+        } else {
+            klasses = new LinkedHashSet<Class<?>>();
+            for (String pkg : scanPackages) {
+                klasses.addAll(ClassLookupUtils.getClasses(pkg, true, filter));
+            }
+        }
+        ts = System.currentTimeMillis() - ts;
+
+        log.info("Successfully to scan {} classes, found {} classes, cost {} ms.", filter.getCount(), klasses.size(), ts);
+
+        for (Class<?> klass : klasses) {
+            for (Annotation anno : klass.getAnnotations()) {
+                if (anno instanceof JetAnnoations.Methods) {
+                    resolver.addMethodClass(klass);
+                } else if (anno instanceof JetAnnoations.Functions) {
+                    resolver.addFunctionClass(klass);
+                } else if (anno instanceof JetAnnoations.Tags) {
+                    resolver.addTagClass(klass);
+                }
+            }
+        }
     }
 
     private ResourceLoader createResourceLoader() {
@@ -177,6 +223,35 @@ public class JetEngine {
         protected JetTemplate doGetValue(String name) {
             Resource resource = JetEngine.this.getResource(name);
             return new JetTemplate(JetEngine.this, resource);
+        }
+    }
+
+    private static class JetClassFileFilter implements ClassFileFilter {
+        private final AnnotationClassFile classFile;
+        private int count = 0; // 统计用
+
+        public JetClassFileFilter() {
+            AnnotationFilter annoFilter = new AnnotationFilter();
+            annoFilter.addTypeAnnotation(JetAnnoations.Methods.class);
+            annoFilter.addTypeAnnotation(JetAnnoations.Functions.class);
+            annoFilter.addTypeAnnotation(JetAnnoations.Tags.class);
+            classFile = new AnnotationClassFile(annoFilter);
+        }
+
+        @Override
+        public boolean accept(String klassName, File file, ClassLoader loader) {
+            count++;
+            return classFile.isAnnotationed(file);
+        }
+
+        @Override
+        public boolean accept(String klassName, JarFile jar, JarEntry entry, ClassLoader loader) {
+            count++;
+            return classFile.isAnnotationed(jar, entry);
+        }
+
+        public int getCount() {
+            return count;
         }
     }
 }

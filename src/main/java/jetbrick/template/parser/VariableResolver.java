@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class VariableResolver {
     private static final Logger log = LoggerFactory.getLogger(VariableResolver.class);
 
-    private Set<String> importedPackageList = new HashSet<String>(); // 全局 import 的 Package
+    private Set<String> importedPackageList = new LinkedHashSet<String>(); // 全局 import 的 Package
     private Map<String, Class<?>> importedClassMap = Collections.synchronizedMap(new HashMap<String, Class<?>>(64)); // 全局 import 独立的 Class
     private Map<String, TypedKlass> variableMap = new HashMap<String, TypedKlass>(); // 全局定义的变量
     private Map<String, List<Method>> methodMap1 = new HashMap<String, List<Method>>(64); // 全局导入的 method 类
@@ -62,15 +62,17 @@ public class VariableResolver {
         if (pkg.endsWith(".*")) {
             pkg = pkg.substring(0, pkg.length() - 2);
         }
-        importedPackageList.add(pkg);
-        log.info("import package: " + pkg + ".*");
+        if (importedPackageList.add(pkg)) {
+            log.info("import package: " + pkg + ".*");
+        }
     }
 
     public void addImportClass(String klassName) {
         try {
             Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
-            importedClassMap.put(klass.getSimpleName(), klass);
-            log.info("import class: " + klass.getName());
+            if (importedClassMap.put(klass.getSimpleName(), klass) != null) {
+                log.info("import class: " + klass.getName());
+            }
         } catch (ClassNotFoundException e) {
             throw ExceptionUtils.uncheck(e);
         }
@@ -81,18 +83,21 @@ public class VariableResolver {
         if (klass == null || klass == TypedKlass.NULL) {
             throw new RuntimeException("ClassNotFoundException: " + klassName);
         }
-        variableMap.put(name, klass);
-        log.info("add variable: " + klass.getSource() + " " + name);
+        if (variableMap.put(name, klass) != null) {
+            log.info("add variable: " + klass.getSource() + " " + name);
+        }
     }
 
     public void addMethodClass(String klassName) {
-        Class<?> klass;
         try {
-            klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            addMethodClass(klass);
         } catch (ClassNotFoundException e) {
             throw ExceptionUtils.uncheck(e);
         }
+    }
 
+    public void addMethodClass(Class<?> klass) {
         for (Method method : klass.getMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length == 0) {
@@ -123,13 +128,15 @@ public class VariableResolver {
     }
 
     public void addFunctionClass(String klassName) {
-        Class<?> klass;
         try {
-            klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            addFunctionClass(klass);
         } catch (ClassNotFoundException e) {
             throw ExceptionUtils.uncheck(e);
         }
+    }
 
+    public void addFunctionClass(Class<?> klass) {
         for (Method method : klass.getMethods()) {
             int modifiers = method.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
@@ -157,13 +164,15 @@ public class VariableResolver {
     }
 
     public void addTagClass(String klassName) {
-        Class<?> klass;
         try {
-            klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            addTagClass(klass);
         } catch (ClassNotFoundException e) {
             throw ExceptionUtils.uncheck(e);
         }
+    }
 
+    public void addTagClass(Class<?> klass) {
         for (Method method : klass.getMethods()) {
             int modifiers = method.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {

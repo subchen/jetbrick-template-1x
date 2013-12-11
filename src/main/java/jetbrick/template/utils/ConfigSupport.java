@@ -104,10 +104,18 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
                         }
                     }
                 }
+                if (value == null) return;
+
                 for (String val : value.split(",")) {
-                    values.add(cast(val, type));
+                    val = value.trim();
+                    if (val.length() > 0) {
+                        values.add(cast(val, type));
+                    }
                 }
             } else {
+                if (value != null) {
+                    value = value.trim();
+                }
                 field.set(this, cast(value, type));
             }
         } catch (Exception e) {
@@ -142,9 +150,6 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
     }
 
     private Object cast(String value, Class<?> type) {
-        if (value != null) {
-            value = value.trim();
-        }
         if (String.class.equals(type)) {
             return value;
         }
