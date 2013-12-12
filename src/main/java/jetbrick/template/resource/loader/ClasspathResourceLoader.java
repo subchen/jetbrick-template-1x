@@ -56,7 +56,6 @@ public class ClasspathResourceLoader implements ResourceLoader {
             int separator = file.indexOf(JAR_FILE_SEPARATOR);
             File jar = PathUtils.getCanonicalFile(new File(file.substring(0, separator)));
             String entry = file.substring(separator + JAR_FILE_SEPARATOR.length());
-            entry = PathUtils.getStandardizedTemplateRoot(entry, false);
             return new JarResourceLoader.JarResource(name, jar, entry, encoding);
         }
         throw new IllegalStateException("cannot load from url: " + url);
