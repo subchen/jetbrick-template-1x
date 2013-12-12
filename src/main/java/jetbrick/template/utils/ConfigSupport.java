@@ -107,7 +107,7 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
                 if (value == null) return;
 
                 for (String val : value.split(",")) {
-                    val = value.trim();
+                    val = val.trim();
                     if (val.length() > 0) {
                         values.add(cast(val, type));
                     }
