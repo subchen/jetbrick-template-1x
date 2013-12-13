@@ -79,7 +79,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public JetConfig() {
         // default config
-        String defaultCompilePath = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
+        String defaultCompilePath = new File(System.getProperty("java.io.tmpdir"), "jetx").getAbsolutePath();
 
         Properties config = new Properties();
         config.setProperty(IMPORT_AUTOSCAN, "false");
@@ -107,9 +107,9 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         if (log.isInfoEnabled()) {
             log.info("Load template from \"" + templatePath + "\" by " + templateLoader + ".");
             if (templateReloadable) {
-                log.info("autoload on: template will automatically reload.");
+                log.info("Auto loading on: template will automatically reload.");
             } else {
-                log.info("autoload off: template will NOT automatically reload.");
+                log.info("Auto loading off: template will NOT automatically reload.");
             }
         }
         return this;

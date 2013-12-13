@@ -21,7 +21,6 @@ package jetbrick.template.compiler;
 
 import java.io.File;
 import java.net.*;
-import jetbrick.template.JetEngine;
 import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.utils.PathUtils;
@@ -36,7 +35,7 @@ public class JetTemplateClassLoader {
     private final boolean reloadable;
 
     public JetTemplateClassLoader(String classpath, boolean reloadable) {
-        this.classpath = getVersionClasspath(classpath);
+        this.classpath = getCanonicalClasspath(classpath);
         this.urls = new URL[] { toURL(this.classpath) };
         this.classloader = createClassLoader();
         this.reloadable = reloadable;
@@ -62,9 +61,8 @@ public class JetTemplateClassLoader {
         return new URLClassLoader(urls, ClassUtils.getContextClassLoader());
     }
 
-    // 根据不同的 Version 生成不同的 classpath
-    private static String getVersionClasspath(String classpath) {
-        File dir = new File(classpath, "jetx_" + JetEngine.VERSION.replace('.', '_'));
+    private static String getCanonicalClasspath(String classpath) {
+        File dir = new File(classpath);
         // 必须先建立目录，否则 URLClassLoader 会失败
         if (!dir.mkdirs() && !dir.exists()) {
             throw new IllegalStateException("Can't create a directory in " + dir.getAbsolutePath());
