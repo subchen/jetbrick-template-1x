@@ -64,10 +64,11 @@ public class JdkCompiler extends JavaCompiler {
     private void setDefaultClasspath(StandardJavaFileManager fileManager) {
         Set<File> files = new HashSet<File>();
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        while (loader instanceof URLClassLoader && (!"sun.misc.Launcher$AppClassLoader".equals(loader.getClass().getName()))) {
+        while (loader instanceof URLClassLoader && (!"sun.misc.Launcher$ExtClassLoader".equals(loader.getClass().getName()))) {
             URLClassLoader urlClassLoader = (URLClassLoader) loader;
             for (URL url : urlClassLoader.getURLs()) {
-                files.add(new File(url.getFile()));
+                String file = StringEscapeUtils.unescapeUrl(url.getFile());
+                files.add(new File(file));
             }
             loader = loader.getParent();
         }

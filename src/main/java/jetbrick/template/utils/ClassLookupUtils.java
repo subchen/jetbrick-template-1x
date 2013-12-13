@@ -57,8 +57,8 @@ public class ClassLookupUtils {
         Collection<URL> classpathURLs = getClasspathURLs(loader);
         Set<Class<?>> klasses = new LinkedHashSet<Class<?>>();
         for (URL url : classpathURLs) {
-            String file = url.getFile().toLowerCase();
-            if (file.endsWith(".jar") || file.endsWith(".zip")) {
+            String file = StringEscapeUtils.unescapeUrl(url.getFile());
+            if (file.toLowerCase().endsWith(".jar") || file.toLowerCase().endsWith(".zip")) {
                 lookupClassesInJar(null, url, true, loader, filter, klasses);
             } else {
                 lookupClassesInFileSystem(null, new File(file), true, loader, filter, klasses);
@@ -112,7 +112,8 @@ public class ClassLookupUtils {
         for (URL url : urls) {
             String protocol = url.getProtocol();
             if ("file".equals(protocol)) {
-                lookupClassesInFileSystem(packageName, new File(url.getFile()), recursive, loader, filter, klasses);
+                String file = StringEscapeUtils.unescapeUrl(url.getFile());
+                lookupClassesInFileSystem(packageName, new File(file), recursive, loader, filter, klasses);
             } else if ("jar".equals(protocol)) {
                 lookupClassesInJar(packageName, url, recursive, loader, filter, klasses);
             }
@@ -182,7 +183,8 @@ public class ClassLookupUtils {
             if ("jar".equals(jarUrl.getProtocol())) {
                 jar = ((JarURLConnection) jarUrl.openConnection()).getJarFile();
             } else {
-                jar = new JarFile(jarUrl.getFile());
+                String file = StringEscapeUtils.unescapeUrl(jarUrl.getFile());
+                jar = new JarFile(file);
             }
             Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
