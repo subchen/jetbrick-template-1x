@@ -19,7 +19,6 @@
  */
 package jetbrick.template.runtime;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -144,7 +143,7 @@ public final class JetUtils {
     }
 
     // render 子模板，并直接输出
-    public static void asInclude(JetPageContext ctx, String relativeName, Map<String, Object> parameters) throws IOException {
+    public static void asInclude(JetPageContext ctx, String relativeName, Map<String, Object> parameters) {
         if (relativeName == null || relativeName.length() == 0) {
             throw new IllegalArgumentException("argument relativeName is null or empty.");
         }
