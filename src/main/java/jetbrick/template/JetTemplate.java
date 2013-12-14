@@ -42,6 +42,7 @@ public final class JetTemplate {
     private final boolean reloadable;
     private final File javaSourceFile;
     private final File javaClassFile;
+    private long lastCompiledTimestamp;
     private JetPage pageObject;
 
     protected JetTemplate(JetEngine engine, Resource resource) {
@@ -53,15 +54,16 @@ public final class JetTemplate {
         this.reloadable = config.isTemplateReloadable();
         this.javaSourceFile = engine.getJdkCompiler().getGenerateJavaSourceFile(resource.getQualifiedClassName());
         this.javaClassFile = engine.getJdkCompiler().getGenerateJavaClassFile(resource.getQualifiedClassName());
+        this.lastCompiledTimestamp = javaClassFile.lastModified();
 
         // compile and load
-        if ((!config.isCompileAlways()) && javaClassFile.lastModified() > resource.lastModified()) {
+        if ((!config.isCompileAlways()) && lastCompiledTimestamp > resource.lastModified()) {
             try {
                 loadClassFile();
             } catch (Throwable e) {
                 // 无法 load 的话，尝试重新编译
                 log.warn(e.getClass().getName() + ": " + e.getMessage());
-                log.warn("Try to recompile the template.");
+                log.warn("Try to recompile this template.");
                 compileAndLoadClass();
             }
         } else {
@@ -70,10 +72,10 @@ public final class JetTemplate {
     }
 
     protected void checkLastModified() {
-        if (reloadable && javaClassFile.lastModified() < resource.lastModified()) {
+        if (reloadable && lastCompiledTimestamp < resource.lastModified()) {
             synchronized (this) {
                 // double check
-                if (javaClassFile.lastModified() < resource.lastModified()) {
+                if (lastCompiledTimestamp < resource.lastModified()) {
                     compileAndLoadClass();
                 }
             }
@@ -114,6 +116,7 @@ public final class JetTemplate {
         Class<?> cls = engine.getJdkCompiler().compile(resource.getQualifiedClassName(), source);
         log.info("generateJavaClass: " + javaClassFile.getAbsolutePath());
         try {
+            lastCompiledTimestamp = javaClassFile.lastModified();
             pageObject = (JetPage) cls.newInstance();
         } catch (Exception e) {
             throw ExceptionUtils.uncheck(e);
