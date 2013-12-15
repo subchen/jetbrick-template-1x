@@ -19,6 +19,7 @@
  */
 package jetbrick.template.runtime;
 
+import java.io.IOException;
 import java.util.Map;
 import jetbrick.template.JetContext;
 import jetbrick.template.JetTemplate;
@@ -64,7 +65,7 @@ public final class JetTags {
     }
 
     /**
-     * 将一个 Block 的内容保存到一个 Context 变量中。
+     * 将一个 Block 的内容保存到一个 JetContext 变量中。
      * 
      * @param ctx Tag 上下文对象
      * @param name 保存到 JetContext 的变量名
@@ -74,5 +75,22 @@ public final class JetTags {
     public static void block(JetTagContext ctx, String name) {
         String bodyContent = ctx.getBodyContent();
         ctx.getContext().put(name, bodyContent);
+    }
+
+    /**
+     * 如果不存在指定的 JetContext 变量，那么输出 default_block 块内容，否则输出指定的 JetContext 变量。
+     * 
+     * @param ctx Tag 上下文对象
+     * @param name JetContext 的变量名
+     * 
+     * @since 1.1.2
+     */
+    public static void default_block(JetTagContext ctx, String name) throws IOException {
+        Object value = ctx.getContext().get(name);
+        if (value == null) {
+            ctx.writeBodyContent();
+        } else {
+            ctx.getWriter().print(value);
+        }
     }
 }

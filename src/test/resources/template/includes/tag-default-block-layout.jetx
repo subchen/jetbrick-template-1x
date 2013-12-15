@@ -1,0 +1,13 @@
+header
+
+${BLOCK_1}
+
+#tag default_block("BLOCK_2")
+    BLOCK 2
+#end
+
+#tag default_block("BLOCK_3")
+    BLOCK 3
+#end
+
+footer

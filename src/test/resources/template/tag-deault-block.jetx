@@ -1,0 +1,7 @@
+#tag block("BLOCK_1")
+    MY is BLOCK 1
+#end
+#tag block("BLOCK_2")
+    MY is BLOCK 2
+#end
+#include("includes/tag-default-block-layout.jetx")
