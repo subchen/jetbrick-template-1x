@@ -3,7 +3,7 @@
 
 jetbrick-template 是一个新一代 Java 模板引擎，具有高性能和高扩展性。 适合于动态 HTML 页面输出或者代码生成，可替代 JSP 页面或者 Velocity 等模板。 指令和 Velocity 相似，表达式和 Java 保持一致，易学易用。
 
-* 支持类似与 Velocity 的多种指令
+* 支持类似于 Velocity 的多种指令
 * 支持静态编译
 * 支持编译缓存
 * 支持热加载

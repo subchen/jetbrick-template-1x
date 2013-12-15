@@ -1,7 +1,19 @@
+Version 1.1.2 (2013-12-15)
+-----------------------------
+
+* [新增] #32 增加 annotation 自动扫描查找 Methods / Functions / Tags
+* [新增] #43 新增 JDT 编译方法，以应对没有 JDK 的环境
+* [新增] #51 增加 #tag default_block(name) 默认 layout block 的实现
+* [改进] #48 compile.path 配置路径移除 jetx_x_x_x 的路径后缀
+* [修复] #44 启用 trim.directive.comments 的时候，出现 NullPointerException
+* [修复] #45 #tag 中的 #include 输出的内容位置不正确
+* [修复] #46 通过 classpath 加载 jar 中模板，出现 ResourceNotFoundException
+* [修复] #47 tomcat 目录中带空格，template 编译失败
+ 
 Version 1.1.1 (2013-12-08)
 -----------------------------
 
-* [新增] #28 增强 asDefault() 方法扩展，支持设置默认值
+* [新增] #28 增加 asDefault() 方法扩展，支持设置默认值
 * [新增] #30 增强 #put，一次支持多个变量的传递
 * [新增] #31 增加 Spring FactoryBean 的集成支持
 * [新增] #35 增加 #tag block(name) 默认实现，配合 #include 实现多个内容块的 layout
@@ -37,8 +49,8 @@ Version 1.0.2 (2013-11-22)
 * [新增] #10 增加选项：compile.always 第一次访问模板强制编译
 * [新增] #16 允许 import 一个单独的 Class, 避免出现冲突
 * [新增] #17 增加 iterator(start,stop,step) 代替 range(…) 函数
-* [增强] #9 如果 compile.path 对应的目录非法或者没有权限不可写, 应该启动Engine时就报错
-* [修复] #8 jetx 模板生成的 java 文件名可能会产生冲突
+* [增强] #9  如果 compile.path 对应的目录非法或者没有权限不可写, 应该启动Engine时就报错
+* [修复] #8  jetx 模板生成的 java 文件名可能会产生冲突
 * [修复] #11 模板的路径如有使用 “../../file.jetx” 那么就会访问到 template.path 路径的外面
 
 Version 1.0.1 (2013-11-20)
@@ -53,7 +65,7 @@ Version 1.0.1 (2013-11-20)
 Version 1.0.0 (2013-11-18)
 -----------------------------
 
-* 支持类似与 Velocity 的多种指令
+* 支持类似于 Velocity 的多种指令
 * 支持静态编译
 * 支持编译缓存
 * 支持热加载
