@@ -28,7 +28,7 @@ public class SourceCodeResource extends Resource {
     private final String source;
 
     public SourceCodeResource(String source) {
-        super("unknown_file_" + System.currentTimeMillis(), ENCODING);
+        super("/unknown/file." + System.currentTimeMillis(), ENCODING);
         this.source = source;
     }
 
