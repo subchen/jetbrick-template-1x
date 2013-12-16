@@ -24,11 +24,23 @@ import java.util.Date;
 
 public final class DateUtils {
     //@formatter:off
-    private static final String[] DATE_PATTERNS = new String[] { 
+    private static final String[] DATE_PATTERNS = new String[] {
         "yyyy-MM-dd HH:mm:ss.SSS", 
         "yyyy-MM-dd HH:mm:ss", 
         "yyyy-MM-dd", 
-        "HH:mm:ss"
+        "yyyy/MM/dd HH:mm:ss.SSS", 
+        "yyyy/MM/dd HH:mm:ss", 
+        "yyyy/MM/dd", 
+        "HH:mm:ss",
+        "yyyy-MM-dd'T'HH:mm:ss:SSSZZ",
+        "EEE, dd MMM yyyy HH:mm:ss z",
+        "EEE, dd MMM yyyy HH:mm z",
+        "EEE, dd MMM yy HH:mm:ss z",
+        "EEE, dd MMM yy HH:mm z",
+        "dd MMM yyyy HH:mm:ss z",
+        "dd MMM yyyy HH:mm z",
+        "dd MMM yy HH:mm:ss z",
+        "dd MMM yy HH:mm z",
     };
     //@formatter:on
 
