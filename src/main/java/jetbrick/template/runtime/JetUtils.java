@@ -47,26 +47,12 @@ public final class JetUtils {
         return true;
     }
 
+    /**
+     * @deprecated From 1.1.3 改为 JetForIterator 内部实现.
+     */
+    @SuppressWarnings("rawtypes")
     public static Iterator<?> asIterator(Object value) {
-        if (value == null) {
-            return EmptyIterator.INSTANCE;
-        }
-        if (value instanceof Iterator) {
-            return (Iterator<?>) value;
-        }
-        if (value instanceof Iterable) {
-            return ((Iterable<?>) value).iterator();
-        }
-        if (value instanceof Map) {
-            return ((Map<?, ?>) value).entrySet().iterator();
-        }
-        if (value instanceof Enumeration) {
-            return Collections.list((Enumeration<?>) value).iterator();
-        }
-        if (value.getClass().isArray()) {
-            return new ArrayIterator(value);
-        }
-        return Collections.singleton(value).iterator();
+        return new JetForIterator(value);
     }
 
     /**

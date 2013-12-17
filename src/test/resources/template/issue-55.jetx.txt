@@ -1,0 +1,8 @@
+    1 - 4: a
+    true - false
+    2 - 4: b
+    false - false
+    3 - 4: c
+    false - false
+    4 - 4: d
+    false - true

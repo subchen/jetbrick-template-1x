@@ -20,28 +20,37 @@
 package jetbrick.template.runtime;
 
 /**
- * 提供给 #for指令用的内部计数器，从1开始计数
+ * #for 内部状态指示器.
+ * 
+ * @author Guoqiang Chen
  */
-public class JetForStatus {
-    private int index;
-
-    public JetForStatus() {
-        index = 0;
-    }
-
-    public JetForStatus inc() {
-        index++;
-        return this;
-    }
-
-    public boolean empty() {
-        return index == 0;
-    }
+public interface JetForStatus {
 
     /**
-     * ${for.index}
+     * foreach 计数器，从 1 开始
      */
-    public int getIndex() {
-        return index;
-    }
+    public int getIndex();
+
+    /**
+     * 获取循环总数.
+     * 
+     * <p>如果对 Iterator 进行循环，或者对非 Collection 的 Iterable 进行循环，则返回 -1。<p>
+     * 
+     * @since 1.1.3
+     */
+    public int getSize();
+
+    /**
+     * 是否第一个元素.
+     * 
+     * @since 1.1.3
+     */
+    public boolean isFirst();
+
+    /**
+     * 是否最后一个元素.
+     * 
+     * @since 1.1.3
+     */
+    public boolean isLast();
 }

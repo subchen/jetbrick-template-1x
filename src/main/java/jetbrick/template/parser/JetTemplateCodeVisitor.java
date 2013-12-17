@@ -112,7 +112,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private ScopeCode scopeCode; // 当前作用域对应的 Code
     private Map<String, MacroCode> macroMap; // 宏定义
     private Map<String, TextCode> textCache; // 文本内容缓存(可以减少冗余 Text)
-    private Deque<String[]> forStack; // 维护嵌套 #for 的堆栈， 可以识别是否在嵌入在 #for 里面, 内部是否使用了 for.index
+    private Deque<String> forStack; // 维护嵌套 #for 的堆栈，可以识别是否在嵌入在 #for 里面, 内部存储当前 for 的真实变量名
     private int uuid = 1; // 计数器
 
     public JetTemplateCodeVisitor(JetEngine engine, VariableResolver resolver, JetTemplateParser parser, Resource resource) {
@@ -126,7 +126,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         this.commentsSuffix = engine.getConfig().getTrimDirectiveCommentsSuffix();
 
         this.textCache = new HashMap<String, TextCode>(32);
-        this.forStack = new ArrayDeque<String[]>(8);
+        this.forStack = new ArrayDeque<String>(8);
 
         // 专门处理是否存在未完成的解析
         Token token = parser.getCurrentToken();
@@ -453,14 +453,14 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     public Code visitFor_directive(For_directiveContext ctx) {
         BlockCode code = scopeCode.createBlockCode(16);
         String id_for = getUid("for");
-        String id_it = getUid("it");
 
         scopeCode = scopeCode.push();
         // 注意：for循环变量的作用域要放在 for 内部， 防止出现变量重定义错误
         ForExpressionCode for_expr_code = (ForExpressionCode) ctx.for_expression().accept(this);
         // for block
-        forStack.push(new String[] { id_for, "false" });
+        forStack.push(id_for);
         Code for_block_code = ctx.block().accept(this);
+        forStack.pop();
         scopeCode = scopeCode.pop();
 
         // for-else
@@ -468,20 +468,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Code for_else_block = (else_directive == null) ? null : else_directive.accept(this);
 
         // 生成代码
-        String[] for_status = forStack.pop();
-        boolean need_for_status = for_else_block != null || "true".equals(for_status[1]);
-        if (need_for_status) {
-            code.addLine("JetForStatus " + id_for + " = new JetForStatus();");
-        }
-        code.addLine("Iterator<?> " + id_it + " = JetUtils.asIterator(" + for_expr_code.toString() + ");");
-        code.addLine("while (" + id_it + ".hasNext()) { // line: " + ctx.getStart().getLine());
+        code.addLine("JetForIterator " + id_for + " = new JetForIterator(" + for_expr_code.toString() + ");");
+        code.addLine("while (" + id_for + ".hasNext()) { // line: " + ctx.getStart().getLine());
 
         // class item = (class) it.next() ...
         String typeName = for_expr_code.getKlassName();
-        code.addLine("  " + typeName + " " + for_expr_code.getName() + " = (" + typeName + ") " + id_it + ".next();");
-        if (need_for_status) {
-            code.addLine("  " + id_for + ".inc();"); // 在 #for 的内部变量，用于计数
-        }
+        code.addLine("  " + typeName + " " + for_expr_code.getName() + " = (" + typeName + ") " + id_for + ".next();");
         code.addChild(for_block_code);
         code.addLine("}");
 
@@ -749,10 +741,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if ("for".equals(name)) {
             assert_inside_of_for_directive(ctx, "Local variable \"for\"");
             // 强制映射成 JetForStatus $for
-            String[] forStatus = forStack.peek();
-            forStatus[1] = "true"; // 存在 for 变量，则变成 true
-            name = forStatus[0]; // 取出 forStatus 的原始变量名
-            return new SegmentCode(TypedKlass.JetForStatus, name, ctx);
+            String forStatus = forStack.peek(); // 取出 forStatus 的实际变量名
+            return new SegmentCode(TypedKlass.JetForStatus, forStatus, ctx);
         }
 
         // 找到变量的类型

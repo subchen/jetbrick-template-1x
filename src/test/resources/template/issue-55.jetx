@@ -1,0 +1,8 @@
+#for (String x : ["a","b","c","d"])
+    ${for.index} - ${for.size}: ${x}
+    ${for.first} - ${for.last}
+#end
+#for (String x : {})
+    ${for.index} - ${for.size}: ${x}
+    ${for.first} - ${for.last}
+#end
