@@ -20,7 +20,6 @@
 package jetbrick.template.utils;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 public final class ArrayUtils {
     public static final int[] EMPTY_INTEGER_ARRAY = new int[0];
@@ -46,37 +45,13 @@ public final class ArrayUtils {
         return results;
     }
 
+    /**
+     * @since 1.0.2
+     */
     public static Iterator<Integer> iterator(final int start, final int stop, final int step) {
         if (step == 0) {
             throw new IllegalArgumentException("step cannot be zero.");
         }
-        return new Iterator<Integer>() {
-            private int current = start;
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public Integer next() {
-                if (hasNext()) {
-                    int next = current;
-                    current += step;
-                    return next;
-                } else {
-                    throw new NoSuchElementException();
-                }
-            }
-
-            @Override
-            public boolean hasNext() {
-                if (step > 0) {
-                    return current <= stop;
-                } else {
-                    return current >= stop;
-                }
-            }
-        };
+        return new LoopIterator(start, stop, step);
     }
 }

@@ -21,8 +21,7 @@ package jetbrick.template.runtime;
 
 import java.lang.reflect.Array;
 import java.util.*;
-import jetbrick.template.utils.ArrayIterator;
-import jetbrick.template.utils.EmptyIterator;
+import jetbrick.template.utils.*;
 
 /**
  * 提供给 #for指令用的内部 Iterator 包装器
@@ -42,7 +41,11 @@ public final class JetForIterator<T> implements Iterator<T>, JetForStatus {
             size = 0;
         } else if (items instanceof Iterator) {
             iterator = (Iterator<?>) items;
-            size = -1;
+            if (items instanceof LoopIterator) {
+                size = ((LoopIterator) items).getSize();
+            } else {
+                size = -1;
+            }
         } else if (items instanceof Iterable) {
             iterator = ((Iterable<?>) items).iterator();
             if (items instanceof Collection) {
