@@ -89,6 +89,12 @@
             <version>1.b.49</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jodd</groupId>
+            <artifactId>jodd-madvoc</artifactId>
+            <version>3.4.9</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>
