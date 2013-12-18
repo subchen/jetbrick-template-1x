@@ -45,7 +45,9 @@ public class JetTemplateResult extends StrutsResultSupport {
             JetWebEngineLoader.setServletContext(servletContext);
         }
 
-        JetContext context = new JetWebContext(request, response, model);
+        JetContext context = new JetWebContext(request, response, null);
+        context.put("action", ai.getAction());
+        context.put("valueStack", model);
         JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(location);
         template.render(context, response.getOutputStream());
     }
