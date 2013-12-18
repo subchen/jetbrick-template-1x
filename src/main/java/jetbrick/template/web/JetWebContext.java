@@ -88,7 +88,7 @@ public class JetWebContext extends JetContext {
         Object value = super.get(name);
         if (value != null) {
             if (value instanceof TYPE) {
-                value = createImplicitWebObject(request, (TYPE) value);
+                value = createImplicitWebObject((TYPE) value);
                 put(name, value); // resolved
             }
             return value;
@@ -107,58 +107,244 @@ public class JetWebContext extends JetContext {
         return servletContext.getAttribute(name);
     }
 
-    private static Map<String, Object> createImplicitWebObject(HttpServletRequest request, TYPE type) {
+    private Map<String, Object> createImplicitWebObject(TYPE type) {
         switch (type) {
         case REQUEST_SCOPE: {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            Enumeration<String> e = request.getAttributeNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                map.put(name, request.getAttribute(name));
-            }
-            return map;
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return request.getAttributeNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return request.getAttribute((String) key);
+                    }
+                    return null;
+                }
+            };
         }
         case SESSION_SCOPE: {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            HttpSession session = request.getSession();
-            if (session == null) return null;
-            Enumeration<String> e = session.getAttributeNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                map.put(name, session.getAttribute(name));
-            }
-            return map;
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return session.getAttributeNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return session.getAttribute((String) key);
+                    }
+                    return null;
+                }
+            };
         }
         case APPLICATION_SCOPE: {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            ServletContext app = request.getSession().getServletContext();
-            Enumeration<String> e = app.getAttributeNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                map.put(name, app.getAttribute(name));
-            }
-            return map;
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return servletContext.getAttributeNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return servletContext.getAttribute((String) key);
+                    }
+                    return null;
+                }
+            };
         }
         case PARAMETER: {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            Enumeration<String> e = request.getParameterNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                map.put(name, request.getParameter(name));
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return request.getParameterNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return request.getParameter((String) key);
+                    }
+                    return null;
+                }
+            };
+        }
+        case PARAMETER_VALUES: {
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return request.getParameterNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return request.getParameterValues((String) key);
+                    }
+                    return null;
+                }
+            };
+        }
+        case HEADER: {
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return request.getHeaderNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return request.getHeader((String) key);
+                    }
+                    return null;
+                }
+            };
+        }
+        case HEADER_VALUES: {
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return request.getHeaderNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        List<String> list = new ArrayList<String>();
+                        Enumeration<String> e = request.getHeaders((String) key);
+                        if (e != null) {
+                            while (e.hasMoreElements()) {
+                                list.add(e.nextElement());
+                            }
+                        }
+                        return list.toArray(new String[list.size()]);
+                    }
+                    return null;
+                }
+            };
+        }
+        case COOKIE: {
+            Cookie[] cookies = request.getCookies();
+            Map<String, Object> map = new HashMap<String, Object>();
+            for (int i = 0; (cookies != null) && (i < cookies.length); i++) {
+                Cookie cookie = cookies[i];
+                if (cookie != null) {
+                    String name = cookie.getName();
+                    if (!map.containsKey(name)) {
+                        map.put(name, cookie);
+                    }
+                }
             }
             return map;
         }
-        case PARAMETER_VALUES: {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            Enumeration<String> e = request.getParameterNames();
-            while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                map.put(name, request.getParameterValues(name));
-            }
-            return map;
+        case INIT_PARAMETER: {
+            return new EnumeratedMap<String, Object>() {
+                @Override
+                public Enumeration<String> enumerateKeys() {
+                    return servletContext.getInitParameterNames();
+                }
+
+                @Override
+                public Object getValue(Object key) {
+                    if (key instanceof String) {
+                        return servletContext.getInitParameter((String) key);
+                    }
+                    return null;
+                }
+            };
         }
         default:
             return null;
+        }
+    }
+
+    private static abstract class EnumeratedMap<K, V> implements Map<K, V> {
+        private Map<K, V> map;
+
+        @Override
+        public boolean containsKey(Object key) {
+            return getValue(key) != null;
+        }
+
+        @Override
+        public boolean containsValue(Object value) {
+            return getAsMap().containsValue(value);
+        }
+
+        @Override
+        public V get(Object key) {
+            return getValue(key);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return getAsMap().isEmpty();
+        }
+
+        @Override
+        public int size() {
+            return getAsMap().size();
+        }
+
+        @Override
+        public Set<Map.Entry<K, V>> entrySet() {
+            return getAsMap().entrySet();
+        }
+
+        @Override
+        public Set<K> keySet() {
+            return getAsMap().keySet();
+        }
+
+        @Override
+        public Collection<V> values() {
+            return getAsMap().values();
+        }
+
+        @Override
+        public V put(K key, V value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void putAll(Map<? extends K, ? extends V> map) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public V remove(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        public abstract Enumeration<K> enumerateKeys();
+
+        public abstract V getValue(Object key);
+
+        public Map<K, V> getAsMap() {
+            if (map == null) {
+                synchronized (this) {
+                    if (map == null) {
+                        Map<K, V> result = new HashMap<K, V>();
+                        for (Enumeration<K> e = enumerateKeys(); e.hasMoreElements();) {
+                            K key = e.nextElement();
+                            V value = getValue(key);
+                            result.put(key, value);
+                        }
+                        map = result;
+                    }
+                }
+            }
+            return map;
         }
     }
 }
