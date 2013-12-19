@@ -22,7 +22,6 @@ package jetbrick.template.web;
 import javax.servlet.*;
 import jetbrick.template.JetConfig;
 import jetbrick.template.JetEngine;
-import jetbrick.template.resource.loader.FileSystemResourceLoader;
 
 /**
  * 自动初始化加载 JetEngine。
@@ -67,7 +66,11 @@ public class JetWebEngineLoader implements ServletContextListener {
     }
 
     private static void initJetWebEngine(ServletContext sc) {
+        // 设置环境变量，以便 JetConfig 能够读取该变量
+        System.setProperty("webapp.dir", sc.getRealPath("/"));
+
         JetConfig config = new JetConfig();
+        config.load(JetConfig.TEMPLATE_LOADER, WebResourceLoader.class.getName());
         config.load(JetConfig.TEMPLATE_PATH, "/"); // 默认 Webapp 根目录
 
         String location = sc.getInitParameter(CONFIG_LOCATION);
@@ -77,13 +80,7 @@ public class JetWebEngineLoader implements ServletContextListener {
             config.loadClasspath(JetConfig.DEFAULT_CONFIG_FILE);
         }
 
-        if (FileSystemResourceLoader.class.equals(config.getTemplateLoader())) {
-            // 转为 Webapp 的相对路径
-            String path = config.getTemplatePath();
-            config.load(JetConfig.TEMPLATE_PATH, sc.getRealPath(path));
-        }
-
-        engine = new JetWebEngine(config);
+        engine = new JetWebEngine(config, sc);
     }
 
     @Override

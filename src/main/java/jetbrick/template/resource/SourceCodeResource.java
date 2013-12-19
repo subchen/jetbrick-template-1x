@@ -23,6 +23,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import jetbrick.template.utils.UnsafeByteArrayInputStream;
 
+/**
+ * 以源码形式存在的资源.
+ *
+ * @since 1.1.3
+ * @author Guoqiang Chen
+ */
 public class SourceCodeResource extends Resource {
     private static final String ENCODING = "utf-8";
     private final String source;

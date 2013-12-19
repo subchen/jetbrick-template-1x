@@ -22,10 +22,13 @@ package jetbrick.template.utils;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import jetbrick.template.parser.support.ClassUtils;
 
 @SuppressWarnings("unchecked")
-public abstract class ConfigSupport<T extends ConfigSupport<?>> {
+public abstract class ConfigSupport<T extends ConfigSupport<T>> {
+    private static final Pattern PARAMETER_PATTERN = Pattern.compile("\\$\\{([^}]*)\\}");
 
     public T loadFile(File file) {
         try {
@@ -149,7 +152,13 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
         return (T) this;
     }
 
+    @SuppressWarnings("rawtypes")
     private Object cast(String value, Class<?> type) {
+        if (value == null) {
+            return value;
+        }
+        value = replaceValue(value);
+
         if (String.class.equals(type)) {
             return value;
         }
@@ -168,7 +177,8 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
             return null;
         }
         if (Boolean.class.equals(type) || Boolean.TYPE.equals(type)) {
-            return Boolean.valueOf(value);
+            value = value.toLowerCase();
+            return "true".equals(value) || "1".equals(value);
         } else if (Integer.class.equals(type) || Integer.TYPE.equals(type)) {
             return Integer.valueOf(value);
         } else if (Long.class.equals(type) || Long.TYPE.equals(type)) {
@@ -179,6 +189,30 @@ public abstract class ConfigSupport<T extends ConfigSupport<?>> {
             return Double.valueOf(value);
         } else if (Class.class.equals(type)) {
             return ClassUtils.getClass(value);
+        } else if (type.isEnum()) {
+            return Enum.valueOf((Class<Enum>) type, value);
+        }
+        return value;
+    }
+
+    // 根据 System.getProperty() 替换变量
+    private String replaceValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.indexOf('$') >= 0) {
+            Matcher matcher = PARAMETER_PATTERN.matcher(value);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                String val = matcher.group(1);
+                val = System.getProperty(val);
+                if (val == null) {
+                    val = "";
+                }
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(val));
+            }
+            matcher.appendTail(sb);
+            value = sb.toString();
         }
         return value;
     }

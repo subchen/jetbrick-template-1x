@@ -21,20 +21,21 @@ package jetbrick.template.resource.loader;
 
 import java.io.File;
 import java.net.URL;
-import jetbrick.template.resource.Resource;
+import jetbrick.template.JetEngine;
+import jetbrick.template.resource.*;
 import jetbrick.template.utils.PathUtils;
 
 public class ClasspathResourceLoader implements ResourceLoader {
     private static final String FILE_PROTOCOL = "file";
     private static final String JAR_PROTOCOL = "jar";
     private static final String FILE_PROTOCOL_PREFIX = "file:";
-    private static final String JAR_FILE_SEPARATOR = "!/";
+    private static final String JAR_FILE_SEPARATOR = JarResource.JAR_FILE_SEPARATOR;
 
     private String basepath;
     private String encoding;
 
     @Override
-    public void initialize(String basepath, String encoding) {
+    public void initialize(JetEngine engine, String basepath, String encoding) {
         this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, false);
         this.encoding = encoding;
     }
@@ -47,7 +48,7 @@ public class ClasspathResourceLoader implements ResourceLoader {
 
         if (FILE_PROTOCOL.equals(url.getProtocol())) {
             File file = PathUtils.getCanonicalFile(new File(url.getFile()));
-            return new FileSystemResourceLoader.FileSystemResource(name, file, encoding);
+            return new FileSystemResource(name, file, encoding);
         } else if (JAR_PROTOCOL.equals(url.getProtocol())) {
             String file = url.getFile();
             if (file.startsWith(FILE_PROTOCOL_PREFIX)) {
@@ -56,7 +57,7 @@ public class ClasspathResourceLoader implements ResourceLoader {
             int separator = file.indexOf(JAR_FILE_SEPARATOR);
             File jar = PathUtils.getCanonicalFile(new File(file.substring(0, separator)));
             String entry = file.substring(separator + JAR_FILE_SEPARATOR.length());
-            return new JarResourceLoader.JarResource(name, jar, entry, encoding);
+            return new JarResource(name, jar, entry, encoding);
         }
         throw new IllegalStateException("cannot load from url: " + url);
     }

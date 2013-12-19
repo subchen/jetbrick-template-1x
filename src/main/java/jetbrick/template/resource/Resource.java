@@ -56,11 +56,17 @@ public abstract class Resource {
         return qualifiedClassName;
     }
 
+    /**
+     * 包名
+     */
     public String getPackageName() {
         int pos = qualifiedClassName.lastIndexOf('.');
         return pos < 0 ? null : qualifiedClassName.substring(0, pos);
     }
 
+    /**
+     * 类名
+     */
     public String getClassName() {
         int pos = qualifiedClassName.lastIndexOf('.');
         return pos < 0 ? qualifiedClassName : qualifiedClassName.substring(pos + 1);
@@ -78,8 +84,8 @@ public abstract class Resource {
 
     /**
      * 获取输入流
-     * @throws FileNotFoundException 
-     * @throws IOException 
+     * @throws FileNotFoundException
+     * @throws IOException
      */
     public abstract InputStream getInputStream() throws IOException;
 
@@ -107,7 +113,7 @@ public abstract class Resource {
     }
 
     // 返回一个用于生成Template类的完整类名 (规则同JSP)
-    public String doGetQualifiedClassName() {
+    private String doGetQualifiedClassName() {
         StringBuilder sb = new StringBuilder(name.length() + 16);
 
         String[] identifiers = name.split("/");

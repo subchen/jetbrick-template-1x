@@ -81,7 +81,7 @@ public final class PathUtils {
                 path = "/" + path; // 加入前导的 "/"
             }
         }
-        if (path.charAt(path.length() - 1) == '/') {
+        if (path.length() > 1 && path.charAt(path.length() - 1) == '/') {
             path = path.substring(0, path.length() - 1); // 去掉最后的 "/"
         }
         return path;

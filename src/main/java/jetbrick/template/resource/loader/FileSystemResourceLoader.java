@@ -19,7 +19,9 @@
  */
 package jetbrick.template.resource.loader;
 
-import java.io.*;
+import java.io.File;
+import jetbrick.template.JetEngine;
+import jetbrick.template.resource.FileSystemResource;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.utils.PathUtils;
 
@@ -28,7 +30,7 @@ public class FileSystemResourceLoader implements ResourceLoader {
     private String encoding;
 
     @Override
-    public void initialize(String basepath, String encoding) {
+    public void initialize(JetEngine engine, String basepath, String encoding) {
         this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, true);
         this.encoding = encoding;
     }
@@ -39,29 +41,5 @@ public class FileSystemResourceLoader implements ResourceLoader {
         File file = PathUtils.getCanonicalFile(new File(pathname));
         if (!file.exists()) return null;
         return new FileSystemResource(name, file, encoding);
-    }
-
-    static class FileSystemResource extends Resource {
-        private final File file;
-
-        public FileSystemResource(String name, File file, String encoding) {
-            super(name, encoding);
-            this.file = file;
-        }
-
-        @Override
-        public String getAbsolutePath() {
-            return file.getAbsolutePath();
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return new FileInputStream(file);
-        }
-
-        @Override
-        public long lastModified() {
-            return file.lastModified();
-        }
     }
 }

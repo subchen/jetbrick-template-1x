@@ -19,14 +19,18 @@
  */
 package jetbrick.template.web;
 
+import javax.servlet.ServletContext;
 import jetbrick.template.JetConfig;
 import jetbrick.template.JetEngine;
 import jetbrick.template.parser.VariableResolver;
 
 class JetWebEngine extends JetEngine {
+    private final ServletContext servletContext;
 
-    protected JetWebEngine(JetConfig config) {
+    protected JetWebEngine(JetConfig config, ServletContext servletContext) {
         super(config);
+
+        this.servletContext = servletContext;
 
         VariableResolver resolver = getVariableResolver();
         resolver.addGlobalVariable("javax.servlet.ServletContext", JetWebContext.SERVLET_CONTEXT);
@@ -38,5 +42,9 @@ class JetWebEngine extends JetEngine {
         resolver.addGlobalVariable("java.util.Map<String,Object>", JetWebContext.REQUEST_SCOPE);
         resolver.addGlobalVariable("java.util.Map<String,String>", JetWebContext.PARAMETER);
         resolver.addGlobalVariable("java.util.Map<String,String[]>", JetWebContext.PARAMETER_VALUES);
+    }
+
+    public ServletContext getServletContext() {
+        return servletContext;
     }
 }

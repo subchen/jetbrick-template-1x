@@ -17,40 +17,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jetbrick.template.resource.loader;
+package jetbrick.template.web;
 
 import java.io.File;
 import jetbrick.template.JetEngine;
-import jetbrick.template.resource.JarResource;
+import jetbrick.template.resource.FileSystemResource;
 import jetbrick.template.resource.Resource;
+import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.PathUtils;
 
-public class JarResourceLoader implements ResourceLoader {
-    private File jar;
-    private String entry;
+/**
+ * 负责加载 webapp 下面的资源文件.
+ *
+ * @since 1.1.3
+ * @author Guoqiang Chen
+ */
+public class WebResourceLoader implements ResourceLoader {
+    private JetWebEngine engine;
+    private String basepath;
     private String encoding;
 
     @Override
     public void initialize(JetEngine engine, String basepath, String encoding) {
-        basepath = PathUtils.getStandardizedTemplateRoot(basepath, true);
-
-        int separator = basepath.indexOf(JarResource.JAR_FILE_SEPARATOR);
-        if (separator > 0) {
-            this.jar = new File(basepath.substring(0, separator));
-            this.entry = basepath.substring(separator + JarResource.JAR_FILE_SEPARATOR.length());
-        } else {
-            this.jar = new File(basepath);
-            this.entry = "";
-        }
-        this.jar = PathUtils.getCanonicalFile(this.jar);
-        this.entry = PathUtils.getStandardizedTemplateRoot(this.entry, false);
-
+        this.engine = ((JetWebEngine) engine);
+        this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, false);
         this.encoding = encoding;
     }
 
     @Override
     public Resource load(String name) {
-        String fileEntry = PathUtils.combinePathName(entry, name, true);
-        return new JarResource(name, jar, fileEntry, encoding);
+        String pathname = PathUtils.combinePathName(basepath, name, false);
+        File file = new File(engine.getServletContext().getRealPath(pathname));
+        if (!file.exists()) return null;
+        return new FileSystemResource(name, file, encoding);
     }
 }

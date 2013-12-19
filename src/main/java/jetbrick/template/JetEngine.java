@@ -204,7 +204,7 @@ public class JetEngine {
     private ResourceLoader createResourceLoader() {
         try {
             ResourceLoader resourceLoader = (ResourceLoader) config.getTemplateLoader().newInstance();
-            resourceLoader.initialize(config.getTemplatePath(), config.getInputEncoding());
+            resourceLoader.initialize(this, config.getTemplatePath(), config.getInputEncoding());
             return resourceLoader;
         } catch (Exception e) {
             throw ExceptionUtils.uncheck(e);
