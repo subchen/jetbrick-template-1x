@@ -19,9 +19,11 @@
  */
 package jetbrick.template;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Properties;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
@@ -76,6 +78,25 @@ public class JetEngineFactoryBean implements FactoryBean<JetEngine>, Initializin
         }
 
         singleton = JetEngine.create(effectProps);
+    }
+    
+    public JetEngineFactoryBean() {
+    }
+    
+    @ConstructorProperties({"configFile"})
+    public JetEngineFactoryBean(Resource configFile) {
+    	this.configFile = configFile;
+    }
+    
+    @ConstructorProperties({"configProperties"})
+    public JetEngineFactoryBean(Properties configProperties) {
+    	this.configProperties = configProperties;
+    }
+    
+    @ConstructorProperties({"configFile", "configProperties"})
+    public JetEngineFactoryBean(Resource configFile, Properties configProperties) {
+    	this.configFile = configFile;
+    	this.configProperties = configProperties;
     }
 
     // 配置有效性检验，如果配置不正确抛出异常使spring容器启动快速失败
