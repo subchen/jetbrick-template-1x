@@ -37,13 +37,15 @@ public final class JetUtils {
 
         Class<?> klass = value.getClass();
         if (Boolean.class.equals(klass)) return (Boolean) value;
-        if (value instanceof Collection) return ((Collection<?>) value).isEmpty();
-        if (value instanceof Map) return ((Map<?, ?>) value).isEmpty();
+        if (value instanceof Collection) return !((Collection<?>) value).isEmpty();
+        if (value instanceof Map) return !((Map<?, ?>) value).isEmpty();
         if (value instanceof CharSequence) return ((CharSequence) value).length() > 0;
         if (value instanceof Number) return ((Number) value).intValue() != 0;
         if (klass.isArray()) return Array.getLength(value) > 0;
         if (value instanceof Character) return ((Character) value) != '\0';
         if (value instanceof Enumeration) return ((Enumeration<?>) value).hasMoreElements();
+        if (value instanceof Iterator) return ((Iterator<?>) value).hasNext();
+        if (value instanceof Iterable) return ((Iterable<?>) value).iterator().hasNext();
         return true;
     }
 
