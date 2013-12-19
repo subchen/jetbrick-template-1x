@@ -1,8 +1,9 @@
     true = true
     123 = true
     "abc" = true
+    [1,2,3] = true
+    {"a":123} = true
     !false = true
     !0 = true
     !"" = true
-    ![1,2,3] = true
     1>2 || "abc" = true
