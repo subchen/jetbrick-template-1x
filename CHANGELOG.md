@@ -1,3 +1,15 @@
+Version 1.1.3 (2013-12-22)
+-----------------------------
+
+* [新增] #50 增加 Jodd Madvoc 的集成支持
+* [新增] #56 增加 MultipathResourceLoader，支持多个模板路径
+* [增强] #52 增强 asDate() 方法，默认支持更多的格式，比如 ISO8601, RFC 822
+* [增强] #55 对#for指令的增强建议
+* [增强] #57 增强 template.path 和 compile.path 的配置功能
+* [增强] #58 为JetEngineFactoryBean提供构造注入方式的spring配置
+* [修复] #53 engine.createTemplate("你好") 编译失败
+* [修复] #59 JetUtils.asBoolean() 对 Collection 和 Map 的判断有误
+ 
 Version 1.1.2 (2013-12-15)
 -----------------------------
 

@@ -89,6 +89,15 @@ jetbrick-template 将模板编译成 Java ByteCode 运行，并采用强类型�
 测试平台 platform: Window 7 x64, Intel i5, 16GB RAM, JDK 1.6.0_41 x64
 
 
+作者 Author
+===================
+
+* Author: Guoqiang Chen, Shanghai, China
+* Email: subchen&#64;gmail.com
+* WebSite: http://subchen.github.io/
+* Blog: http://my.oschina.net/sub/blog
+
+
 开源许可 License
 ===================
 
