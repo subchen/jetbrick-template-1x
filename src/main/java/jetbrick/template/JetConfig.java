@@ -20,6 +20,7 @@
 package jetbrick.template;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Properties;
 import jetbrick.template.resource.loader.FileSystemResourceLoader;
@@ -97,6 +98,18 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TRIM_DIRECTIVE_COMMENTS_PREFIX, "<!--");
         config.setProperty(TRIM_DIRECTIVE_COMMENTS_SUFFIX, "-->");
         load(config);
+    }
+
+    /**
+     * Fixed #61: avoid split in Map<String, String>
+     */
+    @Override
+    protected String[] split(Field field, String value) {
+        if ("importVariables".equals(field.getName())) {
+            return split(value, "<", ">");
+        } else {
+            return value.split(",");
+        }
     }
 
     @Override

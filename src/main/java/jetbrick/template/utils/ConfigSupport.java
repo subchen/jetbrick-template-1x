@@ -109,7 +109,7 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
                 }
                 if (value == null) return;
 
-                for (String val : value.split(",")) {
+                for (String val : split(field, value)) {
                     val = val.trim();
                     if (val.length() > 0) {
                         values.add(cast(val, type));
@@ -124,6 +124,10 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
         } catch (Exception e) {
             throw ExceptionUtils.uncheck(e);
         }
+    }
+
+    protected String[] split(Field field, String value) {
+        return value.split(",");
     }
 
     /**
@@ -187,6 +191,8 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
             return Float.valueOf(value);
         } else if (Double.class.equals(type) || Double.TYPE.equals(type)) {
             return Double.valueOf(value);
+        } else if (Date.class.equals(type)) {
+            return DateUtils.asDate(value);
         } else if (Class.class.equals(type)) {
             return ClassUtils.getClass(value);
         } else if (type.isEnum()) {
@@ -215,5 +221,29 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
             value = sb.toString();
         }
         return value;
+    }
+
+    /**
+     * 按照逗号分隔字符串，如果在 openChars 和 closeChars 之间的逗号，则不分割.
+     */
+    protected String[] split(String value, String openChars, String closeChars) {
+        List<String> results = new ArrayList<String>();
+        int mode = 0;
+        int lastpos = 0;
+        for (int i = 0, len = value.length(); i < len; i++) {
+            char c = value.charAt(i);
+            if (openChars.indexOf(c) >= 0) {
+                mode++;
+            } else if (closeChars.indexOf(c) >= 0) {
+                mode--;
+            } else if (c == ',' && mode == 0) {
+                results.add(value.substring(lastpos, i));
+                lastpos = i + 1;
+            }
+        }
+        if (lastpos < value.length()) {
+            results.add(value.substring(lastpos));
+        }
+        return results.toArray(new String[results.size()]);
     }
 }
