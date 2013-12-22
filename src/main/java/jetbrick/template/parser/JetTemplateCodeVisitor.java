@@ -92,13 +92,9 @@ import jetbrick.template.utils.StringEscapeUtils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 // Visitor 模式访问器，用来生成 Java 代码
 public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> implements JetTemplateParserVisitor<Code> {
-    private static final Logger log = LoggerFactory.getLogger(JetTemplateCodeVisitor.class);
-
     private final JetEngine engine;
     private final Resource resource;
     private final JetTemplateParser parser;
@@ -757,7 +753,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
             if (scopeCode.define(name, resultKlass, true)) {
                 if (resultKlass == TypedKlass.Object) {
-                    log.warn("line " + ctx.getStart().getLine() + ": Implicit definition for context variable: " + resultKlass.toString() + " " + name);
+                    //removed unsed warning in 1.2.0
+                    //log.warn("line " + ctx.getStart().getLine() + ": Implicit definition for context variable: " + resultKlass.toString() + " " + name);
                 }
             }
         }
@@ -790,6 +787,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 err.append("() is undefined for the type ");
                 err.append(beanClass.getName());
                 err.append('.');
+                if (Object.class.equals(beanClass)) {
+                    err.append("\n advise: ");
+                    if (code.getNode() instanceof Expr_identifierContext) {
+                        err.append("Please use #define(type ");
+                        err.append(code.getNode().getText());
+                        err.append(") to define variable type.");
+                    } else {
+                        err.append("Please use #set(type xxx = ");
+                        err.append(code.getNode().getText());
+                        err.append(") to define expression type.");
+                    }
+                }
                 throw reportError(err.toString(), ctx.IDENTIFIER());
             }
         }
@@ -887,6 +896,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             err.append(" is undefined for the type ");
             err.append(beanClass.getName());
             err.append('.');
+            if (Object.class.equals(beanClass)) {
+                err.append("\n advise: ");
+                if (code.getNode() instanceof Expr_identifierContext) {
+                    err.append("Please use #define(type ");
+                    err.append(code.getNode().getText());
+                    err.append(") to define variable type.");
+                } else {
+                    err.append("Please use #set(type xxx = ");
+                    err.append(code.getNode().getText());
+                    err.append(") to define expression type.");
+                }
+            }
             throw reportError(err.toString(), ctx.IDENTIFIER());
         }
 
@@ -984,7 +1005,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             advanced = true;
         }
         if (method == null) {
-            throw reportError("Undefined function " + getMethodSignature(name, parameterTypes) + ".", ctx.IDENTIFIER());
+            throw reportError("Undefined function or arguments mismatch: " + getMethodSignature(name, parameterTypes) + ".", ctx.IDENTIFIER());
         }
 
         // 生成code
