@@ -9,6 +9,8 @@ Version 1.1.3 (2013-12-22)
 * [增强] #58 为JetEngineFactoryBean提供构造注入方式的spring配置
 * [修复] #53 engine.createTemplate("你好") 编译失败
 * [修复] #59 JetUtils.asBoolean() 对 Collection 和 Map 的判断有误
+* [修复] #60 #if (obj == null) 报错，invalid token null
+* [修复] #61 import.variables 如果存在多个泛型类型定义会报错
  
 Version 1.1.2 (2013-12-15)
 -----------------------------
