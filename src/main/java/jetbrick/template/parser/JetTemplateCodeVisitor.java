@@ -108,7 +108,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private final String commentsPrefix;
     private final String commentsSuffix;
 
-    private TemplateClassCode tcc; // 
+    private TemplateClassCode tcc; //
     private ScopeCode scopeCode; // 当前作用域对应的 Code
     private Map<String, MacroCode> macroMap; // 宏定义
     private Map<String, TextCode> textCache; // 文本内容缓存(可以减少冗余 Text)
@@ -1325,8 +1325,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         assert_not_void_expression(lhs);
         assert_not_void_expression(rhs);
-        assert_not_null_constantContext(lhs.getNode());
-        assert_not_null_constantContext(rhs.getNode());
 
         StringBuilder source = new StringBuilder(32);
         source.append("==".equals(op.getText()) ? "JetUtils.asEquals(" : "JetUtils.asNotEquals(");
@@ -1343,6 +1341,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentCode rhs = (SegmentCode) ctx.expression(1).accept(this);
         TerminalNode op = (TerminalNode) ctx.getChild(1);
 
+        assert_not_void_expression(lhs);
+        assert_not_void_expression(rhs);
         assert_not_null_constantContext(lhs.getNode());
         assert_not_null_constantContext(rhs.getNode());
 
@@ -1396,8 +1396,8 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         SegmentCode rhs = (SegmentCode) ctx.expression(1).accept(this);
         String op = ctx.getChild(1).getText();
 
-        assert_not_null_constantContext(lhs.getNode());
-        assert_not_null_constantContext(rhs.getNode());
+        assert_not_void_expression(lhs);
+        assert_not_void_expression(rhs);
 
         String source = "(" + get_if_expression_source(lhs) + op + get_if_expression_source(rhs) + ")";
         return new SegmentCode(Boolean.TYPE, source, ctx);
@@ -1459,7 +1459,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         for (ExpressionContext expression : expression_list) {
             SegmentCode c = (SegmentCode) expression.accept(this);
             assert_not_void_expression(c);
-            code.addChild((SegmentCode) c);
+            code.addChild(c);
         }
         return code;
     }
