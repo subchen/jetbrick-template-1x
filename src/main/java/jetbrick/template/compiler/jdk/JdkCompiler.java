@@ -89,8 +89,8 @@ public class JdkCompiler extends JavaCompiler {
     @Override
     public Class<?> compile(String qualifiedClassName, String source) {
         try {
-            File qualifiedJavaFile = getGenerateJavaSourceFile(qualifiedClassName);
-            File qualifiedClassFile = getGenerateJavaClassFile(qualifiedClassName);
+            File qualifiedJavaFile = classloader.getGeneratedJavaSourceFile(qualifiedClassName);
+            File qualifiedClassFile = classloader.getGeneratedJavaClassFile(qualifiedClassName);
 
             // clean previous generatd files
             qualifiedJavaFile.getParentFile().mkdirs();

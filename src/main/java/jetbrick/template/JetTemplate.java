@@ -21,11 +21,12 @@ package jetbrick.template;
 
 import java.io.*;
 import java.util.Map;
+import jetbrick.template.JetConfig.CompileStrategy;
 import jetbrick.template.parser.*;
 import jetbrick.template.parser.code.Code;
 import jetbrick.template.parser.grammer.*;
 import jetbrick.template.parser.grammer.JetTemplateParser.TemplateContext;
-import jetbrick.template.resource.Resource;
+import jetbrick.template.resource.*;
 import jetbrick.template.runtime.*;
 import jetbrick.template.utils.ExceptionUtils;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -40,37 +41,59 @@ public final class JetTemplate {
     private final Resource resource;
     private final String encoding;
     private final boolean reloadable;
-    private final File javaSourceFile;
     private final File javaClassFile;
     private long lastCompiledTimestamp;
     private JetPage pageObject;
 
     protected JetTemplate(JetEngine engine, Resource resource) {
         JetConfig config = engine.getConfig();
+        CompileStrategy compileStrategy = config.getCompileStrategy();
 
         this.engine = engine;
         this.resource = resource;
         this.encoding = config.getOutputEncoding();
-        this.reloadable = config.isTemplateReloadable();
-        this.javaSourceFile = engine.getJdkCompiler().getGenerateJavaSourceFile(resource.getQualifiedClassName());
-        this.javaClassFile = engine.getJdkCompiler().getGenerateJavaClassFile(resource.getQualifiedClassName());
+        this.reloadable = config.isTemplateReloadable() && compileStrategy != CompileStrategy.none;
+        this.javaClassFile = engine.getClassLoader().getGeneratedJavaClassFile(resource.getQualifiedClassName());
         this.lastCompiledTimestamp = javaClassFile.lastModified();
 
         // compile and load
-        if ((!config.isCompileAlways()) && lastCompiledTimestamp > resource.lastModified()) {
-            try {
-                loadClassFile();
-            } catch (Throwable e) {
-                // 无法 load 的话，尝试重新编译
-                log.warn(e.getClass().getName() + ": " + e.getMessage());
-                log.warn("Try to recompile this template.");
+        switch (compileStrategy) {
+        case precompile:
+        case always:
+            compileAndLoadClass();
+            break;
+        case auto:
+            if (lastCompiledTimestamp > resource.lastModified()) {
+                try {
+                    loadClassFile();
+                } catch (Throwable e) {
+                    // 无法 load 的话，尝试重新编译
+                    log.warn(e.getClass().getName() + ": " + e.getMessage());
+                    log.warn("Try to recompile this template.");
+                    compileAndLoadClass();
+                }
+            } else {
                 compileAndLoadClass();
             }
-        } else {
-            compileAndLoadClass();
+            break;
+        case none:
+            if (resource instanceof SourceCodeResource) {
+                // source code 的情况下必须编译
+                compileAndLoadClass();
+            } else if (resource instanceof CompiledClassResource) {
+                try {
+                    loadClassFile();
+                } catch (Exception e) {
+                    throw ExceptionUtils.uncheck(e);
+                }
+            } else {
+                throw new IllegalStateException("Invalid resource when " + JetConfig.COMPILE_STRATEGY + " is " + compileStrategy);
+            }
+            break;
         }
     }
 
+    // 检测模板是否已更新
     protected void checkLastModified() {
         if (reloadable && lastCompiledTimestamp < resource.lastModified()) {
             synchronized (this) {
@@ -82,26 +105,37 @@ public final class JetTemplate {
         }
     }
 
-    // 从 disk 的缓存文件中读取
+    // 从 disk 的缓存文件中读取 class
     private void loadClassFile() throws Exception {
-        log.info("Loading template class file: " + javaClassFile.getAbsolutePath());
-        Class<?> cls = engine.getClassLoader().loadClass(resource.getQualifiedClassName());
+        Class<?> compiledKlass;
 
-        // 判断编码匹配
-        if (!encoding.equals(cls.getDeclaredField("$ENC").get(null))) {
-            throw new IllegalStateException("The encoding of last compiled template class is not " + encoding);
+        if (resource instanceof CompiledClassResource) {
+            log.info("Loading template from classpath： {}.", resource.getName());
+            compiledKlass = ((CompiledClassResource) resource).getCompiledClass();
+        } else {
+            log.info("Loading template class file: {}", javaClassFile.getAbsolutePath());
+            compiledKlass = engine.getClassLoader().loadClass(resource.getQualifiedClassName());
+
+            // 判断编码匹配
+            if (!encoding.equals(compiledKlass.getDeclaredField("$ENC").get(null))) {
+                throw new IllegalStateException("The encoding of last compiled template class is not " + encoding);
+            }
         }
 
-        pageObject = (JetPage) cls.newInstance();
+        pageObject = (JetPage) compiledKlass.newInstance();
     }
 
     // 编译 source 为 class， 然后 load class
     private void compileAndLoadClass() {
-        log.info("Loading template source file: " + resource.getAbsolutePath());
+        boolean notPrecompileThread = !"JetPreCompiler".equals(Thread.currentThread().getName());
+        if (notPrecompileThread) {
+            log.info("Loading template source file: " + resource.getAbsolutePath());
+        }
 
         // generateJavaSource
         String source = generateJavaSource(resource);
-        if (log.isInfoEnabled() && engine.getConfig().isCompileDebug()) {
+        if (notPrecompileThread && log.isInfoEnabled() && engine.getConfig().isCompileDebug()) {
+            File javaSourceFile = engine.getClassLoader().getGeneratedJavaSourceFile(resource.getQualifiedClassName());
             StringBuilder sb = new StringBuilder(source.length() + 128);
             sb.append("generateJavaSource: ");
             sb.append(javaSourceFile.getAbsolutePath());
@@ -114,7 +148,9 @@ public final class JetTemplate {
         }
         // compile
         Class<?> cls = engine.getJdkCompiler().compile(resource.getQualifiedClassName(), source);
-        log.info("generateJavaClass: " + javaClassFile.getAbsolutePath());
+        if (notPrecompileThread) {
+            log.info("generateJavaClass: " + javaClassFile.getAbsolutePath());
+        }
         try {
             lastCompiledTimestamp = javaClassFile.lastModified();
             pageObject = (JetPage) cls.newInstance();

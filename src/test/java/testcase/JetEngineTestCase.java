@@ -23,10 +23,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 import jetbrick.template.*;
-import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.loader.ClasspathResourceLoader;
-import jetbrick.template.utils.IoUtils;
-import jetbrick.template.utils.UnsafeByteArrayOutputStream;
+import jetbrick.template.utils.*;
 
 public class JetEngineTestCase {
     private static final JetEngine engine = getJetEngine();
@@ -62,7 +60,7 @@ public class JetEngineTestCase {
     }
 
     private static void testSuccessfully() throws IOException {
-        URL url = ClassUtils.getContextClassLoader().getResource("template");
+        URL url = ClassLoaderUtils.getContextClassLoader().getResource("template");
         File path = new File(url.getFile());
 
         for (File file : path.listFiles()) {

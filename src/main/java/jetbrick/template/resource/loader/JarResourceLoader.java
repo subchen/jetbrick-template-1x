@@ -20,14 +20,17 @@
 package jetbrick.template.resource.loader;
 
 import java.io.File;
+import java.util.List;
 import jetbrick.template.JetEngine;
 import jetbrick.template.resource.JarResource;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.utils.PathUtils;
+import jetbrick.template.utils.finder.TemplateFileFinder;
 
 public class JarResourceLoader implements ResourceLoader {
-    private File jar;
-    private String entry;
+    private File jarFile;
+    private String entryName;
+    private String suffix;
     private String encoding;
 
     @Override
@@ -36,21 +39,28 @@ public class JarResourceLoader implements ResourceLoader {
 
         int separator = basepath.indexOf(JarResource.JAR_FILE_SEPARATOR);
         if (separator > 0) {
-            this.jar = new File(basepath.substring(0, separator));
-            this.entry = basepath.substring(separator + JarResource.JAR_FILE_SEPARATOR.length());
+            this.jarFile = new File(basepath.substring(0, separator));
+            this.entryName = basepath.substring(separator + JarResource.JAR_FILE_SEPARATOR.length());
         } else {
-            this.jar = new File(basepath);
-            this.entry = "";
+            this.jarFile = new File(basepath);
+            this.entryName = "";
         }
-        this.jar = PathUtils.getCanonicalFile(this.jar);
-        this.entry = PathUtils.getStandardizedTemplateRoot(this.entry, false);
-
+        this.jarFile = PathUtils.getCanonicalFile(this.jarFile);
+        this.entryName = PathUtils.getStandardizedTemplateRoot(this.entryName, false);
+        this.suffix = engine.getConfig().getTemplateSuffix();
         this.encoding = encoding;
     }
 
     @Override
     public Resource load(String name) {
-        String fileEntry = PathUtils.combinePathName(entry, name, true);
-        return new JarResource(name, jar, fileEntry, encoding);
+        String fileEntry = PathUtils.combinePathName(entryName, name, true);
+        return new JarResource(name, jarFile, fileEntry, encoding);
+    }
+
+    @Override
+    public List<String> loadAll() {
+        TemplateFileFinder finder = new TemplateFileFinder(suffix);
+        finder.lookupJarEntry(jarFile, entryName, true);
+        return finder.getResources();
     }
 }

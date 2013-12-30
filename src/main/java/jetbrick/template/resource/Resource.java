@@ -36,7 +36,7 @@ public abstract class Resource {
     }
 
     /**
-     * 标准的 name
+     * 模板标准的 name
      */
     public String getName() {
         return name;
@@ -73,17 +73,17 @@ public abstract class Resource {
     }
 
     /**
-     * 获取绝对路径
+     * 获取模板源代码文件的绝对路径
      */
     public abstract String getAbsolutePath();
 
     /**
-     * 读取最后修改时间
+     * 获取模板源代码文件的最后修改时间
      */
     public abstract long lastModified();
 
     /**
-     * 获取输入流
+     * 获取模板源代码输入流
      * @throws FileNotFoundException
      * @throws IOException
      */
@@ -97,7 +97,7 @@ public abstract class Resource {
     }
 
     /**
-     * 读取非模板的资源
+     * 读取非模板的资源的内容
      */
     public char[] getSource(String encoding) {
         InputStream is = null;

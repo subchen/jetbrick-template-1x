@@ -28,9 +28,9 @@ class JetWebEngine extends JetEngine {
     private final ServletContext servletContext;
 
     protected JetWebEngine(JetConfig config, ServletContext servletContext) {
-        super(config);
-
         this.servletContext = servletContext;
+
+        load(config);
 
         VariableResolver resolver = getVariableResolver();
         resolver.addGlobalVariable("javax.servlet.ServletContext", JetWebContext.SERVLET_CONTEXT);

@@ -23,7 +23,7 @@ import java.lang.annotation.*;
 
 /*
  * 用于标注用户实现的扩展类。
- * 
+ *
  * @since 1.1.2
  * @author Guoqiang Chen
  */

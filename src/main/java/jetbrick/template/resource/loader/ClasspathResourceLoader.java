@@ -21,9 +21,12 @@ package jetbrick.template.resource.loader;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import jetbrick.template.JetEngine;
 import jetbrick.template.resource.*;
+import jetbrick.template.utils.ClassLoaderUtils;
 import jetbrick.template.utils.PathUtils;
+import jetbrick.template.utils.finder.TemplateFileFinder;
 
 public class ClasspathResourceLoader implements ResourceLoader {
     private static final String FILE_PROTOCOL = "file";
@@ -33,17 +36,19 @@ public class ClasspathResourceLoader implements ResourceLoader {
 
     private String basepath;
     private String encoding;
+    private String suffix;
 
     @Override
     public void initialize(JetEngine engine, String basepath, String encoding) {
         this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, false);
         this.encoding = encoding;
+        this.suffix = engine.getConfig().getTemplateSuffix();
     }
 
     @Override
     public Resource load(String name) {
         String pathname = PathUtils.combinePathName(basepath, name, true);
-        URL url = Thread.currentThread().getContextClassLoader().getResource(pathname);
+        URL url = ClassLoaderUtils.getContextClassLoader().getResource(pathname);
         if (url == null) return null;
 
         if (FILE_PROTOCOL.equals(url.getProtocol())) {
@@ -60,5 +65,17 @@ public class ClasspathResourceLoader implements ResourceLoader {
             return new JarResource(name, jar, entry, encoding);
         }
         throw new IllegalStateException("cannot load from url: " + url);
+    }
+
+    @Override
+    public List<String> loadAll() {
+        String[] packageNames = null;
+        if (basepath.length() > 1) {
+            packageNames = new String[] { basepath.substring(1).replace('/', '.') };
+        }
+
+        TemplateFileFinder finder = new TemplateFileFinder(suffix);
+        finder.lookupClasspath(packageNames, true);
+        return finder.getResources();
     }
 }

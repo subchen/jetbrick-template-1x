@@ -24,7 +24,6 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jetbrick.template.parser.support.ClassUtils;
 
 @SuppressWarnings("unchecked")
 public abstract class ConfigSupport<T extends ConfigSupport<T>> {
@@ -39,7 +38,7 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
     }
 
     public T loadClasspath(String classpath) {
-        return load(ClassUtils.getContextClassLoader().getResourceAsStream(classpath));
+        return load(ClassLoaderUtils.getContextClassLoader().getResourceAsStream(classpath));
     }
 
     public T load(InputStream is) {
@@ -194,7 +193,11 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
         } else if (Date.class.equals(type)) {
             return DateUtils.asDate(value);
         } else if (Class.class.equals(type)) {
-            return ClassUtils.getClass(value);
+            try {
+                return ClassLoaderUtils.loadClass(value);
+            } catch (ClassNotFoundException e) {
+                throw ExceptionUtils.uncheck(e);
+            }
         } else if (type.isEnum()) {
             return Enum.valueOf((Class<Enum>) type, value);
         }

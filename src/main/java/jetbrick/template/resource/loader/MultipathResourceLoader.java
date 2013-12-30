@@ -22,14 +22,14 @@ package jetbrick.template.resource.loader;
 import java.util.ArrayList;
 import java.util.List;
 import jetbrick.template.JetEngine;
-import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.Resource;
+import jetbrick.template.utils.ClassLoaderUtils;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.web.WebResourceLoader;
 
 /**
  * 可以从多个 path 下面加载资源.
- * 
+ *
  * @since 1.1.3
  * @author Guoqiang Chen
  */
@@ -60,7 +60,7 @@ public class MultipathResourceLoader implements ResourceLoader {
                 } else {
                     // 可能是用户自定义的 ResourceLoader
                     try {
-                        Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassAlias);
+                        Class<?> klass = ClassLoaderUtils.loadClass(klassAlias);
                         loader = (ResourceLoader) klass.newInstance();
                     } catch (Throwable e) {
                         throw ExceptionUtils.uncheck(e);
@@ -86,5 +86,14 @@ public class MultipathResourceLoader implements ResourceLoader {
             }
         }
         return null;
+    }
+
+    @Override
+    public List<String> loadAll() {
+        List<String> resources = new ArrayList<String>();
+        for (ResourceLoader loader : loaders) {
+            resources.addAll(loader.loadAll());
+        }
+        return resources;
     }
 }

@@ -19,7 +19,6 @@
  */
 package jetbrick.template.compiler;
 
-import java.io.File;
 import jetbrick.template.compiler.jdk.JdkCompiler;
 
 public abstract class JavaCompiler {
@@ -33,16 +32,7 @@ public abstract class JavaCompiler {
         this.classloader = classloader;
     }
 
-    public final File getGenerateJavaSourceFile(String qualifiedClassName) {
-        String fileName = qualifiedClassName.replace('.', '/');
-        return new File(classloader.getClasspath(), fileName + ".java");
-    }
-
-    public final File getGenerateJavaClassFile(String qualifiedClassName) {
-        String fileName = qualifiedClassName.replace('.', '/');
-        return new File(classloader.getClasspath(), fileName + ".class");
-    }
-
+    // 进行编译
     public abstract Class<?> compile(String qualifiedClassName, String source);
 
 }

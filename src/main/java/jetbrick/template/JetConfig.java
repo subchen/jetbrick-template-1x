@@ -33,12 +33,12 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String DEFAULT_CONFIG_FILE = "jetbrick-template.properties";
 
     public static final String IMPORT_PACKAGES = "import.packages";
-    public static final String IMPORT_CLASSES = "import.classes";
+    public static final String IMPORT_CLASSES = "import.classes"; // 1.0.2
     public static final String IMPORT_METHODS = "import.methods";
     public static final String IMPORT_FUNCTIONS = "import.functions";
-    public static final String IMPORT_TAGS = "import.tags";
-    public static final String IMPORT_AUTOSCAN = "import.autoscan";
-    public static final String IMPORT_AUTOSCAN_PACKAGES = "import.autoscan.packages";
+    public static final String IMPORT_TAGS = "import.tags"; // 1.1.0
+    public static final String IMPORT_AUTOSCAN = "import.autoscan"; // 1.1.2
+    public static final String IMPORT_AUTOSCAN_PACKAGES = "import.autoscan.packages"; // 1.1.2
     public static final String IMPORT_VARIABLES = "import.variables";
     public static final String INPUT_ENCODING = "input.encoding";
     public static final String OUTPUT_ENCODING = "output.encoding";
@@ -46,15 +46,24 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String TEMPLATE_PATH = "template.path";
     public static final String TEMPLATE_SUFFIX = "template.suffix";
     public static final String TEMPLATE_RELOADABLE = "template.reloadable";
-    public static final String COMPILE_ALWAYS = "compile.always";
+    @Deprecated
+    public static final String COMPILE_ALWAYS = "compile.always"; // 1.0.1 to 1.1.3
+    public static final String COMPILE_STRATEGY = "compile.strategy"; // 1.1.3
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
     public static final String TRIM_DIRECTIVE_LINE = "trim.directive.line";
-    public static final String TRIM_DIRECTIVE_COMMENTS = "trim.directive.comments";
-    public static final String TRIM_DIRECTIVE_COMMENTS_PREFIX = "trim.directive.comments.prefix";
-    public static final String TRIM_DIRECTIVE_COMMENTS_SUFFIX = "trim.directive.comments.suffix";
+    public static final String TRIM_DIRECTIVE_COMMENTS = "trim.directive.comments"; // 1.0.1
+    public static final String TRIM_DIRECTIVE_COMMENTS_PREFIX = "trim.directive.comments.prefix"; // 1.0.1
+    public static final String TRIM_DIRECTIVE_COMMENTS_SUFFIX = "trim.directive.comments.suffix"; // 1.0.1
 
     private final Logger log = LoggerFactory.getLogger(JetConfig.class);
+
+    public static enum CompileStrategy {
+        precompile, // 启动时自动对所有模板进行进行编译
+        always, // 第一次访问的时候，开始编译
+        auto, // 第一次访问的时候，如果存在 .class 文件，并模板源文件没有修改过，则直接加载 .class，否则进行编译
+        none, // 直接加载存在的 .class 文件，否则报错(无需模板源文件存在)，class 文件必须放在 classpath 下面
+    }
 
     private List<String> importPackages;
     private List<String> importClasses;
@@ -71,6 +80,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private String templateSuffix;
     private boolean templateReloadable;
     private boolean compileAlways;
+    private CompileStrategy compileStrategy;
     private boolean compileDebug;
     private String compilePath;
     private boolean trimDirectiveLine;
@@ -91,6 +101,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
         config.setProperty(COMPILE_ALWAYS, "true");
+        config.setProperty(COMPILE_STRATEGY, "always");
         config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
         config.setProperty(TRIM_DIRECTIVE_LINE, "true");
@@ -116,14 +127,20 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public JetConfig build() {
         super.build();
 
+        // 兼容性检测
+        if (compileStrategy == CompileStrategy.always && !compileAlways) {
+            log.warn("Option {} is Deprecated, please use {}.", COMPILE_ALWAYS, COMPILE_STRATEGY);
+        }
+
         // log
         if (log.isInfoEnabled()) {
-            log.info("Load template from \"" + templatePath + "\" by " + templateLoader + ".");
+            log.info("Load template from \"{}\" by {}.", templatePath, templateLoader);
             if (templateReloadable) {
                 log.info("Auto loading on: template will automatically reload.");
             } else {
                 log.info("Auto loading off: template will NOT automatically reload.");
             }
+            log.info("Compile strategy is \"{}\".", compileStrategy);
         }
         return this;
     }
@@ -184,8 +201,13 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         return templateReloadable;
     }
 
+    @Deprecated
     public boolean isCompileAlways() {
         return compileAlways;
+    }
+
+    public CompileStrategy getCompileStrategy() {
+        return compileStrategy;
     }
 
     public boolean isCompileDebug() {

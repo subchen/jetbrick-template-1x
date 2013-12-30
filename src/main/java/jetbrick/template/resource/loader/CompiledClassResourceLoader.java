@@ -19,38 +19,34 @@
  */
 package jetbrick.template.resource.loader;
 
-import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import jetbrick.template.JetEngine;
-import jetbrick.template.resource.FileSystemResource;
+import jetbrick.template.resource.CompiledClassResource;
 import jetbrick.template.resource.Resource;
-import jetbrick.template.utils.PathUtils;
-import jetbrick.template.utils.finder.TemplateFileFinder;
 
-public class FileSystemResourceLoader implements ResourceLoader {
-    private String basepath;
-    private String encoding;
-    private String suffix;
+/**
+ * 负责 load 那种没有模板源码，以 .class 形式存在的资源.
+ *
+ * <p>如果  compile.strategy = none， 那么就会使用这种 ClassLoader。</p>
+ *
+ * @since 1.2.0
+ * @author Guoqiang Chen
+ */
+public class CompiledClassResourceLoader implements ResourceLoader {
 
     @Override
     public void initialize(JetEngine engine, String basepath, String encoding) {
-        this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, true);
-        this.encoding = encoding;
-        this.suffix = engine.getConfig().getTemplateSuffix();
     }
 
     @Override
     public Resource load(String name) {
-        String pathname = PathUtils.combinePathName(basepath, name, false);
-        File file = PathUtils.getCanonicalFile(new File(pathname));
-        if (!file.exists()) return null;
-        return new FileSystemResource(name, file, encoding);
+        CompiledClassResource resource = new CompiledClassResource(name);
+        return resource.exist() ? resource : null;
     }
 
     @Override
     public List<String> loadAll() {
-        TemplateFileFinder finder = new TemplateFileFinder(suffix);
-        finder.lookupFileSystem(new File(basepath), true);
-        return finder.getResources();
+        return Collections.emptyList();
     }
 }

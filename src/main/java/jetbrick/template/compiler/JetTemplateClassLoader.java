@@ -21,9 +21,9 @@ package jetbrick.template.compiler;
 
 import java.io.File;
 import java.net.*;
-import jetbrick.template.parser.support.ClassUtils;
-import jetbrick.template.utils.ExceptionUtils;
-import jetbrick.template.utils.PathUtils;
+import jetbrick.template.JetConfig;
+import jetbrick.template.JetConfig.CompileStrategy;
+import jetbrick.template.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +34,11 @@ public class JetTemplateClassLoader {
     private final ClassLoader classloader;
     private final boolean reloadable;
 
-    public JetTemplateClassLoader(String classpath, boolean reloadable) {
-        this.classpath = getCanonicalClasspath(classpath);
+    public JetTemplateClassLoader(JetConfig config) {
+        this.classpath = getCanonicalClasspath(config.getCompilePath());
         this.urls = new URL[] { toURL(this.classpath) };
         this.classloader = createClassLoader();
-        this.reloadable = reloadable;
+        this.reloadable = config.isTemplateReloadable() && config.getCompileStrategy() != CompileStrategy.none;
 
         log.info("Will compile template into " + this.classpath);
     }
@@ -53,12 +53,25 @@ public class JetTemplateClassLoader {
         }
     }
 
+    // 编译的目标路径
     public String getClasspath() {
         return classpath;
     }
 
+    // 返回生成的  .java 文件对象
+    public File getGeneratedJavaSourceFile(String qualifiedClassName) {
+        String fileName = qualifiedClassName.replace('.', '/');
+        return new File(classpath, fileName + ".java");
+    }
+
+    // 返回生成的  .class 文件对象
+    public File getGeneratedJavaClassFile(String qualifiedClassName) {
+        String fileName = qualifiedClassName.replace('.', '/');
+        return new File(classpath, fileName + ".class");
+    }
+
     private ClassLoader createClassLoader() {
-        return new URLClassLoader(urls, ClassUtils.getContextClassLoader());
+        return new URLClassLoader(urls, ClassLoaderUtils.getContextClassLoader());
     }
 
     private static String getCanonicalClasspath(String classpath) {

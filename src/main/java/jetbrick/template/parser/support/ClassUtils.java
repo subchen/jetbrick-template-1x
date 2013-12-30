@@ -19,87 +19,11 @@
  */
 package jetbrick.template.parser.support;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ClassUtils {
-    private static final Map<String, String> abbreviation_map;
     private static final Set<String> default_package_set;
-
-    /**
-     * Returns current thread's context class loader
-     */
-    public static ClassLoader getContextClassLoader() {
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        if (loader == null) {
-            loader = ClassUtils.class.getClassLoader();
-        }
-        return loader;
-    }
-
-    /**
-     * Returns the class represented by qualifiedClassName using the current
-     * thread's context class loader.
-     * "int" => "I".
-     * "java.lang.String[]" => "[Ljava.lang.String;".
-     * "java.util.Map.Entry" => "java.util.Map$Entry".
-     */
-    public static Class<?> getClass(String qualifiedClassName) {
-        return getClass(qualifiedClassName, getContextClassLoader());
-    }
-
-    /**
-     * Returns the class represented by qualifiedClassName using the classLoader.
-     * "int" => "I".
-     * "java.lang.String[]" => "[Ljava.lang.String;".
-     * "java.util.Map.Entry" => "java.util.Map$Entry".
-     */
-    public static Class<?> getClass(String qualifiedClassName, ClassLoader classLoader) {
-        if (qualifiedClassName == null) throw new NullPointerException("className must not be null.");
-
-        try {
-            if (abbreviation_map.containsKey(qualifiedClassName)) {
-                String clsName = "[" + abbreviation_map.get(qualifiedClassName);
-                // 注意： ClassLoader.loadClass() 不支持 'B', '[I' 这样的名称，而 Class.forName() 支持
-                return Class.forName(clsName, false, classLoader).getComponentType();
-            } else {
-                return Class.forName(toJvmClassName(qualifiedClassName), false, classLoader);
-            }
-        } catch (ClassNotFoundException e) {
-            // 尝试当做一个内部类去识别
-            int lastDotIndex = qualifiedClassName.lastIndexOf('.');
-            if (lastDotIndex > 0) {
-                qualifiedClassName = qualifiedClassName.substring(0, lastDotIndex) + '$' + qualifiedClassName.substring(lastDotIndex + 1);
-                return getClass(qualifiedClassName, classLoader);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 返回 JVM 内部的标准类名.
-     * "int" => "I".
-     * "java.lang.String[]" => "[Ljava.lang.String;".
-     */
-    private static String toJvmClassName(String className) {
-        if (className == null) throw new NullPointerException("className must not be null.");
-
-        className = className.replaceAll("\\s", ""); // delete whitespaces
-        if (className.endsWith("[]")) {
-            StringBuilder sb = new StringBuilder();
-            while (className.endsWith("[]")) {
-                className = className.substring(0, className.length() - 2);
-                sb.append("[");
-            }
-            String abbreviation = (String) abbreviation_map.get(className);
-            if (abbreviation != null) {
-                sb.append(abbreviation);
-            } else {
-                sb.append("L").append(className).append(";");
-            }
-            className = sb.toString();
-        }
-        return className;
-    }
 
     /**
      * Class.isAssignableFrom() 的增强版本。 支持 null, 自动装箱,
@@ -166,16 +90,6 @@ public class ClassUtils {
     }
 
     static {
-        abbreviation_map = new HashMap<String, String>();
-        abbreviation_map.put("boolean", "Z");
-        abbreviation_map.put("byte", "B");
-        abbreviation_map.put("short", "S");
-        abbreviation_map.put("char", "C");
-        abbreviation_map.put("int", "I");
-        abbreviation_map.put("long", "J");
-        abbreviation_map.put("float", "F");
-        abbreviation_map.put("double", "D");
-
         default_package_set = new HashSet<String>();
         default_package_set.add("java.lang");
         default_package_set.add("java.util");

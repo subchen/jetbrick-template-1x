@@ -92,6 +92,7 @@
                 <attribute name="Implementation-Vendor" value="${product.vendor}" />
                 <attribute name="Implementation-Title" value="${product.name}" />
                 <attribute name="Implementation-Version" value="${product.version}" />
+            	<attribute name="Main-Class" value="jetbrick.template.JetxGenerateApp" />
             </manifest>
         </jar>
     </target>

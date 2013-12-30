@@ -20,8 +20,10 @@
 package testcase;
 
 import java.io.IOException;
+import jetbrick.template.JetAnnoations;
 import jetbrick.template.runtime.JetTagContext;
 
+@JetAnnoations.Tags
 public class TagUtils {
 
     public static void testTag(JetTagContext ctx) throws IOException {

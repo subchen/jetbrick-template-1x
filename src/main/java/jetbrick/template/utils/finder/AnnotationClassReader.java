@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jetbrick.template.utils;
+package jetbrick.template.utils.finder;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -25,14 +25,14 @@ import java.lang.annotation.ElementType;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import jetbrick.template.parser.support.ClassUtils;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import jetbrick.template.utils.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@code AnnotationClassFile} reads Java Class File (".class") files and reports the
+ * {@code AnnotationClassReader} reads Java Class File (".class") files and reports the
  * encountered annotations via a simple, developer friendly API.
  * <p>
  * A Java Class File consists of a stream of 8-bit bytes. All 32-bit and 64-bit
@@ -81,11 +81,11 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * <p>
  *
- * @since 1.1.2
+ * @since 1.2.0
  * @author Guoqiang Chen
  */
-public final class AnnotationClassFile {
-    private static final Logger log = LoggerFactory.getLogger(AnnotationClassFile.class);
+public final class AnnotationClassReader {
+    private static final Logger log = LoggerFactory.getLogger(AnnotationClassReader.class);
 
     // Constant Pool type tags
     private static final int CP_UTF8 = 1;
@@ -111,45 +111,28 @@ public final class AnnotationClassFile {
     private static final int BOOLEAN = 'Z';
 
     // belows are used for AnnotationElement only
-    private static final int OBJECT = 'L';
     private static final int STRING = 's';
     private static final int ENUM = 'e';
     private static final int CLASS = 'c';
     private static final int ANNOTATION = '@';
     private static final int ARRAY = '[';
 
-    private final AnnotationFilter annotationFilter;
-
-    // Reusing the constantPool is not needed for better performance
+    private Map<String, Class<? extends Annotation>> annotationMap = new HashMap<String, Class<? extends Annotation>>();
     private Object[] constantPool;
-
-    // the 'raw' name of this interface or class (using '/' instead of '.' in package name)
-    @SuppressWarnings("unused")
-    private String rawTypeName;
-
-    // method or filed name
-    @SuppressWarnings("unused")
-    private String memberName;
-    @SuppressWarnings("unused")
-    private String memberDescriptor;
-
-    public AnnotationClassFile(AnnotationFilter annotationFilter) {
-        this.annotationFilter = annotationFilter;
-    }
 
     public boolean isAnnotationed(File file) {
         try {
             return isAnnotationed(new FileInputStream(file));
         } catch (FileNotFoundException e) {
-            throw ExceptionUtils.uncheck(e);
+            throw new RuntimeException(e);
         }
     }
 
-    public boolean isAnnotationed(JarFile jar, JarEntry entry) {
+    public boolean isAnnotationed(ZipFile file, ZipEntry entry) {
         try {
-            return isAnnotationed(jar.getInputStream(entry));
+            return isAnnotationed(file.getInputStream(entry));
         } catch (IOException e) {
-            log.warn("Ignored IOException in load class file in jar file.", e);
+            log.warn("IOException in load class file in jar file.", e);
             return false;
         }
     }
@@ -157,47 +140,51 @@ public final class AnnotationClassFile {
     public boolean isAnnotationed(InputStream classInputStream) {
         try {
             ClassFileDataInput input = new ClassFileDataInput(classInputStream);
-            if (hasCafebabe(input) && greatThanJdk15(input)) {
-                readClassFile(input);
-            }
-        } catch (AnnotationFoundException e) {
-            return true;
-        } catch (AnnotationNotFoundException e) {
-            return false;
+            return readClassFile(input);
         } catch (Throwable e) {
-            log.warn("Ignored UnknownException in parsing class file.", e);
+            log.warn("UnknownException in parsing class file.", e);
             return false;
         } finally {
             IoUtils.closeQuietly(classInputStream);
         }
-        return false;
     }
 
-    private boolean hasCafebabe(final ClassFileDataInput di) throws IOException {
-        return di.size() > 4 && di.readInt() == 0xCAFEBABE;
-    }
-
-    private boolean greatThanJdk15(final ClassFileDataInput di) throws IOException {
-        // sequence: minor version, major version (argument_index is 1-based)
-        @SuppressWarnings("unused")
-        int minor = di.readUnsignedShort();
-        int major = di.readUnsignedShort();
-
-        return major >= 49;
+    public void addAnnotation(Class<? extends Annotation> annoClass) {
+        annotationMap.put('L' + annoClass.getName().replace('.', '/') + ';', annoClass);
     }
 
     /**
      * Inspect the given (Java) class file in streaming mode.
      */
-    private void readClassFile(final DataInput di) throws IOException {
+    private boolean readClassFile(final ClassFileDataInput di) throws IOException {
+        if (!readMagicCode(di)) {
+            return false;
+        }
+        if (!readVersion(di)) {
+            return false;
+        }
         readConstantPoolEntries(di);
-        readAccessFlags(di);
+        if (!readAccessFlags(di)) {
+            return false;
+        }
         readThisClass(di);
         readSuperClass(di);
         readInterfaces(di);
         readFields(di);
         readMethods(di);
-        readAttributes(di, ElementType.TYPE);
+        return readAttributes(di, ElementType.TYPE);
+    }
+
+    private boolean readMagicCode(final ClassFileDataInput di) throws IOException {
+        return di.size() > 4 && di.readInt() == 0xCAFEBABE;
+    }
+
+    private boolean readVersion(final ClassFileDataInput di) throws IOException {
+        // sequence: minor version, major version (argument_index is 1-based)
+        @SuppressWarnings("unused")
+        int minor = di.readUnsignedShort();
+        int major = di.readUnsignedShort();
+        return major >= 49;
     }
 
     private void readConstantPoolEntries(final DataInput di) throws IOException {
@@ -244,22 +231,23 @@ public final class AnnotationClassFile {
             di.skipBytes(4); // readUnsignedShort() * 2
             return false;
         default:
-            throw new ClassFormatError("Unkown tag value for constant pool entry: " + tag);
+            throw new ClassFormatError("Unknown tag value for constant pool entry: " + tag);
         }
     }
 
-    private void readAccessFlags(final DataInput di) throws IOException {
+    private boolean readAccessFlags(final DataInput di) throws IOException {
         int flags = di.readUnsignedShort(); // u2
         if (!Modifier.isPublic(flags)) {
-            throw new AnnotationNotFoundException();
+            return false;
         }
         if (Modifier.isInterface(flags) || Modifier.isAbstract(flags)) {
-            throw new AnnotationNotFoundException();
+            return false;
         }
+        return true;
     }
 
     private void readThisClass(final DataInput di) throws IOException {
-        rawTypeName = resolveUtf8(di);
+        di.skipBytes(2); // u2
     }
 
     private void readSuperClass(final DataInput di) throws IOException {
@@ -274,9 +262,8 @@ public final class AnnotationClassFile {
     private void readFields(final DataInput di) throws IOException {
         final int count = di.readUnsignedShort();
         for (int i = 0; i < count; ++i) {
-            readAccessFlags(di);
-            memberName = resolveUtf8(di);
-            memberDescriptor = resolveUtf8(di);
+            // AccessFlags(u2), memberName(u2), memberDescriptor(u2)
+            di.skipBytes(6);
             readAttributes(di, ElementType.FIELD);
         }
     }
@@ -284,66 +271,13 @@ public final class AnnotationClassFile {
     private void readMethods(final DataInput di) throws IOException {
         final int count = di.readUnsignedShort();
         for (int i = 0; i < count; ++i) {
-            readAccessFlags(di);
-            memberName = resolveUtf8(di);
-            memberDescriptor = resolveUtf8(di);
+            // AccessFlags(u2), memberName(u2), memberDescriptor(u2)
+            di.skipBytes(6);
             readAttributes(di, ElementType.METHOD);
         }
     }
 
-    // It is a unused method in this class, but it is useful in other side.
-    // So I don't delete it and only change to 'proteted' to avoid warning.
-    protected Class<?>[] getMethodParameterTypes(String methodDescriptor) {
-        int ipos = methodDescriptor.indexOf('(');
-        int jpos = methodDescriptor.indexOf(')');
-        String parameters = methodDescriptor.substring(ipos + 1, jpos);
-        if (parameters.length() == 0) {
-            return ArrayUtils.EMPTY_CLASS_ARRAY;
-        }
-
-        String[] types = parameters.split(";");
-        Class<?>[] parameterTypes = new Class<?>[types.length];
-        for (int i = 0; i < types.length; i++) {
-            String type = types[i];
-            if (type.length() > 0) {
-                switch (type.charAt(0)) {
-                case BOOLEAN:
-                    parameterTypes[i] = Boolean.TYPE;
-                    break;
-                case CHAR:
-                    parameterTypes[i] = Character.TYPE;
-                    break;
-                case BYTE:
-                    parameterTypes[i] = Byte.TYPE;
-                    break;
-                case SHORT:
-                    parameterTypes[i] = Short.TYPE;
-                    break;
-                case INT:
-                    parameterTypes[i] = Integer.TYPE;
-                    break;
-                case LONG:
-                    parameterTypes[i] = Long.TYPE;
-                    break;
-                case FLOAT:
-                    parameterTypes[i] = Float.TYPE;
-                    break;
-                case DOUBLE:
-                    parameterTypes[i] = Double.TYPE;
-                    break;
-                case OBJECT:
-                    type = type.substring(1).replace('/', '.');
-                    parameterTypes[i] = ClassUtils.getClass(type);
-                    break;
-                default:
-                    throw new AssertionError("parameter type =" + type);
-                }
-            }
-        }
-        return parameterTypes;
-    }
-
-    private void readAttributes(DataInput di, ElementType type) throws IOException {
+    private boolean readAttributes(DataInput di, ElementType type) throws IOException {
         final int count = di.readUnsignedShort();
 
         for (int i = 0; i < count; ++i) {
@@ -351,39 +285,28 @@ public final class AnnotationClassFile {
             // in bytes, use this to skip the attribute info block
             final int length = di.readInt();
 
-            if (annotationFilter.accept(type) && ("RuntimeVisibleAnnotations".equals(name) || "RuntimeInvisibleAnnotations".equals(name))) {
-                readAnnotations(di, type);
+            if (type == ElementType.TYPE && ("RuntimeVisibleAnnotations".equals(name) || "RuntimeInvisibleAnnotations".equals(name))) {
+                if (readAnnotations(di)) {
+                    return true;
+                }
             } else {
                 di.skipBytes(length);
             }
         }
+        return false;
     }
 
-    private void readAnnotations(DataInput di, ElementType type) throws IOException {
+    private boolean readAnnotations(DataInput di) throws IOException {
         // the number of Runtime(In)VisibleAnnotations
         final int count = di.readUnsignedShort();
 
-        boolean found = false;
         for (int i = 0; i < count; ++i) {
             String annotation = readAnnotation(di);
-            switch (type) {
-            case TYPE:
-                found = annotationFilter.typeAnnotationMap.containsKey(annotation);
-                break;
-            case FIELD:
-                found = annotationFilter.fieldAnnotationMap.containsKey(annotation);
-                break;
-            case METHOD:
-                found = annotationFilter.methodAnnotationMap.containsKey(annotation);
-                break;
-            default:
-                throw new AssertionError("annotation type =" + type);
-            }
-            if (found) {
-                // 用一个 Expcetion 简单处理跳出业务逻辑
-                throw new AnnotationFoundException();
+            if (annotationMap.containsKey(annotation)) {
+                return true;
             }
         }
+        return false;
     }
 
     private String readAnnotation(final DataInput di) throws IOException {
@@ -619,54 +542,6 @@ public final class AnnotationClassFile {
                 final byte[] newBuffer = new byte[buffer.length * 2];
                 System.arraycopy(buffer, 0, newBuffer, 0, buffer.length);
                 buffer = newBuffer;
-            }
-        }
-    }
-
-    private static class AnnotationFoundException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-    }
-
-    private static class AnnotationNotFoundException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-    }
-
-    public static class AnnotationFilter {
-        private Map<String, Class<? extends Annotation>> typeAnnotationMap;
-        private Map<String, Class<? extends Annotation>> methodAnnotationMap;
-        private Map<String, Class<? extends Annotation>> fieldAnnotationMap;
-
-        public void addTypeAnnotation(Class<? extends Annotation> annoClass) {
-            if (typeAnnotationMap == null) {
-                typeAnnotationMap = new HashMap<String, Class<? extends Annotation>>();
-            }
-            typeAnnotationMap.put("L" + annoClass.getName().replace('.', '/') + ";", annoClass);
-        }
-
-        public void addMethodAnnotation(Class<? extends Annotation> annoClass) {
-            if (methodAnnotationMap == null) {
-                methodAnnotationMap = new HashMap<String, Class<? extends Annotation>>();
-            }
-            methodAnnotationMap.put("L" + annoClass.getName().replace('.', '/') + ";", annoClass);
-        }
-
-        public void addFieldAnnotation(Class<? extends Annotation> annoClass) {
-            if (fieldAnnotationMap == null) {
-                fieldAnnotationMap = new HashMap<String, Class<? extends Annotation>>();
-            }
-            fieldAnnotationMap.put("L" + annoClass.getName().replace('.', '/') + ";", annoClass);
-        }
-
-        protected boolean accept(ElementType type) {
-            switch (type) {
-            case TYPE:
-                return typeAnnotationMap != null;
-            case METHOD:
-                return methodAnnotationMap != null;
-            case FIELD:
-                return fieldAnnotationMap != null;
-            default:
-                return false;
             }
         }
     }

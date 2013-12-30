@@ -22,8 +22,10 @@ package jetbrick.template.parser;
 import java.lang.reflect.*;
 import java.util.*;
 import jetbrick.template.JetContext;
-import jetbrick.template.parser.support.*;
+import jetbrick.template.parser.support.MethodFinderUtils;
+import jetbrick.template.parser.support.TypedKlass;
 import jetbrick.template.runtime.*;
+import jetbrick.template.utils.ClassLoaderUtils;
 import jetbrick.template.utils.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +71,7 @@ public class VariableResolver {
 
     public void addImportClass(String klassName) {
         try {
-            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
+            Class<?> klass = ClassLoaderUtils.loadClass(klassName);
             if (importedClassMap.put(klass.getSimpleName(), klass) != null) {
                 log.info("import class: " + klass.getName());
             }
@@ -89,12 +91,8 @@ public class VariableResolver {
     }
 
     public void addMethodClass(String klassName) {
-        try {
-            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
-            addMethodClass(klass);
-        } catch (ClassNotFoundException e) {
-            throw ExceptionUtils.uncheck(e);
-        }
+        Class<?> klass = resolveClass(klassName);
+        addMethodClass(klass);
     }
 
     public void addMethodClass(Class<?> klass) {
@@ -128,12 +126,8 @@ public class VariableResolver {
     }
 
     public void addFunctionClass(String klassName) {
-        try {
-            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
-            addFunctionClass(klass);
-        } catch (ClassNotFoundException e) {
-            throw ExceptionUtils.uncheck(e);
-        }
+        Class<?> klass = resolveClass(klassName);
+        addFunctionClass(klass);
     }
 
     public void addFunctionClass(Class<?> klass) {
@@ -164,12 +158,8 @@ public class VariableResolver {
     }
 
     public void addTagClass(String klassName) {
-        try {
-            Class<?> klass = ClassUtils.getContextClassLoader().loadClass(klassName);
-            addTagClass(klass);
-        } catch (ClassNotFoundException e) {
-            throw ExceptionUtils.uncheck(e);
-        }
+        Class<?> klass = resolveClass(klassName);
+        addTagClass(klass);
     }
 
     public void addTagClass(Class<?> klass) {
@@ -211,21 +201,24 @@ public class VariableResolver {
     }
 
     private Class<?> doGetClass(String klassName) {
-        Class<?> klass = ClassUtils.getClass(klassName);
-        if (klass != null) return klass;
+        try {
+            return ClassLoaderUtils.loadClass(klassName);
+        } catch (ClassNotFoundException e) {
+        }
 
         // 先查单个类的导入情况
-        klass = importedClassMap.get(klassName);
+        Class<?> klass = importedClassMap.get(klassName);
         if (klass != null) return klass;
 
         // 只对类似 String 或者 Map.Entry 这样的才尝试进行包名补齐
         int lpos = klassName.indexOf('.');
         if (lpos < 0 || lpos == klassName.lastIndexOf('.')) {
             for (String pkg : importedPackageList) {
-                klass = ClassUtils.getClass(pkg + "." + klassName);
-                if (klass != null) {
+                try {
+                    klass = ClassLoaderUtils.loadClass(pkg + "." + klassName);
                     importedClassMap.put(klassName, klass); // cache for speed
                     return klass;
+                } catch (ClassNotFoundException e) {
                 }
             }
         }

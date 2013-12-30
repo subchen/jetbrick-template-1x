@@ -19,12 +19,32 @@
  */
 package jetbrick.template.resource.loader;
 
+import java.util.List;
 import jetbrick.template.JetEngine;
 import jetbrick.template.resource.Resource;
 
 public interface ResourceLoader {
 
+    /**
+     * 初始化 ResourceLoader.
+     *
+     * @param engine    模板引擎
+     * @param basepath  模板根路径
+     * @param encoding  模板默认输入编码
+     */
     public void initialize(JetEngine engine, String basepath, String encoding);
 
+    /**
+     * 获取一个代表模板的 Resource.
+     *
+     * @param name  模板路径名
+     * @return 如果模板不存在，那么返回 {@code null}
+     */
     public Resource load(String name);
+
+    /**
+     * 获取所有的模板，主要用来实现预编译
+     */
+    public List<String> loadAll();
+
 }
