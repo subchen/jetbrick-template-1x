@@ -144,7 +144,7 @@ expression  :   '(' expression ')'                                           # e
             |   IDENTIFIER '(' expression_list? ')'                          # expr_function_call
             |   static_type_name '.' IDENTIFIER                              # expr_static_field_access
             |   static_type_name '.' IDENTIFIER  '(' expression_list? ')'    # expr_static_method_invocation
-            |   expression '[' expression ']'                                # expr_array_get
+            |   expression ('?')? '[' expression ']'                         # expr_array_get
             |   expression ('++'|'--')                                       # expr_math_unary_suffix
             |   ('+' <assoc=right> |'-' <assoc=right>)  expression           # expr_math_unary_prefix
             |   ('++'|'--')       expression                                 # expr_math_unary_prefix

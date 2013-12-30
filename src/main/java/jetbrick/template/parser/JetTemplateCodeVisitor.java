@@ -1103,13 +1103,29 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         assert_not_null_constantContext(lhs.getNode());
         assert_not_null_constantContext(rhs.getNode());
 
+        boolean isSafeCall = "?".equals(ctx.getChild(1).getText());
+
         Class<?> lhsKlass = lhs.getKlass();
         if (lhsKlass.isArray()) {
             if (!ClassUtils.isAssignable(Integer.TYPE, rhs.getKlass())) {
                 throw reportError("Type mismatch: cannot convert from " + rhs.getKlassName() + " to int.", lhs.getNode());
             }
-            String source = lhs.toString() + "[" + rhs.toString() + "]";
-            return new SegmentCode(lhsKlass.getComponentType(), lhs.getTypeArgs(), source, ctx);
+            StringBuilder sb = new StringBuilder();
+            if (isSafeCall) {
+                sb.append('(');
+                sb.append(lhs.toString());
+                sb.append("==null?null:");
+                sb.append(lhs.toString());
+                sb.append('[');
+                sb.append(rhs.toString());
+                sb.append("])");
+            } else {
+                sb.append(lhs.toString());
+                sb.append('[');
+                sb.append(rhs.toString());
+                sb.append(']');
+            }
+            return new SegmentCode(lhsKlass.getComponentType(), lhs.getTypeArgs(), sb.toString(), ctx);
         } else {
             TypedKlass resultKlass = null;
 
@@ -1140,8 +1156,22 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 resultKlass = TypedKlass.Object;
             }
 
-            String source = lhs.toString() + ".get(" + rhs.toString() + ")";
-            return new SegmentCode(resultKlass, source, ctx);
+            StringBuilder sb = new StringBuilder();
+            if (isSafeCall) {
+                sb.append('(');
+                sb.append(lhs.toString());
+                sb.append("==null?null:");
+                sb.append(lhs.toString());
+                sb.append(".get(");
+                sb.append(rhs.toString());
+                sb.append("))");
+            } else {
+                sb.append(lhs.toString());
+                sb.append(".get(");
+                sb.append(rhs.toString());
+                sb.append(')');
+            }
+            return new SegmentCode(resultKlass, sb.toString(), ctx);
         }
     }
 
