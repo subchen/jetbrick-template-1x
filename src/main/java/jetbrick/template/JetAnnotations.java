@@ -17,22 +17,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package testcase;
+package jetbrick.template;
 
-import java.io.IOException;
-import jetbrick.template.JetAnnotations;
-import jetbrick.template.runtime.JetTagContext;
+import java.lang.annotation.*;
 
-@JetAnnotations.Tags
-public class TagUtils {
+/*
+ * 用于标注用户实现的扩展类。
+ * 
+ * @since 1.2.0
+ * @author Guoqiang Chen
+ */
+public final class JetAnnotations {
 
-    public static void testTag(JetTagContext ctx) throws IOException {
-        String body = ctx.getBodyContent();
-        ctx.getWriter().print(body.toUpperCase());
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface Methods {
     }
 
-    public static void testTag(JetTagContext ctx, String name) throws IOException {
-        ctx.writeBodyContent();
-        ctx.getWriter().print(name);
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface Functions {
+    }
+
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface Tags {
     }
 }

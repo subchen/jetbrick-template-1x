@@ -193,18 +193,34 @@ public class JetEngine {
     }
 
     // 自动扫描 annotation
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     private void autoScanClassImplements(VariableResolver resolver) {
         long ts = System.currentTimeMillis();
         List<String> scanPackages = config.getImportAutoscanPackages();
-        Set<Class<?>> klasses = AnnotationClassLookupUtils.getClasses(scanPackages, true, JetAnnoations.Methods.class, JetAnnoations.Functions.class, JetAnnoations.Tags.class);
+        //@formatter:off
+        Class<? extends Annotation>[] annoClasses = (Class<? extends Annotation>[]) new Class<?>[] {
+            JetAnnotations.Methods.class,
+            JetAnnotations.Functions.class,
+            JetAnnotations.Tags.class,
+            JetAnnoations.Methods.class,
+            JetAnnoations.Functions.class,
+            JetAnnoations.Tags.class,
+        };
+        //@formatter:on
+        Set<Class<?>> klasses = AnnotationClassLookupUtils.getClasses(scanPackages, true, annoClasses);
         ts = System.currentTimeMillis() - ts;
 
         log.info("Successfully to find {} classes, cost {} ms.", klasses.size(), ts);
 
         for (Class<?> klass : klasses) {
             for (Annotation anno : klass.getAnnotations()) {
-                if (anno instanceof JetAnnoations.Methods) {
+                if (anno instanceof JetAnnotations.Methods) {
+                    resolver.addMethodClass(klass);
+                } else if (anno instanceof JetAnnotations.Functions) {
+                    resolver.addFunctionClass(klass);
+                } else if (anno instanceof JetAnnotations.Tags) {
+                    resolver.addTagClass(klass);
+                } else if (anno instanceof JetAnnoations.Methods) {
                     resolver.addMethodClass(klass);
                 } else if (anno instanceof JetAnnoations.Functions) {
                     resolver.addFunctionClass(klass);

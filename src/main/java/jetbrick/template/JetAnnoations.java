@@ -27,6 +27,7 @@ import java.lang.annotation.*;
  * @since 1.1.2
  * @author Guoqiang Chen
  */
+@Deprecated
 public final class JetAnnoations {
 
     @Target(ElementType.TYPE)
