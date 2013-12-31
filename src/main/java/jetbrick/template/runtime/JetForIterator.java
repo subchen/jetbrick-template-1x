@@ -25,7 +25,7 @@ import jetbrick.template.utils.*;
 
 /**
  * 提供给 #for指令用的内部 Iterator 包装器
- * 
+ *
  * @since 1.1.3
  * @author Guoqiang Chen
  */
@@ -118,5 +118,15 @@ public final class JetForIterator<T> implements Iterator<T>, JetForStatus {
     @Override
     public boolean isLast() {
         return !iterator.hasNext();
+    }
+
+    @Override
+    public boolean isOdd() {
+        return index % 2 == 1;
+    }
+
+    @Override
+    public boolean isEven() {
+        return index % 2 == 0;
     }
 }

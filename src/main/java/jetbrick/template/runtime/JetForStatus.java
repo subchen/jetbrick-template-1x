@@ -21,7 +21,7 @@ package jetbrick.template.runtime;
 
 /**
  * #for 内部状态指示器.
- * 
+ *
  * @author Guoqiang Chen
  */
 public interface JetForStatus {
@@ -33,24 +33,38 @@ public interface JetForStatus {
 
     /**
      * 获取循环总数.
-     * 
+     *
      * <p>如果对 Iterator 进行循环，或者对非 Collection 的 Iterable 进行循环，则返回 -1。<p>
-     * 
+     *
      * @since 1.1.3
      */
     public int getSize();
 
     /**
      * 是否第一个元素.
-     * 
+     *
      * @since 1.1.3
      */
     public boolean isFirst();
 
     /**
      * 是否最后一个元素.
-     * 
+     *
      * @since 1.1.3
      */
     public boolean isLast();
+
+    /**
+     * 是否第奇数个元素.
+     *
+     * @since 1.2.0
+     */
+    public boolean isOdd();
+
+    /**
+     * 是否第偶数个元素.
+     *
+     * @since 1.2.0
+     */
+    public boolean isEven();
 }
