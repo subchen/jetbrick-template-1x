@@ -46,6 +46,7 @@ public class JetEngine {
     private ConcurrentResourceCache resourceCache;
     private ConcurrentTemplateCache templateCache;
     private JavaCompiler javaCompiler;
+    private JetSecurityManager securityManager;
 
     public static JetEngine create() {
         return new JetEngine(new JetConfig().loadClasspath(JetConfig.DEFAULT_CONFIG_FILE));
@@ -74,6 +75,7 @@ public class JetEngine {
         this.classLoader = new JetTemplateClassLoader(config);
         this.resourceCache = new ConcurrentResourceCache();
         this.templateCache = new ConcurrentTemplateCache();
+        this.securityManager = createSecurityManager();
 
         if (config.getCompileStrategy() == CompileStrategy.precompile) {
             startPreCompileTask();
@@ -144,6 +146,10 @@ public class JetEngine {
             }
         }
         return javaCompiler;
+    }
+
+    public JetSecurityManager getSecurityManager() {
+        return securityManager;
     }
 
     /**
@@ -244,6 +250,20 @@ public class JetEngine {
             return resourceLoader;
         } catch (Exception e) {
             throw ExceptionUtils.uncheck(e);
+        }
+    }
+
+    private JetSecurityManager createSecurityManager() {
+        Class<?> klass = config.getSecurityManager();
+        if (klass == null) {
+            return null;
+        }
+        try {
+            JetSecurityManager manager = (JetSecurityManager) klass.newInstance();
+            manager.initialize(this);
+            return manager;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

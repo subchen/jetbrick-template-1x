@@ -19,6 +19,9 @@
  */
 package jetbrick.template.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class StringUtils {
 
     public static boolean isEmpty(CharSequence cs) {
@@ -60,6 +63,20 @@ public final class StringUtils {
         }
         if (count == sz) return str;
         return new String(chs, 0, count);
+    }
+
+    public static String[] split(String str, char delimiter) {
+        List<String> results = new ArrayList<String>();
+
+        int ipos = 0, lastpos = 0;
+        while ((ipos = str.indexOf(delimiter, lastpos)) != -1) {
+            results.add(str.substring(lastpos, ipos));
+            lastpos = ipos + 1;
+        }
+        if (lastpos < str.length()) {
+            results.add(str.substring(lastpos));
+        }
+        return results.toArray(new String[results.size()]);
     }
 
     public static String asJavaBytes(String s, String encoding) {

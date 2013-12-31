@@ -22,8 +22,7 @@ package jetbrick.template.parser;
 import java.lang.reflect.*;
 import java.util.*;
 import javax.lang.model.SourceVersion;
-import jetbrick.template.JetContext;
-import jetbrick.template.JetEngine;
+import jetbrick.template.*;
 import jetbrick.template.parser.code.*;
 import jetbrick.template.parser.grammer.*;
 import jetbrick.template.parser.grammer.JetTemplateParser.BlockContext;
@@ -99,6 +98,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private final Resource resource;
     private final JetTemplateParser parser;
     private final VariableResolver resolver;
+    private final JetSecurityManager securityManager;
     private final boolean trimDirectiveLine;
     private final boolean trimDirectiveComments;
     private final String commentsPrefix;
@@ -111,10 +111,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private Deque<String> forStack; // 维护嵌套 #for 的堆栈，可以识别是否在嵌入在 #for 里面, 内部存储当前 for 的真实变量名
     private int uuid = 1; // 计数器
 
-    public JetTemplateCodeVisitor(JetEngine engine, VariableResolver resolver, JetTemplateParser parser, Resource resource) {
+    public JetTemplateCodeVisitor(JetEngine engine, VariableResolver resolver, JetSecurityManager securityManager, JetTemplateParser parser, Resource resource) {
         this.engine = engine;
         this.parser = parser;
         this.resolver = resolver;
+        this.securityManager = securityManager;
         this.resource = resource;
         this.trimDirectiveLine = engine.getConfig().isTrimDirectiveLine();
         this.trimDirectiveComments = engine.getConfig().isTrimDirectiveComments();
@@ -809,6 +810,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         String op = ctx.getChild(1).getText();
         if (member instanceof Method) {
             Method method = (Method) member;
+            if (securityManager != null) {
+                securityManager.checkMemberAccess(method);
+            }
             resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
             if (method.getParameterTypes().length == 0) {
                 // getXXX() or isXXX()
@@ -845,6 +849,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         } else {
             if (member instanceof Field) {
+                if (securityManager != null) {
+                    securityManager.checkMemberAccess((Field) member);
+                }
                 resultKlass = TypedKlassUtils.getFieldTypedKlass((Field) member);
             } else {
                 // array.length
@@ -954,6 +961,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         // 得到方法的返回类型
         Method method = (bean_method == null) ? tool_method : bean_method;
+        if (securityManager != null) {
+            securityManager.checkMemberAccess(method);
+        }
+
         TypedKlass typedKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
         return new SegmentCode(typedKlass, sb.toString(), ctx);
     }
@@ -1007,6 +1018,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (method == null) {
             throw reportError("Undefined function or arguments mismatch: " + getMethodSignature(name, parameterTypes) + ".", ctx.IDENTIFIER());
         }
+        if (securityManager != null) {
+            securityManager.checkMemberAccess(method);
+        }
 
         // 生成code
         StringBuilder sb = new StringBuilder(64);
@@ -1042,6 +1056,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError(name + " is not a static field for type " + beanClass.getName(), ctx.IDENTIFIER());
         }
 
+        if (securityManager != null) {
+            securityManager.checkMemberAccess(field);
+        }
+
         String source = typeName + '.' + name;
         TypedKlass resultKlass = TypedKlassUtils.getFieldTypedKlass(field);
         return new SegmentCode(resultKlass, source, ctx);
@@ -1067,6 +1085,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Method method = resolver.resolveStaticMethod(beanClass, name, parameterTypes);
         if (method == null) {
             throw reportError("The static method " + getMethodSignature(name, parameterTypes) + " is undefined for the type " + beanClass.getName(), ctx.IDENTIFIER());
+        }
+
+        if (securityManager != null) {
+            securityManager.checkMemberAccess(method);
         }
 
         // 生成代码
@@ -1529,6 +1551,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Class<?> klass = resolver.resolveClass(name.toString());
         if (klass == null) {
             throw reportError("java.lang.ClassNotFoundException: " + name.toString(), ctx);
+        }
+
+        if (securityManager != null) {
+            securityManager.checkMemberAccess(klass);
         }
 
         // 查找泛型类型 typeArgs

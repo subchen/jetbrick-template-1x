@@ -40,17 +40,25 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String IMPORT_AUTOSCAN = "import.autoscan"; // 1.1.2
     public static final String IMPORT_AUTOSCAN_PACKAGES = "import.autoscan.packages"; // 1.1.2
     public static final String IMPORT_VARIABLES = "import.variables";
+
     public static final String INPUT_ENCODING = "input.encoding";
     public static final String OUTPUT_ENCODING = "output.encoding";
+
     public static final String TEMPLATE_LOADER = "template.loader";
     public static final String TEMPLATE_PATH = "template.path";
     public static final String TEMPLATE_SUFFIX = "template.suffix";
     public static final String TEMPLATE_RELOADABLE = "template.reloadable";
+
+    public static final String SECURITY_MANAGER = "security.manager"; // 1.2.0
+    public static final String SECURITY_MANAGER_NAMELIST = "security.manager.namelist"; // 1.2.0
+    public static final String SECURITY_MANAGER_FILE = "security.manager.file"; // 1.2.0
+
     @Deprecated
     public static final String COMPILE_ALWAYS = "compile.always"; // 1.0.1 to 1.1.3
     public static final String COMPILE_STRATEGY = "compile.strategy"; // 1.1.3
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
+
     public static final String TRIM_DIRECTIVE_LINE = "trim.directive.line";
     public static final String TRIM_DIRECTIVE_COMMENTS = "trim.directive.comments"; // 1.0.1
     public static final String TRIM_DIRECTIVE_COMMENTS_PREFIX = "trim.directive.comments.prefix"; // 1.0.1
@@ -79,6 +87,9 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private String templatePath;
     private String templateSuffix;
     private boolean templateReloadable;
+    private Class<?> securityManager;
+    private List<String> securityManagerNamelist;
+    private String securityManagerFile;
     private boolean compileAlways;
     private CompileStrategy compileStrategy;
     private boolean compileDebug;
@@ -199,6 +210,18 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public boolean isTemplateReloadable() {
         return templateReloadable;
+    }
+
+    public Class<?> getSecurityManager() {
+        return securityManager;
+    }
+
+    public List<String> getSecurityManagerNamelist() {
+        return securityManagerNamelist;
+    }
+
+    public String getSecurityManagerFile() {
+        return securityManagerFile;
     }
 
     @Deprecated

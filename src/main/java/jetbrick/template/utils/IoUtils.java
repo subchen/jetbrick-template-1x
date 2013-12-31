@@ -23,47 +23,110 @@ import java.io.*;
 import java.util.zip.ZipFile;
 
 public final class IoUtils {
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
+
+    public static byte[] toByteArray(File file) {
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
+            return toByteArray(is);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            closeQuietly(is);
+        }
+    }
 
     public static byte[] toByteArray(InputStream is) {
         UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream();
         try {
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
             int n = 0;
             while (-1 != (n = is.read(buffer))) {
                 out.write(buffer, 0, n);
             }
             return out.toByteArray();
         } catch (IOException e) {
-            throw ExceptionUtils.uncheck(e);
+            throw new RuntimeException(e);
         } finally {
             closeQuietly(out);
         }
     }
 
     public static char[] toCharArray(File file, String encoding) {
-        FileInputStream is = null;
+        Reader reader = null;
         try {
-            is = new FileInputStream(file);
-            return toCharArray(is, encoding);
+            reader = new InputStreamReader(new FileInputStream(file), encoding);
+            return toCharArray(reader);
         } catch (IOException e) {
-            throw ExceptionUtils.uncheck(e);
+            throw new RuntimeException(e);
+        } finally {
+            closeQuietly(reader);
+        }
+    }
+
+    public static char[] toCharArray(InputStream is, String encoding) {
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(is, encoding);
+            return toCharArray(reader);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            closeQuietly(reader);
+        }
+    }
+
+    public static char[] toCharArray(Reader reader) {
+        UnsafeCharArrayWriter out = new UnsafeCharArrayWriter();
+        try {
+            char[] buffer = new char[DEFAULT_BUFFER_SIZE];
+            int n = 0;
+            while (-1 != (n = reader.read(buffer))) {
+                out.write(buffer, 0, n);
+            }
+            return out.toCharArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            closeQuietly(out);
+        }
+    }
+
+    public static String toString(File file, String encoding) {
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(new FileInputStream(file), encoding);
+            return toString(reader);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            closeQuietly(reader);
+        }
+    }
+
+    public static String toString(InputStream is, String encoding) {
+        try {
+            InputStreamReader reader = new InputStreamReader(is, encoding);
+            return toString(reader);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             closeQuietly(is);
         }
     }
 
-    public static char[] toCharArray(InputStream is, String encoding) {
+    public static String toString(Reader reader) {
         UnsafeCharArrayWriter out = new UnsafeCharArrayWriter();
         try {
-            InputStreamReader in = new InputStreamReader(is, encoding);
             char[] buffer = new char[4096];
             int n = 0;
-            while (-1 != (n = in.read(buffer))) {
+            while (-1 != (n = reader.read(buffer))) {
                 out.write(buffer, 0, n);
             }
-            return out.toCharArray();
+            return out.toString();
         } catch (IOException e) {
-            throw ExceptionUtils.uncheck(e);
+            throw new RuntimeException(e);
         } finally {
             closeQuietly(out);
         }

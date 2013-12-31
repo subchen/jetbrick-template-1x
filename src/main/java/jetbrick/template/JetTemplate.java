@@ -170,7 +170,7 @@ public final class JetTemplate {
         parser.setErrorHandler(new JetTemplateErrorStrategy());
 
         TemplateContext templateParseTree = parser.template();
-        JetTemplateCodeVisitor visitor = new JetTemplateCodeVisitor(engine, engine.getVariableResolver(), parser, resource);
+        JetTemplateCodeVisitor visitor = new JetTemplateCodeVisitor(engine, engine.getVariableResolver(), engine.getSecurityManager(), parser, resource);
         Code code = templateParseTree.accept(visitor);
         return code.toString();
     }
