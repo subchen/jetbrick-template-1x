@@ -39,17 +39,21 @@ public class JetWebContext extends JetContext {
     public static final String PARAMETER = "parameter";
     public static final String PARAMETER_VALUES = "parameterValues";
 
+    public static final String CONTEXT_PATH = "ctxpath";
+    public static final String WEBROOT_PATH = "webroot";
+
     private final ServletContext servletContext;
     private final HttpSession session;
     private final HttpServletRequest request;
 
     //@formatter:off
     private enum TYPE {
-        REQUEST_SCOPE, SESSION_SCOPE, APPLICATION_SCOPE, 
-        PARAMETER, PARAMETER_VALUES, 
-        HEADER, HEADER_VALUES, 
-        COOKIE, 
-        INIT_PARAMETER
+        REQUEST_SCOPE, SESSION_SCOPE, APPLICATION_SCOPE,
+        PARAMETER, PARAMETER_VALUES,
+        HEADER, HEADER_VALUES,
+        COOKIE,
+        INIT_PARAMETER,
+        WEBROOT_PATH,
     }
     //@formatter:on
 
@@ -74,6 +78,9 @@ public class JetWebContext extends JetContext {
         put(REQUEST_SCOPE, TYPE.REQUEST_SCOPE);
         put(PARAMETER, TYPE.PARAMETER);
         put(PARAMETER_VALUES, TYPE.PARAMETER_VALUES);
+
+        put(CONTEXT_PATH, servletContext.getContextPath());
+        put(WEBROOT_PATH, TYPE.WEBROOT_PATH);
     }
 
     @Override
@@ -107,7 +114,7 @@ public class JetWebContext extends JetContext {
         return servletContext.getAttribute(name);
     }
 
-    private Map<String, Object> createImplicitWebObject(TYPE type) {
+    private Object createImplicitWebObject(TYPE type) {
         switch (type) {
         case REQUEST_SCOPE: {
             return new EnumeratedMap<String, Object>() {
@@ -257,6 +264,15 @@ public class JetWebContext extends JetContext {
                     return null;
                 }
             };
+        }
+        case WEBROOT_PATH: {
+            StringBuilder sb = new StringBuilder();
+            sb.append(request.getScheme());
+            sb.append("://");
+            sb.append(request.getServerName());
+            sb.append(request.getServerPort() != 80 ? ':' + request.getServerPort() : "");
+            sb.append(request.getContextPath());
+            return sb.toString();
         }
         default:
             return null;

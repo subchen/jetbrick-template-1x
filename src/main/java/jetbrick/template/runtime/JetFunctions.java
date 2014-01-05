@@ -21,7 +21,9 @@ package jetbrick.template.runtime;
 
 import java.io.IOException;
 import java.util.*;
+import javax.servlet.http.HttpServletRequest;
 import jetbrick.template.utils.ArrayUtils;
+import jetbrick.template.web.JetWebContext;
 
 public final class JetFunctions {
     private static final Random RANDOM = new Random();
@@ -84,5 +86,42 @@ public final class JetFunctions {
 
     public static void debug(String format, Object... args) {
         JetUtils.debug(format, args);
+    }
+
+    /**
+     * @since 1.2.0
+     */
+    public static String ctxpath(JetPageContext ctx) {
+        return ctxpath(ctx, "");
+    }
+
+    /**
+     * @since 1.2.0
+     */
+    public static String ctxpath(JetPageContext ctx, String url) {
+        HttpServletRequest request = (HttpServletRequest) ctx.getContext().get(JetWebContext.REQUEST);
+        return request.getContextPath() + url;
+    }
+
+    /**
+     * @since 1.2.0
+     */
+    public static String webroot(JetPageContext ctx) {
+        return webroot(ctx, "");
+    }
+
+    /**
+     * @since 1.2.0
+     */
+    public static String webroot(JetPageContext ctx, String url) {
+        HttpServletRequest request = (HttpServletRequest) ctx.getContext().get(JetWebContext.REQUEST);
+        StringBuilder sb = new StringBuilder();
+        sb.append(request.getScheme());
+        sb.append("://");
+        sb.append(request.getServerName());
+        sb.append(request.getServerPort() != 80 ? ":" + request.getServerPort() : "");
+        sb.append(request.getContextPath());
+        sb.append(url);
+        return sb.toString();
     }
 }
