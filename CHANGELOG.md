@@ -1,3 +1,14 @@
+Version 1.2.0 (2014-01-05)
+-----------------------------
+
+* [新增] #38 增加默认的 #tag cache() 实现模板局部缓存功能
+* [新增] #49 增加模板预编译工具/选项
+* [新增] #54 增加安全管理器：黑白名单
+* [新增] #62 在 Web 环境中使用 jetx 时候，建议增加一个隐藏变量
+* [新增] #63 对 Array/List/Map 的 [] 访问，增加安全调用
+* [新增] #64 Spell error in JetAnnoations Class name, Should be JetAnnotations.
+* [新增] #65 给 #for 指令内部对象增加 for.odd 和 for.even 支持.
+
 Version 1.1.3 (2013-12-22)
 -----------------------------
 
@@ -52,7 +63,8 @@ Version 1.1.0 (2013-12-02)
 * [新增] #15 增加对类的静态字段和静态方法的直接访问
 * [新增] #18 增加默认的 layout Tag 实现
 * [新增] #19 与Nutz集成，实现JetTemplateView (Thanks wendal1985@gmail.com)
-* [修复] #14 如果运算符的操作数的返回值是 void, 那么就会出现编译错误* [修复] #20 The column of error line is wrong when the line contains '\t'
+* [修复] #14 如果运算符的操作数的返回值是 void, 那么就会出现编译错误
+* [修复] #20 The column of error line is wrong when the line contains '\t'
 * [修复] #21 NumberUtils.format(123) should be "123.00".
 * [修复] #22 对于 ${bean.property}，优先使用 getXXX()
 * [修复] #23 Fixed request uri in JetTemplateServlet/JetTemplateFilter
@@ -71,7 +83,8 @@ Version 1.0.1 (2013-11-20)
 -----------------------------
 
 * [新增] #1 支持 Servlet 2.x
-* [新增] #4 增加指令注释支持，如： <!-- #if (...) --> 增强对可视化编辑器的友好度* [修复] #2 trim.directive.line 选项，如果指令两边为非空格，也会被 trim 
+* [新增] #4 增加指令注释支持，如： <!-- #if (...) --> 增强对可视化编辑器的友好度
+* [修复] #2 trim.directive.line 选项，如果指令两边为非空格，也会被 trim 
 * [修复] #3 compile.debug 默认应该为 false
 * [修复] #6 JDK 6 can't load the template class compiled using JDK 7.
 * [修复] #7 JetTemplateServlet 和 JetTemplateFilter 默认可能输出错误的 contentType. 
