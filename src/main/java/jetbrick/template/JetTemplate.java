@@ -188,7 +188,9 @@ public final class JetTemplate {
     }
 
     public void render(JetContext context, Writer out) {
-        if (context.isSimpleModel()) {
+        if (context == null) {
+            context = new JetContext(null);
+        } else if (context.isSimpleModel()) {
             // simpleModel 的情况代表是用户自己 new 出来的 JetContext
             // 为了防止 #set 污染 context，这里重新 new 一个新的。
             context = new JetContext(context.getContext());
@@ -198,7 +200,9 @@ public final class JetTemplate {
     }
 
     public void render(JetContext context, OutputStream out) {
-        if (context.isSimpleModel()) {
+        if (context == null) {
+            context = new JetContext(null);
+        } else if (context.isSimpleModel()) {
             // simpleModel 的情况代表是用户自己 new 出来的 JetContext
             // 为了防止 #set 污染 context，这里重新 new 一个新的。
             context = new JetContext(context.getContext());

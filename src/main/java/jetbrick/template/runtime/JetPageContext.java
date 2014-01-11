@@ -22,7 +22,7 @@ package jetbrick.template.runtime;
 import jetbrick.template.*;
 import jetbrick.template.utils.PathUtils;
 
-public class JetPageContext {
+public class JetPageContext implements JetContextAware {
     private final JetTemplate template;
     private final JetWriter out;
     private final JetContext context;
@@ -45,6 +45,7 @@ public class JetPageContext {
         return out;
     }
 
+    @Override
     public JetContext getContext() {
         return context;
     }

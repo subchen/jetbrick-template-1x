@@ -19,12 +19,11 @@
  */
 package jetbrick.template.runtime;
 
-import jetbrick.template.JetContext;
-import jetbrick.template.JetEngine;
+import jetbrick.template.*;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.utils.UnsafeCharArrayWriter;
 
-public abstract class JetTagContext {
+public abstract class JetTagContext implements JetContextAware {
     public static final Class<?>[] CLASS_ARRAY = { JetTagContext.class };
     private final JetPageContext ctx;
 
@@ -63,6 +62,7 @@ public abstract class JetTagContext {
         return ctx.getWriter();
     }
 
+    @Override
     public JetContext getContext() {
         return ctx.getContext();
     }
