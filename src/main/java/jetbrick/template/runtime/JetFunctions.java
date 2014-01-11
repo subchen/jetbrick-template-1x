@@ -115,11 +115,16 @@ public final class JetFunctions {
      */
     public static String webroot(JetPageContext ctx, String url) {
         HttpServletRequest request = (HttpServletRequest) ctx.getContext().get(JetWebContext.REQUEST);
+        String schema = request.getScheme();
+        int port = request.getServerPort();
+
         StringBuilder sb = new StringBuilder();
-        sb.append(request.getScheme());
+        sb.append(schema);
         sb.append("://");
         sb.append(request.getServerName());
-        sb.append(request.getServerPort() != 80 ? ":" + request.getServerPort() : "");
+        if (!(port == 80 && "http".equals(schema)) && !(port == 443 && "https".equals(schema))) {
+            sb.append(':').append(request.getServerPort());
+        }
         sb.append(request.getContextPath());
         sb.append(url);
         return sb.toString();

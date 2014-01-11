@@ -79,7 +79,7 @@ public class JetWebContext extends JetContext {
         put(PARAMETER, TYPE.PARAMETER);
         put(PARAMETER_VALUES, TYPE.PARAMETER_VALUES);
 
-        put(CONTEXT_PATH, servletContext.getContextPath());
+        put(CONTEXT_PATH, request.getContextPath());
         put(WEBROOT_PATH, TYPE.WEBROOT_PATH);
     }
 
@@ -267,10 +267,14 @@ public class JetWebContext extends JetContext {
         }
         case WEBROOT_PATH: {
             StringBuilder sb = new StringBuilder();
-            sb.append(request.getScheme());
+            String schema = request.getScheme();
+            int port = request.getServerPort();
+            sb.append(schema);
             sb.append("://");
             sb.append(request.getServerName());
-            sb.append(request.getServerPort() != 80 ? ':' + request.getServerPort() : "");
+            if (!(port == 80 && "http".equals(schema)) && !(port == 443 && "https".equals(schema))) {
+                sb.append(':').append(request.getServerPort());
+            }
             sb.append(request.getContextPath());
             return sb.toString();
         }

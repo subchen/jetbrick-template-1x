@@ -54,8 +54,8 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String SECURITY_MANAGER_FILE = "security.manager.file"; // 1.2.0
 
     @Deprecated
-    public static final String COMPILE_ALWAYS = "compile.always"; // 1.0.1 to 1.1.3
-    public static final String COMPILE_STRATEGY = "compile.strategy"; // 1.1.3
+    public static final String COMPILE_ALWAYS = "compile.always"; // 1.0.1 to 1.2.0
+    public static final String COMPILE_STRATEGY = "compile.strategy"; // 1.2.0
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
 
