@@ -38,6 +38,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String IMPORT_FUNCTIONS = "import.functions";
     public static final String IMPORT_TAGS = "import.tags"; // 1.1.0
     public static final String IMPORT_AUTOSCAN = "import.autoscan"; // 1.1.2
+    public static final String IMPORT_AUTOSCAN_SKIPERRORS = "import.autoscan.skiperrors"; // 1.2.1
     public static final String IMPORT_AUTOSCAN_PACKAGES = "import.autoscan.packages"; // 1.1.2
     public static final String IMPORT_VARIABLES = "import.variables";
 
@@ -79,6 +80,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private List<String> importFunctions;
     private List<String> importTags;
     private boolean importAutoscan;
+    private boolean importAutoscanSkiperrors;
     private List<String> importAutoscanPackages;
     private List<String> importVariables;
     private String inputEncoding;
@@ -105,6 +107,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
         Properties config = new Properties();
         config.setProperty(IMPORT_AUTOSCAN, "false");
+        config.setProperty(IMPORT_AUTOSCAN_SKIPERRORS, "false");
         config.setProperty(INPUT_ENCODING, "utf-8");
         config.setProperty(OUTPUT_ENCODING, "utf-8");
         config.setProperty(TEMPLATE_LOADER, FileSystemResourceLoader.class.getName());
@@ -178,6 +181,10 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public boolean isImportAutoscan() {
         return importAutoscan;
+    }
+
+    public boolean isImportAutoscanSkiperrors() {
+        return importAutoscanSkiperrors;
     }
 
     public List<String> getImportAutoscanPackages() {

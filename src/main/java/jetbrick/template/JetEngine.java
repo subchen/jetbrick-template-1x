@@ -213,7 +213,7 @@ public class JetEngine {
             JetAnnoations.Tags.class,
         };
         //@formatter:on
-        Set<Class<?>> klasses = AnnotationClassLookupUtils.getClasses(scanPackages, true, annoClasses);
+        Set<Class<?>> klasses = AnnotationClassLookupUtils.getClasses(scanPackages, true, annoClasses, config.isImportAutoscanSkiperrors());
         ts = System.currentTimeMillis() - ts;
 
         log.info("Successfully to find {} classes, cost {} ms.", klasses.size(), ts);

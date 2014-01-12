@@ -22,6 +22,8 @@ package jetbrick.template.utils.finder;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import jetbrick.template.utils.ClassLoaderUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 专门用来查找指定 annotation 的 class 文件.
@@ -30,17 +32,18 @@ import jetbrick.template.utils.ClassLoaderUtils;
  * @author Guoqiang Chen
  */
 public class AnnotationClassLookupUtils {
+    private static final Logger log = LoggerFactory.getLogger(AnnotationClassLookupUtils.class);
 
-    public static Set<Class<?>> getClasses(Class<? extends Annotation>... annotations) {
-        return getClasses((String[]) null, true, annotations);
+    public static Set<Class<?>> getClasses(Class<? extends Annotation>[] annotations, boolean skiperrors) {
+        return getClasses((String[]) null, true, annotations, skiperrors);
     }
 
-    public static Set<Class<?>> getClasses(List<String> packageNames, boolean recursive, Class<? extends Annotation>... annotations) {
+    public static Set<Class<?>> getClasses(List<String> packageNames, boolean recursive, Class<? extends Annotation>[] annotations, boolean skiperrors) {
         String[] pkgs = packageNames.toArray(new String[packageNames.size()]);
-        return getClasses(pkgs, recursive, annotations);
+        return getClasses(pkgs, recursive, annotations, skiperrors);
     }
 
-    public static Set<Class<?>> getClasses(String[] packageNames, boolean recursive, Class<? extends Annotation>... annotations) {
+    public static Set<Class<?>> getClasses(String[] packageNames, boolean recursive, Class<? extends Annotation>[] annotations, final boolean skiperrors) {
         final AnnotationClassReader reader = new AnnotationClassReader();
         for (Class<? extends Annotation> annotation : annotations) {
             reader.addAnnotation(annotation);
@@ -73,6 +76,18 @@ public class AnnotationClassLookupUtils {
                     Class<?> klass = loader.loadClass(qualifiedClassName);
                     classes.add(klass);
                 } catch (ClassNotFoundException e) {
+                } catch (Throwable e) {
+                    if (skiperrors) {
+                        log.warn("Class load error.", e);
+                    } else {
+                        if (e instanceof RuntimeException) {
+                            throw (RuntimeException) e;
+                        } else if (e instanceof Error) {
+                            throw (Error) e;
+                        } else {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
             }
         };
