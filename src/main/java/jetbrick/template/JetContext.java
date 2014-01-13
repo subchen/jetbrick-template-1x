@@ -19,8 +19,7 @@
  */
 package jetbrick.template;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 存放模板的 context 数据, 支持 chain
@@ -53,6 +52,14 @@ public class JetContext {
 
     protected Map<String, Object> getContext() {
         return context;
+    }
+
+    public JetContext getParent() {
+        return parent;
+    }
+
+    public Set<String> keySet() {
+        return context.keySet();
     }
 
     public Object get(String name) {
