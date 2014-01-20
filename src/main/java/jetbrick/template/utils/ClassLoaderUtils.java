@@ -127,9 +127,12 @@ public class ClassLoaderUtils {
         if (qualifiedClassName.indexOf('$') == -1) {
             int ipos = qualifiedClassName.lastIndexOf('.');
             if (ipos > 0) {
-                String klassName = qualifiedClassName.substring(0, ipos) + '$' + qualifiedClassName.substring(ipos + 1);
-                klassName = getCanonicalClassName(klassName);
-                return Class.forName(klassName, false, loader);
+                try {
+                    String klassName = qualifiedClassName.substring(0, ipos) + '$' + qualifiedClassName.substring(ipos + 1);
+                    klassName = getCanonicalClassName(klassName);
+                    return Class.forName(klassName, false, loader);
+                } catch (ClassNotFoundException e) {
+                }
             }
         }
 
