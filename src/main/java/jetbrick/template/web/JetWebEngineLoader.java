@@ -30,7 +30,7 @@ import jetbrick.template.JetEngine;
  *   <param-name>jetbrick-template-config-location</param-name>
  *   <param-value>/WEB-INF/jetbrick-template.properties</param-value>
  * </context-param>
- * 
+ *
  * <listener>
  *   <listener-class>jetbrick.template.web.JetWebEngineLoader</listener-class>
  * </listener>
@@ -75,7 +75,7 @@ public class JetWebEngineLoader implements ServletContextListener {
 
         String location = sc.getInitParameter(CONFIG_LOCATION);
         if (location != null && location.length() > 0) {
-            config.load(sc.getResourceAsStream(location));
+            config.loadSerlvetResource(sc, location);
         } else {
             config.loadClasspath(JetConfig.DEFAULT_CONFIG_FILE);
         }

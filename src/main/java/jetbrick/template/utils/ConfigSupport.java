@@ -24,6 +24,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.ServletContext;
 
 @SuppressWarnings("unchecked")
 public abstract class ConfigSupport<T extends ConfigSupport<T>> {
@@ -31,14 +32,53 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
 
     public T loadFile(File file) {
         try {
-            return load(new FileInputStream(file));
+            return load(new FileInputStream(file), file.getName());
         } catch (IOException e) {
-            throw ExceptionUtils.uncheck(e);
+            throw new RuntimeException(e);
         }
     }
 
     public T loadClasspath(String classpath) {
-        return load(ClassLoaderUtils.getContextClassLoader().getResourceAsStream(classpath));
+        if (classpath.startsWith("/")) {
+            classpath = classpath.substring(1);
+        }
+        InputStream is = ClassLoaderUtils.getContextClassLoader().getResourceAsStream(classpath);
+        return load(is, classpath);
+    }
+
+    public T load(String location) {
+        if (location.startsWith("classpath:")) {
+            location = location.substring("classpath:".length());
+            return loadClasspath(location);
+        } else if (location.startsWith("file:")) {
+            location = location.substring("file:".length());
+            return loadFile(new File(location));
+        } else {
+            return loadFile(new File(location));
+        }
+    }
+
+    public T loadSerlvetResource(ServletContext servletContext, String location) {
+        if (location.startsWith("classpath:")) {
+            location = location.substring("classpath:".length());
+            return loadClasspath(location);
+        } else if (location.startsWith("file:")) {
+            location = location.substring("file:".length());
+            return loadFile(new File(location));
+        } else {
+            if (!location.startsWith("/")) {
+                location = "/" + location;
+            }
+            InputStream is = servletContext.getResourceAsStream(location);
+            return load(is, location);
+        }
+    }
+
+    private T load(InputStream is, String name) {
+        if (is == null) {
+            throw new IllegalStateException("InputStream not found: " + name);
+        }
+        return load(is);
     }
 
     public T load(InputStream is) {
@@ -48,7 +88,7 @@ public abstract class ConfigSupport<T extends ConfigSupport<T>> {
             config.load(is);
             return load(config);
         } catch (IOException e) {
-            throw ExceptionUtils.uncheck(e);
+            throw new RuntimeException(e);
         } finally {
             IoUtils.closeQuietly(is);
         }

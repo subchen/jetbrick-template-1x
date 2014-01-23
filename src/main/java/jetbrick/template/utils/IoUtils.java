@@ -23,7 +23,7 @@ import java.io.*;
 import java.util.zip.ZipFile;
 
 public final class IoUtils {
-    private static final int DEFAULT_BUFFER_SIZE = 1024;
+    private static final int DEFAULT_BUFFER_SIZE = 4096;
 
     public static byte[] toByteArray(File file) {
         FileInputStream is = null;

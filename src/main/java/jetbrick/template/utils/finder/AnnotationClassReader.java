@@ -122,7 +122,7 @@ public final class AnnotationClassReader {
 
     public boolean isAnnotationed(File file) {
         try {
-            return isAnnotationed(new FileInputStream(file));
+            return isAnnotationed(new FileInputStream(file), file.length());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -130,7 +130,7 @@ public final class AnnotationClassReader {
 
     public boolean isAnnotationed(ZipFile file, ZipEntry entry) {
         try {
-            return isAnnotationed(file.getInputStream(entry));
+            return isAnnotationed(file.getInputStream(entry), entry.getSize());
         } catch (IOException e) {
             log.warn("IOException in load class file in jar file.", e);
             return false;
@@ -138,8 +138,12 @@ public final class AnnotationClassReader {
     }
 
     public boolean isAnnotationed(InputStream classInputStream) {
+        return isAnnotationed(classInputStream, 0);
+    }
+
+    private boolean isAnnotationed(InputStream classInputStream, long length) {
         try {
-            ClassFileDataInput input = new ClassFileDataInput(classInputStream);
+            ClassFileDataInput input = new ClassFileDataInput(classInputStream, length);
             return readClassFile(input);
         } catch (Throwable e) {
             log.warn("UnknownException in parsing class file.", e);
@@ -376,27 +380,22 @@ public final class AnnotationClassReader {
         private int size; // the number of significant bytes read
         private int pointer; // the "read pointer"
 
-        ClassFileDataInput(InputStream is) throws IOException {
-            this.buffer = new byte[8 * 1024]; // default 8K cache
-            load(is);
-        }
-
-        /**
-         * Clear and fill the buffer of this {@code ClassFileBuffer} with the
-         * supplied byte stream.
-         * The read pointer is reset to the start of the byte array.
-         */
-        private void load(final InputStream in) throws IOException {
-            pointer = 0;
-            size = 0;
-            int n;
-            do {
-                n = in.read(buffer, size, buffer.length - size);
-                if (n > 0) {
-                    size += n;
+        ClassFileDataInput(InputStream is, long length) throws IOException {
+            if (length > Integer.MAX_VALUE) {
+                throw new RuntimeException("Unsupported file size >= 2GB.");
+            }
+            if (length > 0) {
+                this.buffer = new byte[(int) length];
+                while (this.size < length) {
+                    int n = is.read(buffer, size, buffer.length - size);
+                    if (n <= 0) break;
+                    this.size += n;
                 }
-                ensureCapacity();
-            } while (n >= 0);
+            } else {
+                this.buffer = IoUtils.toByteArray(is);
+                this.size = this.buffer.length;
+            }
+            this.pointer = 0;
         }
 
         /**
@@ -535,14 +534,6 @@ public final class AnnotationClassReader {
 
         private int read() {
             return buffer[pointer++] & 0xff;
-        }
-
-        private void ensureCapacity() {
-            if (size >= buffer.length) {
-                final byte[] newBuffer = new byte[buffer.length * 2];
-                System.arraycopy(buffer, 0, newBuffer, 0, buffer.length);
-                buffer = newBuffer;
-            }
         }
     }
 }

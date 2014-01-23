@@ -201,7 +201,6 @@ public class JetEngine {
     // 自动扫描 annotation
     @SuppressWarnings({ "unchecked", "deprecation" })
     private void autoScanClassImplements(VariableResolver resolver) {
-        long ts = System.currentTimeMillis();
         List<String> scanPackages = config.getImportAutoscanPackages();
         //@formatter:off
         Class<? extends Annotation>[] annoClasses = (Class<? extends Annotation>[]) new Class<?>[] {
@@ -213,6 +212,7 @@ public class JetEngine {
             JetAnnoations.Tags.class,
         };
         //@formatter:on
+        long ts = System.currentTimeMillis();
         Set<Class<?>> klasses = AnnotationClassLookupUtils.getClasses(scanPackages, true, annoClasses, config.isImportAutoscanSkiperrors());
         ts = System.currentTimeMillis() - ts;
 
