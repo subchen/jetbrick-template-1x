@@ -804,10 +804,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         }
 
+        boolean isSafeCall = "?.".equals(ctx.getChild(1).getText());
+
         // 生成code
         StringBuilder sb = new StringBuilder(64);
         TypedKlass resultKlass = null;
-        String op = ctx.getChild(1).getText();
         if (member instanceof Method) {
             Method method = (Method) member;
             if (securityManager != null) {
@@ -816,7 +817,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
             if (method.getParameterTypes().length == 0) {
                 // getXXX() or isXXX()
-                if ("?.".equals(op)) { // 安全调用，防止 NullPointException
+                if (isSafeCall) { // 安全调用，防止 NullPointException
                     sb.append("((");
                     sb.append(code.toString());
                     sb.append("==null)?null:");
@@ -832,7 +833,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 }
             } else {
                 // get(String)
-                if ("?.".equals(op)) { // 安全调用，防止 NullPointException
+                if (isSafeCall) { // 安全调用，防止 NullPointException
                     sb.append("((");
                     sb.append(code.toString());
                     sb.append("==null)?null:");
@@ -857,7 +858,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 // array.length
                 resultKlass = TypedKlass.create(Integer.TYPE);
             }
-            if ("?.".equals(op)) { // 安全调用，防止 NullPointException
+            if (isSafeCall) { // 安全调用，防止 NullPointException
                 sb.append("((");
                 sb.append(code.toString());
                 sb.append("==null)?null:");
@@ -872,6 +873,9 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         }
 
+        if (isSafeCall) {
+            resultKlass = resultKlass.asBoxedTypedKlass();
+        }
         return new SegmentCode(resultKlass, sb.toString(), ctx);
     }
 
@@ -918,9 +922,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError(err.toString(), ctx.IDENTIFIER());
         }
 
+        boolean isSafeCall = "?.".equals(ctx.getChild(1).getText());
+
         // 生成code
         StringBuilder sb = new StringBuilder(64);
-        String op = ctx.getChild(1).getText();
         if (tool_method != null) {
             // tool method
             sb.append(ClassUtils.getShortClassName(tool_method.getDeclaringClass()));
@@ -935,7 +940,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 sb.append(',');
             }
         } else {
-            if ("?.".equals(op)) { // 安全调用，防止 NullPointException
+            if (isSafeCall) { // 安全调用，防止 NullPointException
                 sb.append('(');
                 sb.append(code.toString());
                 sb.append("==null)?null:");
@@ -955,7 +960,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         }
         sb.append(')');
 
-        if ("?.".equals(op)) { // 为了安全起见，用()包起来
+        if (isSafeCall) { // 为了安全起见，用()包起来
             sb.insert(0, '(').append(')');
         }
 
@@ -965,8 +970,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             securityManager.checkMemberAccess(method);
         }
 
-        TypedKlass typedKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
-        return new SegmentCode(typedKlass, sb.toString(), ctx);
+        TypedKlass resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
+        if (isSafeCall) {
+            resultKlass = resultKlass.asBoxedTypedKlass();
+        }
+        return new SegmentCode(resultKlass, sb.toString(), ctx);
     }
 
     @Override
@@ -1147,7 +1155,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 sb.append(rhs.toString());
                 sb.append(']');
             }
-            return new SegmentCode(lhsKlass.getComponentType(), lhs.getTypeArgs(), sb.toString(), ctx);
+
+            TypedKlass resultKlass = TypedKlass.create(lhsKlass.getComponentType(), lhs.getTypeArgs());
+            if (isSafeCall) {
+                resultKlass = resultKlass.asBoxedTypedKlass();
+            }
+            return new SegmentCode(resultKlass, sb.toString(), ctx);
         } else {
             TypedKlass resultKlass = null;
 
@@ -1192,6 +1205,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 sb.append(".get(");
                 sb.append(rhs.toString());
                 sb.append(')');
+            }
+
+            if (isSafeCall) {
+                resultKlass = resultKlass.asBoxedTypedKlass();
             }
             return new SegmentCode(resultKlass, sb.toString(), ctx);
         }
