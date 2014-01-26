@@ -1,3 +1,12 @@
+Version 1.2.1 (2014-01-26)
+-----------------------------
+
+* [新增] #72 JetTagContext/JetPageContext 请添加一个接口
+* [增强] #73 关于扩展方法/函数/标签 加载失败时的处理方式
+* [修复] #75 ${query?.pageNum.asDefault(1)} 出错
+* [修复] #74 ClassLoaderUtils.loadClass() 如果 Class 不存在，提示信息不正确
+* [修复] #70 关于https协议默认端口的问题
+
 Version 1.2.0 (2014-01-05)
 -----------------------------
 
