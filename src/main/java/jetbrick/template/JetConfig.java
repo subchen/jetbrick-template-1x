@@ -125,6 +125,18 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         load(config);
     }
 
+    @Override
+    public JetConfig loadClasspath(String classpath) {
+        try {
+            return super.loadClasspath(classpath);
+        } catch (IllegalStateException e) {
+            if (DEFAULT_CONFIG_FILE.equals(classpath) && e.getMessage().contains("InputStream not found")) {
+                return this;
+            }
+            throw e;
+        }
+    }
+
     /**
      * Fixed #61: avoid split in Map<String, String>
      */
