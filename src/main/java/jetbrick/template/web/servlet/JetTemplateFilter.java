@@ -52,6 +52,10 @@ public class JetTemplateFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         JetEngine engine = JetWebEngineLoader.getJetEngine();
+
+        if (response.getContentType() == null) {
+            response.setContentType("text/html");
+        }
         response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
 
         String uri = req.getServletPath();
