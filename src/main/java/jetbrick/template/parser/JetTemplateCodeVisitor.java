@@ -1569,7 +1569,10 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 查找 klass
         Class<?> klass = resolver.resolveClass(name.toString());
         if (klass == null) {
-            throw reportError("java.lang.ClassNotFoundException: " + name.toString(), ctx);
+            StringBuilder sb = new StringBuilder(128);
+            sb.append("java.lang.ClassNotFoundException: ").append(name);
+            sb.append("\n advise: Please define package in 'import.packages' or use full qualified class name.");
+            throw reportError(sb.toString(), ctx);
         }
 
         if (securityManager != null) {
