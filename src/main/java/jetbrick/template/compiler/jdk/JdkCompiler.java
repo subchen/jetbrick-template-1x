@@ -28,11 +28,14 @@ import javax.tools.JavaCompiler.CompilationTask;
 import jetbrick.template.compiler.*;
 import jetbrick.template.compiler.JavaCompiler;
 import jetbrick.template.utils.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 利用 JDK6 提供的 Java Compiler 进行编译，提供详细的错误输出。
  */
 public class JdkCompiler extends JavaCompiler {
+    private static final Logger log = LoggerFactory.getLogger(JdkCompiler.class);
     private static final String encoding = "utf-8"; // java source encoding
     private final javax.tools.JavaCompiler jc;
     private final StandardJavaFileManager fileManager;
@@ -82,6 +85,14 @@ public class JdkCompiler extends JavaCompiler {
                 fileManager.setLocation(StandardLocation.CLASS_PATH, files);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
+            }
+        }
+
+        // 输出编译用的 classpath
+        if (log.isDebugEnabled()) {
+            Iterable<? extends File> list = fileManager.getLocation(StandardLocation.CLASS_PATH);
+            for (File file : list) {
+                log.debug("classpath: " + file.getAbsolutePath());
             }
         }
     }
