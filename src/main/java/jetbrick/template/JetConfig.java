@@ -45,6 +45,8 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String INPUT_ENCODING = "input.encoding";
     public static final String OUTPUT_ENCODING = "output.encoding";
 
+    public static final String SYNTAX_SAFECALL = "syntax.safecall"; // 1.2.2
+
     public static final String TEMPLATE_LOADER = "template.loader";
     public static final String TEMPLATE_PATH = "template.path";
     public static final String TEMPLATE_SUFFIX = "template.suffix";
@@ -85,6 +87,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private List<String> importVariables;
     private String inputEncoding;
     private String outputEncoding;
+    private boolean syntaxSafecall;
     private Class<?> templateLoader;
     private String templatePath;
     private String templateSuffix;
@@ -110,6 +113,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(IMPORT_AUTOSCAN_SKIPERRORS, "false");
         config.setProperty(INPUT_ENCODING, "utf-8");
         config.setProperty(OUTPUT_ENCODING, "utf-8");
+        config.setProperty(SYNTAX_SAFECALL, "false");
         config.setProperty(TEMPLATE_LOADER, FileSystemResourceLoader.class.getName());
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
@@ -213,6 +217,10 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public String getOutputEncoding() {
         return outputEncoding;
+    }
+
+    public boolean isSyntaxSafecall() {
+        return syntaxSafecall;
     }
 
     public Class<?> getTemplateLoader() {

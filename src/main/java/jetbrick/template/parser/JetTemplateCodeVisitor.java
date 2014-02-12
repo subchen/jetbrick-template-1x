@@ -99,6 +99,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
     private final JetTemplateParser parser;
     private final VariableResolver resolver;
     private final JetSecurityManager securityManager;
+    private final boolean globalSafeCall;
     private final boolean trimDirectiveLine;
     private final boolean trimDirectiveComments;
     private final String commentsPrefix;
@@ -117,6 +118,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         this.resolver = resolver;
         this.securityManager = securityManager;
         this.resource = resource;
+        this.globalSafeCall = engine.getConfig().isSyntaxSafecall();
         this.trimDirectiveLine = engine.getConfig().isTrimDirectiveLine();
         this.trimDirectiveComments = engine.getConfig().isTrimDirectiveComments();
         this.commentsPrefix = engine.getConfig().getTrimDirectiveCommentsPrefix();
@@ -804,7 +806,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         }
 
-        boolean isSafeCall = "?.".equals(ctx.getChild(1).getText());
+        boolean isSafeCall = globalSafeCall || "?.".equals(ctx.getChild(1).getText());
 
         // 生成code
         StringBuilder sb = new StringBuilder(64);
@@ -922,7 +924,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             throw reportError(err.toString(), ctx.IDENTIFIER());
         }
 
-        boolean isSafeCall = "?.".equals(ctx.getChild(1).getText());
+        boolean isSafeCall = globalSafeCall || "?.".equals(ctx.getChild(1).getText());
 
         // 生成code
         StringBuilder sb = new StringBuilder(64);
@@ -1133,7 +1135,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         assert_not_null_constantContext(lhs.getNode());
         assert_not_null_constantContext(rhs.getNode());
 
-        boolean isSafeCall = "?".equals(ctx.getChild(1).getText());
+        boolean isSafeCall = globalSafeCall || "?".equals(ctx.getChild(1).getText());
 
         Class<?> lhsKlass = lhs.getKlass();
         if (lhsKlass.isArray()) {
