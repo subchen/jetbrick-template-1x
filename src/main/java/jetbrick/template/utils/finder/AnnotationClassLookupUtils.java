@@ -19,9 +19,13 @@
  */
 package jetbrick.template.utils.finder;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import jetbrick.template.utils.ClassLoaderUtils;
+import jetbrick.template.utils.finder.FileFinder.FileEntry;
+import jetbrick.template.utils.finder.FileFinder.FileVisitor;
+import jetbrick.template.utils.finder.FileFinder.SimpleFileVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,22 +56,17 @@ public class AnnotationClassLookupUtils {
         final Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
         final ClassLoader loader = ClassLoaderUtils.getContextClassLoader();
 
-        FileFinder finder = new FileFinder() {
+        FileVisitor fileVisitor = new SimpleFileVisitor() {
             @Override
-            protected void acceptFile(FileEntryItem file) {
-                if (file.getFileName().endsWith(".class")) {
-                    if (reader.isAnnotationed(file.getFile())) {
-                        addClass(file.getQualifiedClassName());
+            public void visitFileEntry(FileEntry file) {
+                try {
+                    if (file.isJavaClass()) {
+                        if (reader.isAnnotationed(file.getInputStream())) {
+                            addClass(file.getQualifiedJavaName());
+                        }
                     }
-                }
-            }
-
-            @Override
-            protected void acceptJarEntry(JarEntryItem jar) {
-                if (jar.getFileName().endsWith(".class")) {
-                    if (reader.isAnnotationed(jar.getJarFile(), jar.getJarEntry())) {
-                        addClass(jar.getQualifiedClassName());
-                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
 
@@ -92,7 +91,7 @@ public class AnnotationClassLookupUtils {
             }
         };
 
-        finder.lookupClasspath(packageNames, recursive);
+        new FileFinder(fileVisitor).lookupClasspath(packageNames, recursive);
 
         return classes;
     }

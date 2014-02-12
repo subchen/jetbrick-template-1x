@@ -29,31 +29,31 @@ import java.util.List;
  * @author Guoqiang Chen
  */
 public class TemplateFileFinder extends FileFinder {
-    private final List<String> resources = new ArrayList<String>();
-    private final String suffix;
 
     public TemplateFileFinder(String suffix) {
-        this.suffix = suffix;
-    }
-
-    @Override
-    protected void acceptFile(final FileEntryItem file) {
-        if (file.getFileName().endsWith(suffix)) {
-            resources.add(file.getRelativeName());
-        }
-    }
-
-    @Override
-    protected void acceptJarEntry(final JarEntryItem jar) {
-        if (jar.getFileName().endsWith(suffix)) {
-            resources.add(jar.getRelativeName());
-        }
+        super(new TemplateFileVisitor(suffix));
     }
 
     /**
      * 返回所有找到的模板文件.
      */
     public List<String> getResources() {
-        return resources;
+        return ((TemplateFileVisitor) visitor).resources;
+    }
+
+    static class TemplateFileVisitor extends SimpleFileVisitor {
+        private final List<String> resources = new ArrayList<String>();
+        private final String suffix;
+
+        public TemplateFileVisitor(String suffix) {
+            this.suffix = suffix;
+        }
+
+        @Override
+        public void visitFileEntry(FileEntry file) {
+            if (file.getRelativePathName().endsWith(suffix)) {
+                resources.add(file.getRelativePathName());
+            }
+        }
     }
 }

@@ -34,15 +34,12 @@ import jetbrick.template.utils.IoUtils;
  * @since 1.2.0
  * @author Guoqiang Chen
  */
-public abstract class FileFinder {
+public class FileFinder {
+    protected final FileVisitor visitor;
 
-    protected boolean acceptDirectory(File dir) {
-        return true;
+    public FileFinder(FileVisitor visitor) {
+        this.visitor = visitor;
     }
-
-    protected abstract void acceptFile(FileEntryItem file);
-
-    protected abstract void acceptJarEntry(JarEntryItem jar);
 
     /**
      * 搜索文件系统.
@@ -119,14 +116,16 @@ public abstract class FileFinder {
             return;
         }
         for (File file : files) {
+            String name = (relativeName == null) ? file.getName() : relativeName + '/' + file.getName();
+            SystemFileEntry entry = new SystemFileEntry(file, pkgdir, name);
             if (file.isDirectory()) {
-                if (recursive && acceptDirectory(file)) {
-                    String name = (relativeName == null) ? file.getName() : relativeName + '/' + file.getName();
-                    doLookupInFileSystem(file, pkgdir, name, true);
+                if (visitor.visitSystemDirEntry(entry)) {
+                    if (recursive) {
+                        doLookupInFileSystem(file, pkgdir, name, true);
+                    }
                 }
             } else {
-                String name = (relativeName == null) ? file.getName() : relativeName + '/' + file.getName();
-                acceptFile(new FileEntryItem(file, pkgdir, name));
+                visitor.visitSystemFileEntry(entry);
             }
         }
     }
@@ -149,23 +148,34 @@ public abstract class FileFinder {
     }
 
     private void doLookupInJarFile(JarFile jar, String pkgdir, boolean recursive) {
-        if (pkgdir != null) {
+        if (pkgdir == null || pkgdir.length() == 0) {
+            pkgdir = null;
+        } else {
             pkgdir = pkgdir + '/';
         }
         Enumeration<JarEntry> entries = jar.entries();
         while (entries.hasMoreElements()) {
             // 获取jar里的一个实体, 可以是目录和一些jar包里的其他文件 如META-INF等文件
             JarEntry entry = entries.nextElement();
-            if (entry.isDirectory()) {
-                continue;
-            }
             String entryName = entry.getName();
+            if (entry.isDirectory()) {
+                entryName = entryName.substring(0, entryName.length() - 1);
+            }
+
             if (pkgdir == null) {
-                acceptJarEntry(new JarEntryItem(jar, entry, entryName));
+                if (entry.isDirectory()) {
+                    visitor.visitJarDirEntry(new JarFileEntry(jar, entry, entryName));
+                } else {
+                    visitor.visitJarFileEntry(new JarFileEntry(jar, entry, entryName));
+                }
             } else if (entryName.startsWith(pkgdir)) {
                 entryName = entryName.substring(pkgdir.length());
                 if (recursive || entryName.indexOf('/') == -1) {
-                    acceptJarEntry(new JarEntryItem(jar, entry, entryName));
+                    if (entry.isDirectory()) {
+                        visitor.visitJarDirEntry(new JarFileEntry(jar, entry, entryName));
+                    } else {
+                        visitor.visitJarFileEntry(new JarFileEntry(jar, entry, entryName));
+                    }
                 }
             }
         }
@@ -180,12 +190,69 @@ public abstract class FileFinder {
         }
     }
 
-    static class FileEntryItem {
-        private File file;
-        private String pkgdir;
-        private String relativeName;
+    public static interface FileVisitor {
+        public boolean visitSystemDirEntry(SystemFileEntry dir);
 
-        public FileEntryItem(File file, String pkgdir, String relativeName) {
+        public void visitSystemFileEntry(SystemFileEntry file);
+
+        public void visitJarDirEntry(JarFileEntry dir);
+
+        public void visitJarFileEntry(JarFileEntry file);
+    }
+
+    public static abstract class SimpleFileVisitor implements FileVisitor {
+        @Override
+        public boolean visitSystemDirEntry(SystemFileEntry dir) {
+            return visitDirEntry(dir);
+        }
+
+        @Override
+        public void visitSystemFileEntry(SystemFileEntry file) {
+            visitFileEntry(file);
+        }
+
+        @Override
+        public void visitJarDirEntry(JarFileEntry dir) {
+            visitDirEntry(dir);
+        }
+
+        @Override
+        public void visitJarFileEntry(JarFileEntry file) {
+            visitFileEntry(file);
+        }
+
+        public boolean visitDirEntry(FileEntry dir) {
+            return true;
+        }
+
+        public void visitFileEntry(FileEntry file) {
+        }
+    }
+
+    public static interface FileEntry {
+        public boolean isDirectory();
+
+        public boolean isJavaClass();
+
+        public String getName();
+
+        public String getRelativePathName();
+
+        public String getQualifiedJavaName();
+
+        public long length();
+
+        public long lastModified();
+
+        public InputStream getInputStream() throws IOException;
+    }
+
+    public static class SystemFileEntry implements FileEntry {
+        private final File file;
+        private final String pkgdir;
+        private final String relativeName;
+
+        public SystemFileEntry(File file, String pkgdir, String relativeName) {
             this.file = file;
             this.pkgdir = pkgdir;
             this.relativeName = relativeName;
@@ -195,34 +262,71 @@ public abstract class FileFinder {
             return file;
         }
 
-        public String getFileName() {
+        @Override
+        public boolean isDirectory() {
+            return file.isDirectory();
+        }
+
+        @Override
+        public boolean isJavaClass() {
+            return !file.isDirectory() && file.getName().endsWith(".class");
+        }
+
+        @Override
+        public String getName() {
             return file.getName();
         }
 
-        public String getRelativeName() {
+        @Override
+        public String getRelativePathName() {
             return relativeName;
         }
 
-        public String getQualifiedClassName() {
+        @Override
+        public String getQualifiedJavaName() {
             String name;
             if (pkgdir != null) {
                 name = pkgdir + '/' + relativeName;
             } else {
                 name = relativeName;
             }
-            if (name.endsWith(".class")) {
-                return name.substring(0, name.length() - 6).replace('/', '.');
+            if (file.isDirectory()) {
+                return name.replace('/', '.');
+            } else {
+                if (name.endsWith(".class")) {
+                    return name.substring(0, name.length() - 6).replace('/', '.');
+                }
+                throw new IllegalStateException("FileEntry is not a Java Class: " + toString());
             }
-            throw new IllegalStateException("Resource file is not a Java Class.");
+        }
+
+        @Override
+        public long length() {
+            return file.length();
+        }
+
+        @Override
+        public long lastModified() {
+            return file.lastModified();
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return new FileInputStream(file);
+        }
+
+        @Override
+        public String toString() {
+            return file.toString();
         }
     }
 
-    static class JarEntryItem {
-        private JarFile jar;
-        private JarEntry entry;
-        private String relativeName;
+    public static class JarFileEntry implements FileEntry {
+        private final JarFile jar;
+        private final JarEntry entry;
+        private final String relativeName;
 
-        public JarEntryItem(JarFile jar, JarEntry entry, String relativeName) {
+        public JarFileEntry(JarFile jar, JarEntry entry, String relativeName) {
             this.jar = jar;
             this.entry = entry;
             this.relativeName = relativeName;
@@ -236,21 +340,58 @@ public abstract class FileFinder {
             return entry;
         }
 
-        public String getFileName() {
+        @Override
+        public boolean isDirectory() {
+            return entry.isDirectory();
+        }
+
+        @Override
+        public boolean isJavaClass() {
+            return entry.getName().endsWith(".class");
+        }
+
+        @Override
+        public String getName() {
             int ipos = relativeName.lastIndexOf('/');
             return ipos != -1 ? relativeName.substring(ipos + 1) : relativeName;
         }
 
-        public String getRelativeName() {
+        @Override
+        public String getRelativePathName() {
             return relativeName;
         }
 
-        public String getQualifiedClassName() {
+        @Override
+        public String getQualifiedJavaName() {
             String name = entry.getName();
-            if (name.endsWith(".class")) {
-                return name.substring(0, name.length() - 6).replace('/', '.');
+            if (entry.isDirectory()) {
+                return name.substring(0, name.length() - 1).replace('/', '.');
+            } else {
+                if (name.endsWith(".class")) {
+                    return name.substring(0, name.length() - 6).replace('/', '.');
+                }
+                throw new IllegalStateException("FileEntry is not a Java Class: " + toString());
             }
-            throw new IllegalStateException("Resource file is not a Java Class.");
+        }
+
+        @Override
+        public long length() {
+            return entry.getSize();
+        }
+
+        @Override
+        public long lastModified() {
+            return entry.getTime();
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return jar.getInputStream(entry);
+        }
+
+        @Override
+        public String toString() {
+            return entry.toString();
         }
     }
 }

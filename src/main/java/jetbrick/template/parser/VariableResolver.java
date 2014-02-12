@@ -27,6 +27,7 @@ import jetbrick.template.parser.support.TypedKlass;
 import jetbrick.template.runtime.*;
 import jetbrick.template.utils.ClassLoaderUtils;
 import jetbrick.template.utils.ExceptionUtils;
+import jetbrick.template.utils.finder.PackagesFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,11 +62,25 @@ public class VariableResolver {
     }
 
     public void addImportPackage(String pkg) {
+        if (pkg.endsWith(".**")) {
+            log.info("import package: {}", pkg);
+
+            pkg = pkg.substring(0, pkg.length() - 3);
+            Set<String> pkgs = PackagesFinder.lookup(pkg);
+            pkgs.add(pkg); // add self
+            for (String subpkg : pkgs) {
+                if (importedPackageList.add(subpkg)) {
+                    log.info("found sub package: {}.*", subpkg);
+                }
+            }
+            return;
+        }
+
         if (pkg.endsWith(".*")) {
             pkg = pkg.substring(0, pkg.length() - 2);
         }
         if (importedPackageList.add(pkg)) {
-            log.info("import package: " + pkg + ".*");
+            log.info("import package: {}.*", pkg);
         }
     }
 
@@ -86,7 +101,7 @@ public class VariableResolver {
             throw new RuntimeException("ClassNotFoundException: " + klassName);
         }
         if (variableMap.put(name, klass) != null) {
-            log.info("add variable: " + klass.getSource() + " " + name);
+            log.info("add variable: {} {}", klass.getSource(), name);
         }
     }
 
@@ -122,7 +137,7 @@ public class VariableResolver {
                 list.add(method);
             }
         }
-        log.info("add method class: " + klass.getName());
+        log.info("add method class: {}", klass.getName());
     }
 
     public void addFunctionClass(String klassName) {
@@ -154,7 +169,7 @@ public class VariableResolver {
                 list.add(method);
             }
         }
-        log.info("add function class: " + klass.getName());
+        log.info("add function class: {}", klass.getName());
     }
 
     public void addTagClass(String klassName) {
@@ -181,7 +196,7 @@ public class VariableResolver {
                 }
             }
         }
-        log.info("add tag class: " + klass.getName());
+        log.info("add tag class: {}", klass.getName());
     }
 
     // 根据名称，查找到对应的class (支持完整的泛型声明)
