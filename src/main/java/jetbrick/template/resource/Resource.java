@@ -139,8 +139,15 @@ public abstract class Resource {
                     modifiedIdentifier.append(Character.forDigit(c & 0xF, 16));
                 }
             }
-            if (SourceVersion.isKeyword(modifiedIdentifier.toString())) {
+
+            identifier = modifiedIdentifier.toString();
+            if (i == 1 && "java".equals(identifier)) {
+                // 不能以 “java.” 开头
                 modifiedIdentifier.append('_');
+            } else {
+                if (SourceVersion.isKeyword(identifier)) {
+                    modifiedIdentifier.append('_');
+                }
             }
             if (sb.length() > 0) {
                 sb.append('.');
