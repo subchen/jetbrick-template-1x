@@ -21,25 +21,21 @@ package jetbrick.template.utils.finder;
 
 import java.io.*;
 import java.net.*;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import jetbrick.template.utils.ClassLoaderUtils;
 import jetbrick.template.utils.IoUtils;
 
 /**
  * 查找指定路径下面的所有匹配得文件.
  *
+ * 子类需要实现自己的 visitXXX() 方法来搜集相关的内容.
+ *
  * @since 1.2.0
  * @author Guoqiang Chen
  */
-public class FileFinder {
-    protected final FileVisitor visitor;
-
-    public FileFinder(FileVisitor visitor) {
-        this.visitor = visitor;
-    }
+public abstract class FileFinder {
 
     /**
      * 搜索文件系统.
@@ -52,7 +48,18 @@ public class FileFinder {
      * 搜索所有的 Classpath 的文件.
      */
     public void lookupClasspath() {
-        lookupClasspath(null, true);
+        lookupClasspath((String[]) null, true);
+    }
+
+    /**
+     * 搜索指定 package 下面的文件.
+     */
+    public void lookupClasspath(List<String> packageNames, boolean recursive) {
+        String[] pkgs = null;
+        if (packageNames != null) {
+            pkgs = packageNames.toArray(new String[packageNames.size()]);
+        }
+        lookupClasspath(pkgs, recursive);
     }
 
     /**
@@ -72,17 +79,17 @@ public class FileFinder {
     }
 
     /**
-     * 搜索 Jar.
+     * 搜索 jar/zip.
      */
-    public void lookupJarEntry(File jarFile, String entryName, boolean recursive) {
-        JarFile jar = null;
+    public void lookupZipFile(File zipFile, String entryName, boolean recursive) {
+        ZipFile zip = null;
         try {
-            jar = new JarFile(jarFile);
-            doLookupInJarFile(jar, entryName, recursive);
+            zip = new ZipFile(zipFile);
+            doLookupInZipFile(zip, entryName, recursive);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            IoUtils.closeQuietly(jar);
+            IoUtils.closeQuietly(zip);
         }
     }
 
@@ -96,11 +103,11 @@ public class FileFinder {
                 } else {
                     String name = file.getName().toLowerCase();
                     if (name.endsWith(".jar") || name.endsWith(".zip")) {
-                        doLookupInJarFile(url, pkgdir, recursive);
+                        doLookupInZipFile(url, pkgdir, recursive);
                     }
                 }
-            } else if ("jar".equals(protocol)) {
-                doLookupInJarFile(url, pkgdir, recursive);
+            } else if ("jar".equals(protocol) || "zip".equals(protocol)) {
+                doLookupInZipFile(url, pkgdir, recursive);
             } else {
                 throw new IllegalStateException("Unsupported url format: " + url.toString());
             }
@@ -119,44 +126,47 @@ public class FileFinder {
             String name = (relativeName == null) ? file.getName() : relativeName + '/' + file.getName();
             SystemFileEntry entry = new SystemFileEntry(file, pkgdir, name);
             if (file.isDirectory()) {
-                if (visitor.visitSystemDirEntry(entry)) {
+                if (visitSystemDirEntry(entry)) {
                     if (recursive) {
                         doLookupInFileSystem(file, pkgdir, name, true);
                     }
                 }
             } else {
-                visitor.visitSystemFileEntry(entry);
+                visitSystemFileEntry(entry);
             }
         }
     }
 
-    private void doLookupInJarFile(URL url, String pkgdir, boolean recursive) {
-        JarFile jar = null;
+    private void doLookupInZipFile(URL url, String pkgdir, boolean recursive) {
+        ZipFile zip = null;
         try {
             if ("jar".equals(url.getProtocol())) {
-                JarURLConnection conn = (JarURLConnection) url.openConnection();
-                jar = conn.getJarFile();
+                zip = ((JarURLConnection) url.openConnection()).getJarFile();
             } else {
-                jar = new JarFile(toFile(url));
+                File file = toFile(url);
+                if (!file.exists()) {
+                    return;
+                }
+                zip = new ZipFile(file);
             }
-            doLookupInJarFile(jar, pkgdir, recursive);
+            doLookupInZipFile(zip, pkgdir, recursive);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            IoUtils.closeQuietly(jar);
+            IoUtils.closeQuietly(zip);
         }
     }
 
-    private void doLookupInJarFile(JarFile jar, String pkgdir, boolean recursive) {
+    private void doLookupInZipFile(ZipFile zip, String pkgdir, boolean recursive) {
         if (pkgdir == null || pkgdir.length() == 0) {
             pkgdir = null;
         } else {
             pkgdir = pkgdir + '/';
         }
-        Enumeration<JarEntry> entries = jar.entries();
+        Enumeration<? extends ZipEntry> entries = zip.entries();
         while (entries.hasMoreElements()) {
             // 获取jar里的一个实体, 可以是目录和一些jar包里的其他文件 如META-INF等文件
-            JarEntry entry = entries.nextElement();
+            ZipEntry entry = entries.nextElement();
             String entryName = entry.getName();
             if (entry.isDirectory()) {
                 entryName = entryName.substring(0, entryName.length() - 1);
@@ -164,17 +174,17 @@ public class FileFinder {
 
             if (pkgdir == null) {
                 if (entry.isDirectory()) {
-                    visitor.visitJarDirEntry(new JarFileEntry(jar, entry, entryName));
+                    visitZipDirEntry(new ZipFileEntry(zip, entry, entryName));
                 } else {
-                    visitor.visitJarFileEntry(new JarFileEntry(jar, entry, entryName));
+                    visitZipFileEntry(new ZipFileEntry(zip, entry, entryName));
                 }
             } else if (entryName.startsWith(pkgdir)) {
                 entryName = entryName.substring(pkgdir.length());
                 if (recursive || entryName.indexOf('/') == -1) {
                     if (entry.isDirectory()) {
-                        visitor.visitJarDirEntry(new JarFileEntry(jar, entry, entryName));
+                        visitZipDirEntry(new ZipFileEntry(zip, entry, entryName));
                     } else {
-                        visitor.visitJarFileEntry(new JarFileEntry(jar, entry, entryName));
+                        visitZipFileEntry(new ZipFileEntry(zip, entry, entryName));
                     }
                 }
             }
@@ -183,52 +193,47 @@ public class FileFinder {
 
     private File toFile(URL url) {
         try {
-            String decodeUrl = URLDecoder.decode(url.getFile(), "utf-8");
+            String file = url.getFile();
+            int ipos = file.indexOf("!/");
+            if (ipos > 0) {
+                file = file.substring(0, ipos);
+            }
+            String decodeUrl = URLDecoder.decode(file, "utf-8");
             return new File(decodeUrl);
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static interface FileVisitor {
-        public boolean visitSystemDirEntry(SystemFileEntry dir);
-
-        public void visitSystemFileEntry(SystemFileEntry file);
-
-        public void visitJarDirEntry(JarFileEntry dir);
-
-        public void visitJarFileEntry(JarFileEntry file);
+    //----------------------------------------------------------------
+    // following visitXXX methods should be overrided by subclass.
+    //
+    protected boolean visitSystemDirEntry(SystemFileEntry dir) {
+        return visitDirEntry(dir);
     }
 
-    public static abstract class SimpleFileVisitor implements FileVisitor {
-        @Override
-        public boolean visitSystemDirEntry(SystemFileEntry dir) {
-            return visitDirEntry(dir);
-        }
-
-        @Override
-        public void visitSystemFileEntry(SystemFileEntry file) {
-            visitFileEntry(file);
-        }
-
-        @Override
-        public void visitJarDirEntry(JarFileEntry dir) {
-            visitDirEntry(dir);
-        }
-
-        @Override
-        public void visitJarFileEntry(JarFileEntry file) {
-            visitFileEntry(file);
-        }
-
-        public boolean visitDirEntry(FileEntry dir) {
-            return true;
-        }
-
-        public void visitFileEntry(FileEntry file) {
-        }
+    protected void visitSystemFileEntry(SystemFileEntry file) {
+        visitFileEntry(file);
     }
 
+    protected void visitZipDirEntry(ZipFileEntry dir) {
+        visitDirEntry(dir);
+    }
+
+    protected void visitZipFileEntry(ZipFileEntry file) {
+        visitFileEntry(file);
+    }
+
+    protected boolean visitDirEntry(FileEntry dir) {
+        return true;
+    }
+
+    protected void visitFileEntry(FileEntry file) {
+    }
+
+    //----------------------------------------------------------------
+    // innerclass.
+    //
     public static interface FileEntry {
         public boolean isDirectory();
 
@@ -321,22 +326,22 @@ public class FileFinder {
         }
     }
 
-    public static class JarFileEntry implements FileEntry {
-        private final JarFile jar;
-        private final JarEntry entry;
+    public static class ZipFileEntry implements FileEntry {
+        private final ZipFile zip;
+        private final ZipEntry entry;
         private final String relativeName;
 
-        public JarFileEntry(JarFile jar, JarEntry entry, String relativeName) {
-            this.jar = jar;
+        public ZipFileEntry(ZipFile zip, ZipEntry entry, String relativeName) {
+            this.zip = zip;
             this.entry = entry;
             this.relativeName = relativeName;
         }
 
-        public JarFile getJarFile() {
-            return jar;
+        public ZipFile getZipFile() {
+            return zip;
         }
 
-        public JarEntry getJarEntry() {
+        public ZipEntry getZipEntry() {
             return entry;
         }
 
@@ -386,7 +391,7 @@ public class FileFinder {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return jar.getInputStream(entry);
+            return zip.getInputStream(entry);
         }
 
         @Override

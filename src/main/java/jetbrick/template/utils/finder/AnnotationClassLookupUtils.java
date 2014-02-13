@@ -23,9 +23,6 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import jetbrick.template.utils.ClassLoaderUtils;
-import jetbrick.template.utils.finder.FileFinder.FileEntry;
-import jetbrick.template.utils.finder.FileFinder.FileVisitor;
-import jetbrick.template.utils.finder.FileFinder.SimpleFileVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +53,7 @@ public class AnnotationClassLookupUtils {
         final Set<Class<?>> classes = new LinkedHashSet<Class<?>>();
         final ClassLoader loader = ClassLoaderUtils.getContextClassLoader();
 
-        FileVisitor fileVisitor = new SimpleFileVisitor() {
+        FileFinder finder = new FileFinder() {
             @Override
             public void visitFileEntry(FileEntry file) {
                 try {
@@ -91,7 +88,7 @@ public class AnnotationClassLookupUtils {
             }
         };
 
-        new FileFinder(fileVisitor).lookupClasspath(packageNames, recursive);
+        finder.lookupClasspath(packageNames, recursive);
 
         return classes;
     }

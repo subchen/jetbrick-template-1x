@@ -21,7 +21,7 @@ package jetbrick.template.compiler.jdk;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.URLDecoder;
 import java.util.*;
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
  * 利用 JDK6 提供的 Java Compiler 进行编译，提供详细的错误输出。
  */
 public class JdkCompiler extends JavaCompiler {
-    private static final Logger log = LoggerFactory.getLogger(JdkCompiler.class);
     private static final String encoding = "utf-8"; // java source encoding
     private final javax.tools.JavaCompiler jc;
     private final StandardJavaFileManager fileManager;
@@ -65,19 +64,14 @@ public class JdkCompiler extends JavaCompiler {
     }
 
     private void setDefaultClasspath(StandardJavaFileManager fileManager) {
-        Set<File> files = new HashSet<File>();
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        while (loader instanceof URLClassLoader && (!"sun.misc.Launcher$ExtClassLoader".equals(loader.getClass().getName()))) {
-            URLClassLoader urlClassLoader = (URLClassLoader) loader;
-            for (URL url : urlClassLoader.getURLs()) {
-                String file = StringEscapeUtils.unescapeUrl(url.getFile());
-                files.add(new File(file));
-            }
-            loader = loader.getParent();
-        }
-
-        if (files.size() > 0) {
+        Collection<URL> classpath = ClassLoaderUtils.getClasspathURLs(ClassLoaderUtils.getContextClassLoader());
+        if (classpath.size() > 0) {
             try {
+                Set<File> files = new LinkedHashSet<File>(classpath.size() + 16);
+                for (URL url : classpath) {
+                    String file = URLDecoder.decode(url.getFile(), "utf-8");
+                    files.add(new File(file));
+                }
                 Iterable<? extends File> list = fileManager.getLocation(StandardLocation.CLASS_PATH);
                 for (File file : list) {
                     files.add(file);
@@ -89,10 +83,11 @@ public class JdkCompiler extends JavaCompiler {
         }
 
         // 输出编译用的 classpath
+        Logger log = LoggerFactory.getLogger(getClass());
         if (log.isDebugEnabled()) {
-            Iterable<? extends File> list = fileManager.getLocation(StandardLocation.CLASS_PATH);
-            for (File file : list) {
-                log.debug("classpath: " + file.getAbsolutePath());
+            Iterable<? extends File> files = fileManager.getLocation(StandardLocation.CLASS_PATH);
+            for (File file : files) {
+                log.debug("Compilation classpath: " + file.getAbsolutePath());
             }
         }
     }

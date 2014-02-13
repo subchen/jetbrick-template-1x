@@ -21,21 +21,18 @@ package jetbrick.template.utils.finder;
 
 import java.util.HashSet;
 import java.util.Set;
-import jetbrick.template.utils.finder.FileFinder.JarFileEntry;
-import jetbrick.template.utils.finder.FileFinder.SimpleFileVisitor;
-import jetbrick.template.utils.finder.FileFinder.SystemFileEntry;
 
 /**
- * 专门用来查找子包
+ * 专门用来查找子包.
  *
  * @since 1.2.2
  * @author Guoqiang Chen
  */
 public class PackagesFinder {
-
-    public static Set<String> lookup(String packageName) {
+    public static Set<String> getPackages(String packageName) {
         final Set<String> results = new HashSet<String>();
-        FileFinder finder = new FileFinder(new SimpleFileVisitor() {
+
+        FileFinder finder = new FileFinder() {
             @Override
             public boolean visitSystemDirEntry(SystemFileEntry dir) {
                 results.add(dir.getQualifiedJavaName());
@@ -43,11 +40,14 @@ public class PackagesFinder {
             }
 
             @Override
-            public void visitJarDirEntry(JarFileEntry dir) {
+            public void visitZipDirEntry(ZipFileEntry dir) {
                 results.add(dir.getQualifiedJavaName());
             }
-        });
+        };
+
         finder.lookupClasspath(new String[] { packageName }, true);
+
         return results;
     }
+
 }

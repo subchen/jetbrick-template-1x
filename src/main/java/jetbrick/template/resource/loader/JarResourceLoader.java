@@ -60,7 +60,7 @@ public class JarResourceLoader implements ResourceLoader {
     @Override
     public List<String> loadAll() {
         TemplateFileFinder finder = new TemplateFileFinder(suffix);
-        finder.lookupJarEntry(jarFile, entryName, true);
+        finder.lookupZipFile(jarFile, entryName, true);
         return finder.getResources();
     }
 }

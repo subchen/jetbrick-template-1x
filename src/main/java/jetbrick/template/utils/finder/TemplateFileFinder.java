@@ -25,35 +25,28 @@ import java.util.List;
 /**
  * 专门用来查找模板 jetx 文件.
  *
- * @since 1.2.0
+ * @since 1.2.2
  * @author Guoqiang Chen
  */
 public class TemplateFileFinder extends FileFinder {
+    private final List<String> resources = new ArrayList<String>();
+    private final String suffix;
 
     public TemplateFileFinder(String suffix) {
-        super(new TemplateFileVisitor(suffix));
+        this.suffix = suffix;
+    }
+
+    @Override
+    public void visitFileEntry(FileEntry file) {
+        if (file.getRelativePathName().endsWith(suffix)) {
+            resources.add(file.getRelativePathName());
+        }
     }
 
     /**
      * 返回所有找到的模板文件.
      */
     public List<String> getResources() {
-        return ((TemplateFileVisitor) visitor).resources;
-    }
-
-    static class TemplateFileVisitor extends SimpleFileVisitor {
-        private final List<String> resources = new ArrayList<String>();
-        private final String suffix;
-
-        public TemplateFileVisitor(String suffix) {
-            this.suffix = suffix;
-        }
-
-        @Override
-        public void visitFileEntry(FileEntry file) {
-            if (file.getRelativePathName().endsWith(suffix)) {
-                resources.add(file.getRelativePathName());
-            }
-        }
+        return resources;
     }
 }

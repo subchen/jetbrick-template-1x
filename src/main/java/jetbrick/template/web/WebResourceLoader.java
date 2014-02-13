@@ -19,11 +19,11 @@
  */
 package jetbrick.template.web;
 
-import java.io.File;
+import java.io.*;
+import java.net.*;
 import java.util.List;
 import javax.servlet.ServletContext;
 import jetbrick.template.JetEngine;
-import jetbrick.template.resource.FileSystemResource;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.PathUtils;
@@ -54,17 +54,67 @@ public class WebResourceLoader implements ResourceLoader {
     @Override
     public Resource load(String name) {
         String pathname = PathUtils.combinePathName(basepath, name, false);
-        File file = new File(servletContext.getRealPath(pathname));
-        if (!file.exists()) return null;
-        return new FileSystemResource(name, file, encoding);
+        try {
+            URL url = servletContext.getResource(pathname);
+            if (url == null) {
+                return null;
+            }
+            String realpath = servletContext.getRealPath(pathname);
+            File file = (realpath == null) ? null : new File(realpath);
+            return new WebResource(url, file, name, encoding);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public List<String> loadAll() {
-        File dir = new File(servletContext.getRealPath("/"));
+        File dir;
+        String realpath = servletContext.getRealPath(basepath);
+        if (realpath != null) {
+            dir = new File(realpath);
+        } else {
+            // 该死的 weblogic，以war部署的时候，无法使用 getRealPath
+            try {
+                URL url = servletContext.getResource(basepath);
+                if (url == null) {
+                    throw new RuntimeException("template.path is not found in WebResourceLoader: " + basepath);
+                }
+                String decodeUrl = URLDecoder.decode(url.getFile(), "utf-8");
+                dir = new File(decodeUrl);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         TemplateFileFinder finder = new TemplateFileFinder(suffix);
         finder.lookupFileSystem(dir, true);
         return finder.getResources();
+    }
+
+    static class WebResource extends Resource {
+        private final URL url;
+        private final File file;
+
+        public WebResource(URL url, File file, String name, String encoding) {
+            super(name, encoding);
+            this.url = url;
+            this.file = file;
+        }
+
+        @Override
+        public String getAbsolutePath() {
+            return "webapp:" + name;
+        }
+
+        @Override
+        public long lastModified() {
+            return file == null ? 1L : file.lastModified();
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return url.openStream();
+        }
     }
 }

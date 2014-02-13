@@ -19,7 +19,9 @@
  */
 package jetbrick.template.utils;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
@@ -55,15 +57,33 @@ public class ClassLoaderUtils {
      * 根据 classLoader 获取所有的 Classpath URLs.
      */
     public static Collection<URL> getClasspathURLs(final ClassLoader classLoader) {
-        Collection<URL> urls = new HashSet<URL>(32);
+        Collection<URL> urls = new LinkedHashSet<URL>(32);
         ClassLoader loader = classLoader;
         while (loader != null) {
-            if (EXT_CLASS_LOADER_NAME.equals(loader.getClass().getName())) {
+            String klassName = loader.getClass().getName();
+            if (EXT_CLASS_LOADER_NAME.equals(klassName)) {
                 break;
             }
             if (loader instanceof URLClassLoader) {
                 for (URL url : ((URLClassLoader) loader).getURLs()) {
                     urls.add(url);
+                }
+            } else {
+                // 该死的 WebLogic，只能特殊处理
+                if (klassName.startsWith("weblogic.utils.classloaders.")) {
+                    try {
+                        Method method = loader.getClass().getMethod("getClassPath", (Class[]) null);
+                        Object result = method.invoke(loader);
+                        if (result != null) {
+                            String[] paths = StringUtils.split(result.toString(), File.pathSeparatorChar);
+                            for (String path : paths) {
+                                urls.add(new File(path).toURI().toURL());
+                            }
+                        }
+                    } catch (NoSuchMethodException e) {
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
             loader = loader.getParent();

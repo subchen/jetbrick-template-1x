@@ -67,7 +67,11 @@ public class JetWebEngineLoader implements ServletContextListener {
 
     private static void initJetWebEngine(ServletContext sc) {
         // 设置环境变量，以便 JetConfig 能够读取该变量
-        System.setProperty("webapp.dir", sc.getRealPath("/"));
+        String webappdir = sc.getRealPath("/");
+        if (webappdir != null) {
+            // 在 weblogic 中以 war 方式部署的时候，无法使用 getRealPath 方法.
+            System.setProperty("webapp.dir", webappdir);
+        }
 
         JetConfig config = new JetConfig();
         config.load(JetConfig.TEMPLATE_LOADER, WebResourceLoader.class.getName());

@@ -66,7 +66,7 @@ public class VariableResolver {
             log.info("import package: {}", pkg);
 
             pkg = pkg.substring(0, pkg.length() - 3);
-            Set<String> pkgs = PackagesFinder.lookup(pkg);
+            Set<String> pkgs = PackagesFinder.getPackages(pkg);
             pkgs.add(pkg); // add self
             for (String subpkg : pkgs) {
                 if (importedPackageList.add(subpkg)) {
