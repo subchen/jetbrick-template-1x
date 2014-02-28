@@ -199,7 +199,7 @@ public class JetEngine {
     }
 
     // 自动扫描 annotation
-    @SuppressWarnings({ "unchecked", "deprecation" })
+    @SuppressWarnings({ "unchecked" })
     private void autoScanClassImplements(VariableResolver resolver) {
         List<String> scanPackages = config.getImportAutoscanPackages();
         //@formatter:off
@@ -207,9 +207,6 @@ public class JetEngine {
             JetAnnotations.Methods.class,
             JetAnnotations.Functions.class,
             JetAnnotations.Tags.class,
-            JetAnnoations.Methods.class,
-            JetAnnoations.Functions.class,
-            JetAnnoations.Tags.class,
         };
         //@formatter:on
         long ts = System.currentTimeMillis();
@@ -225,12 +222,6 @@ public class JetEngine {
                 } else if (anno instanceof JetAnnotations.Functions) {
                     resolver.addFunctionClass(klass);
                 } else if (anno instanceof JetAnnotations.Tags) {
-                    resolver.addTagClass(klass);
-                } else if (anno instanceof JetAnnoations.Methods) {
-                    resolver.addMethodClass(klass);
-                } else if (anno instanceof JetAnnoations.Functions) {
-                    resolver.addFunctionClass(klass);
-                } else if (anno instanceof JetAnnoations.Tags) {
                     resolver.addTagClass(klass);
                 }
             }

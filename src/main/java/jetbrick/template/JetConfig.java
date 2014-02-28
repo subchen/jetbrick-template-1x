@@ -56,8 +56,6 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String SECURITY_MANAGER_NAMELIST = "security.manager.namelist"; // 1.2.0
     public static final String SECURITY_MANAGER_FILE = "security.manager.file"; // 1.2.0
 
-    @Deprecated
-    public static final String COMPILE_ALWAYS = "compile.always"; // 1.0.1 to 1.2.0
     public static final String COMPILE_STRATEGY = "compile.strategy"; // 1.2.0
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
@@ -118,7 +116,6 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
-        config.setProperty(COMPILE_ALWAYS, "true");
         config.setProperty(COMPILE_STRATEGY, "always");
         config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
@@ -156,11 +153,6 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     @Override
     public JetConfig build() {
         super.build();
-
-        // 兼容性检测
-        if (compileStrategy == CompileStrategy.always && !compileAlways) {
-            log.warn("Option {} is Deprecated, please use {}.", COMPILE_ALWAYS, COMPILE_STRATEGY);
-        }
 
         // log
         if (log.isInfoEnabled()) {
