@@ -24,8 +24,7 @@ import java.net.*;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import jetbrick.template.utils.ClassLoaderUtils;
-import jetbrick.template.utils.IoUtils;
+import jetbrick.template.utils.*;
 
 /**
  * 查找指定路径下面的所有匹配得文件.
@@ -97,7 +96,7 @@ public abstract class FileFinder {
         for (URL url : urls) {
             String protocol = url.getProtocol();
             if ("file".equals(protocol)) {
-                File file = toFile(url);
+                File file = URLUtils.toFileObject(url);
                 if (file.isDirectory()) {
                     doLookupInFileSystem(file, pkgdir, null, recursive);
                 } else {
@@ -108,6 +107,8 @@ public abstract class FileFinder {
                 }
             } else if ("jar".equals(protocol) || "zip".equals(protocol)) {
                 doLookupInZipFile(url, pkgdir, recursive);
+            } else if ("vfs".equals(protocol)) {
+                doLookupInVfsFile(url, pkgdir, recursive);
             } else {
                 throw new IllegalStateException("Unsupported url format: " + url.toString());
             }
@@ -143,7 +144,7 @@ public abstract class FileFinder {
             if ("jar".equals(url.getProtocol())) {
                 zip = ((JarURLConnection) url.openConnection()).getJarFile();
             } else {
-                File file = toFile(url);
+                File file = URLUtils.toFileObject(url);
                 if (!file.exists()) {
                     return;
                 }
@@ -191,16 +192,32 @@ public abstract class FileFinder {
         }
     }
 
-    private File toFile(URL url) {
+    private void doLookupInVfsFile(URL url, String pkgdir, boolean recursive) {
         try {
-            String file = url.getFile();
-            int ipos = file.indexOf("!/");
-            if (ipos > 0) {
-                file = file.substring(0, ipos);
+            URLConnection conn = url.openConnection();
+            if (conn.getClass().getName().equals("org.jboss.vfs.protocol.VirtualFileURLConnection")) {
+                String vfs = conn.getContent().toString(); // VirtualFile
+                File file = new File(vfs.substring(1, vfs.length() - 1));
+                if (!file.exists()) {
+                    return;
+                }
+                if (file.isDirectory()) {
+                    doLookupInFileSystem(file, pkgdir, null, recursive);
+                } else {
+                    String name = file.getName().toLowerCase();
+                    if (name.endsWith(".jar") || name.endsWith(".zip")) {
+                        ZipFile zip = new ZipFile(file);
+                        try {
+                            doLookupInZipFile(zip, pkgdir, recursive);
+                        } finally {
+                            IoUtils.closeQuietly(zip);
+                        }
+                    }
+                }
+            } else {
+                throw new IllegalStateException("Unsupported URL: " + url);
             }
-            String decodeUrl = URLDecoder.decode(file, "utf-8");
-            return new File(decodeUrl);
-        } catch (UnsupportedEncodingException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

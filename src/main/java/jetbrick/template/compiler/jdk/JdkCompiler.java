@@ -21,8 +21,8 @@ package jetbrick.template.compiler.jdk;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.*;
+import javax.servlet.ServletContext;
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
 import jetbrick.template.compiler.*;
@@ -40,8 +40,8 @@ public class JdkCompiler extends JavaCompiler {
     private final StandardJavaFileManager fileManager;
     private final List<String> options; // 编译参数
 
-    public JdkCompiler(JetTemplateClassLoader classloader) {
-        super(classloader);
+    public JdkCompiler(JetTemplateClassLoader classloader, boolean debugEnabled) {
+        super(classloader, debugEnabled);
 
         javax.tools.JavaCompiler jcc = ToolProvider.getSystemJavaCompiler();
         if (jcc == null) {
@@ -65,12 +65,20 @@ public class JdkCompiler extends JavaCompiler {
 
     private void setDefaultClasspath(StandardJavaFileManager fileManager) {
         Collection<URL> classpath = ClassLoaderUtils.getClasspathURLs(ClassLoaderUtils.getContextClassLoader());
+
+        // add dependences
+        classpath.add(getClass().getProtectionDomain().getCodeSource().getLocation());
+        classpath.add(ServletContext.class.getProtectionDomain().getCodeSource().getLocation());
+        classpath.add(LoggerFactory.class.getProtectionDomain().getCodeSource().getLocation());
+
         if (classpath.size() > 0) {
             try {
                 Set<File> files = new LinkedHashSet<File>(classpath.size() + 16);
                 for (URL url : classpath) {
-                    String file = URLDecoder.decode(url.getFile(), "utf-8");
-                    files.add(new File(file));
+                    File file = URLUtils.toFileObject(url);
+                    if (file.exists()) {
+                        files.add(file);
+                    }
                 }
                 Iterable<? extends File> list = fileManager.getLocation(StandardLocation.CLASS_PATH);
                 for (File file : list) {
@@ -83,11 +91,13 @@ public class JdkCompiler extends JavaCompiler {
         }
 
         // 输出编译用的 classpath
-        Logger log = LoggerFactory.getLogger(getClass());
-        if (log.isDebugEnabled()) {
-            Iterable<? extends File> files = fileManager.getLocation(StandardLocation.CLASS_PATH);
-            for (File file : files) {
-                log.debug("Compilation classpath: " + file.getAbsolutePath());
+        if (debugEnabled) {
+            Logger log = LoggerFactory.getLogger(getClass());
+            if (log.isInfoEnabled()) {
+                Iterable<? extends File> files = fileManager.getLocation(StandardLocation.CLASS_PATH);
+                for (File file : files) {
+                    log.info("Compilation classpath: " + file.getAbsolutePath());
+                }
             }
         }
     }

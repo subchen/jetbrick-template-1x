@@ -65,6 +65,13 @@ public final class StringUtils {
         return new String(chs, 0, count);
     }
 
+    public static String trimToEmpty(String str) {
+        if (str == null) {
+            return "";
+        }
+        return str.trim();
+    }
+
     public static String[] split(String str, char delimiter) {
         List<String> results = new ArrayList<String>();
 

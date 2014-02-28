@@ -136,12 +136,12 @@ public class JetEngine {
         return classLoader;
     }
 
-    protected JavaCompiler getJdkCompiler() {
+    protected JavaCompiler getJavaCompiler() {
         if (javaCompiler == null) {
             // 在 compileStrategy == none 的情况下，采用延迟加载，可以有效避免没有 javax.tools.JavaCompiler 的情况
             synchronized (this) {
                 if (javaCompiler == null) {
-                    javaCompiler = JavaCompiler.create(this.classLoader);
+                    javaCompiler = JavaCompiler.create(this.classLoader, config.isCompileDebug());
                 }
             }
         }

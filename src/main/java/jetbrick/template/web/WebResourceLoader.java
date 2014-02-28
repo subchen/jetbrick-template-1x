@@ -20,13 +20,15 @@
 package jetbrick.template.web;
 
 import java.io.*;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import javax.servlet.ServletContext;
 import jetbrick.template.JetEngine;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.resource.loader.ResourceLoader;
 import jetbrick.template.utils.PathUtils;
+import jetbrick.template.utils.URLUtils;
 import jetbrick.template.utils.finder.TemplateFileFinder;
 
 /**
@@ -80,8 +82,7 @@ public class WebResourceLoader implements ResourceLoader {
                 if (url == null) {
                     throw new RuntimeException("template.path is not found in WebResourceLoader: " + basepath);
                 }
-                String decodeUrl = URLDecoder.decode(url.getFile(), "utf-8");
-                dir = new File(decodeUrl);
+                dir = URLUtils.toFileObject(url);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

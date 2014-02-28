@@ -68,26 +68,59 @@ public class ClassLoaderUtils {
                 for (URL url : ((URLClassLoader) loader).getURLs()) {
                     urls.add(url);
                 }
-            } else {
+            } else if (klassName.startsWith("weblogic.utils.classloaders.")) {
                 // 该死的 WebLogic，只能特殊处理
-                if (klassName.startsWith("weblogic.utils.classloaders.")) {
-                    try {
-                        Method method = loader.getClass().getMethod("getClassPath", (Class[]) null);
-                        Object result = method.invoke(loader);
-                        if (result != null) {
-                            String[] paths = StringUtils.split(result.toString(), File.pathSeparatorChar);
-                            for (String path : paths) {
-                                urls.add(new File(path).toURI().toURL());
-                            }
+                // GenericClassLoader, FilteringClassLoader, ChangeAwareClassLoader
+                try {
+                    Method method = loader.getClass().getMethod("getClassPath");
+                    Object result = method.invoke(loader);
+                    if (result != null) {
+                        String[] paths = StringUtils.split(result.toString(), File.pathSeparatorChar);
+                        for (String path : paths) {
+                            urls.add(URLUtils.fromFile(path));
                         }
-                    } catch (NoSuchMethodException e) {
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
+                } catch (NoSuchMethodException e) {
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            } else if (klassName.startsWith("org.jboss.modules.ModuleClassLoader")) {
+                // 该死的 Wildfly 8，只能特殊处理
+                try {
+                    Set<URL> urlSet = WildflyUtils.getClasspathURLs(loader, false);
+                    urls.addAll(urlSet);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
             loader = loader.getParent();
         }
+
+        // moved jsp classpath from ServletContext.attributes to System.properties
+        String jsp_classpath = System.getProperty("org.apache.catalina.jsp_classpath");
+        String classpath = System.getProperty("java.class.path");
+
+        classpath = StringUtils.trimToEmpty(classpath) + File.pathSeparatorChar + StringUtils.trimToEmpty(jsp_classpath);
+        if (classpath.length() > 1) {
+            String[] paths = StringUtils.split(classpath, File.pathSeparatorChar);
+            for (String path : paths) {
+                path = path.trim();
+                if (path.length() > 0) {
+                    URL url = URLUtils.fromFile(path);
+                    urls.add(url);
+                }
+            }
+        }
+
+        // 删除 jdk 自带的 jar
+        Iterator<URL> it = urls.iterator();
+        while (it.hasNext()) {
+            String path = it.next().getPath();
+            if (path.contains("/jre/lib/")) {
+                it.remove();
+            }
+        }
+
         return urls;
     }
 

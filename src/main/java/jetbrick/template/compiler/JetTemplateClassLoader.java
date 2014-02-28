@@ -20,7 +20,8 @@
 package jetbrick.template.compiler;
 
 import java.io.File;
-import java.net.*;
+import java.net.URL;
+import java.net.URLClassLoader;
 import jetbrick.template.JetConfig;
 import jetbrick.template.JetConfig.CompileStrategy;
 import jetbrick.template.utils.*;
@@ -29,18 +30,18 @@ import org.slf4j.LoggerFactory;
 
 public class JetTemplateClassLoader {
     private final Logger log = LoggerFactory.getLogger(JetTemplateClassLoader.class);
-    private final String classpath;
+    private final String outputdir;
     private final URL[] urls;
     private final ClassLoader classloader;
     private final boolean reloadable;
 
     public JetTemplateClassLoader(JetConfig config) {
-        this.classpath = getCanonicalClasspath(config.getCompilePath());
-        this.urls = new URL[] { toURL(this.classpath) };
+        this.outputdir = getCanonicalClasspath(config.getCompilePath());
+        this.urls = new URL[] { URLUtils.fromFile(this.outputdir) };
         this.classloader = createClassLoader();
         this.reloadable = config.isTemplateReloadable() && config.getCompileStrategy() != CompileStrategy.none;
 
-        log.info("Will compile template into " + this.classpath);
+        log.info("Will compile template into " + this.outputdir);
     }
 
     public Class<?> loadClass(String qualifiedClassName) throws ClassNotFoundException {
@@ -54,20 +55,20 @@ public class JetTemplateClassLoader {
     }
 
     // 编译的目标路径
-    public String getClasspath() {
-        return classpath;
+    public String getOutputdir() {
+        return outputdir;
     }
 
     // 返回生成的  .java 文件对象
     public File getGeneratedJavaSourceFile(String qualifiedClassName) {
         String fileName = qualifiedClassName.replace('.', '/');
-        return new File(classpath, fileName + ".java");
+        return new File(outputdir, fileName + ".java");
     }
 
     // 返回生成的  .class 文件对象
     public File getGeneratedJavaClassFile(String qualifiedClassName) {
         String fileName = qualifiedClassName.replace('.', '/');
-        return new File(classpath, fileName + ".class");
+        return new File(outputdir, fileName + ".class");
     }
 
     private ClassLoader createClassLoader() {
@@ -81,13 +82,5 @@ public class JetTemplateClassLoader {
             throw new IllegalStateException("Can't create a directory in " + dir.getAbsolutePath());
         }
         return PathUtils.getCanonicalPath(dir);
-    }
-
-    private static URL toURL(String url) {
-        try {
-            return new File(url).toURI().toURL();
-        } catch (MalformedURLException e) {
-            throw ExceptionUtils.uncheck(e);
-        }
     }
 }

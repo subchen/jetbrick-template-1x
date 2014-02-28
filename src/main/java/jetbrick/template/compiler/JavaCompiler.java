@@ -23,13 +23,19 @@ import jetbrick.template.compiler.jdk.JdkCompiler;
 
 public abstract class JavaCompiler {
     protected final JetTemplateClassLoader classloader;
+    protected final boolean debugEnabled;
 
-    public static JavaCompiler create(JetTemplateClassLoader classloader) {
-        return new JdkCompiler(classloader);
+    public static JavaCompiler create(JetTemplateClassLoader classloader, boolean debugEnabled) {
+        return new JdkCompiler(classloader, debugEnabled);
     }
 
-    protected JavaCompiler(JetTemplateClassLoader classloader) {
+    protected JavaCompiler(JetTemplateClassLoader classloader, boolean debugEnabled) {
         this.classloader = classloader;
+        this.debugEnabled = debugEnabled;
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
     }
 
     // 进行编译

@@ -22,6 +22,7 @@ package jetbrick.template;
 import java.io.*;
 import java.util.Map;
 import jetbrick.template.JetConfig.CompileStrategy;
+import jetbrick.template.compiler.JavaCompiler;
 import jetbrick.template.parser.*;
 import jetbrick.template.parser.code.Code;
 import jetbrick.template.parser.grammer.*;
@@ -146,10 +147,15 @@ public final class JetTemplate {
             sb.append("===========================================================================");
             log.info(sb.toString());
         }
+
+        JavaCompiler javaCompiler = engine.getJavaCompiler();
+
         // compile
-        Class<?> cls = engine.getJdkCompiler().compile(resource.getQualifiedClassName(), source);
+        long ts = System.currentTimeMillis();
+        Class<?> cls = javaCompiler.compile(resource.getQualifiedClassName(), source);
         if (notPrecompileThread) {
-            log.info("generateJavaClass: " + javaClassFile.getAbsolutePath());
+            ts = System.currentTimeMillis() - ts;
+            log.info("generateJavaClass: {}, {}ms", javaClassFile.getAbsolutePath(), ts);
         }
         try {
             lastCompiledTimestamp = javaClassFile.lastModified();
