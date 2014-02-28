@@ -22,7 +22,6 @@ package jetbrick.template.compiler.jdk;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import javax.servlet.ServletContext;
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
 import jetbrick.template.compiler.*;
@@ -64,12 +63,24 @@ public class JdkCompiler extends JavaCompiler {
     }
 
     private void setDefaultClasspath(StandardJavaFileManager fileManager) {
-        Collection<URL> classpath = ClassLoaderUtils.getClasspathURLs(ClassLoaderUtils.getContextClassLoader());
+        ClassLoader contextClassLoader = ClassLoaderUtils.getContextClassLoader();
+        Collection<URL> classpath = ClassLoaderUtils.getClasspathURLs(contextClassLoader);
 
         // add dependences
-        classpath.add(getClass().getProtectionDomain().getCodeSource().getLocation());
-        classpath.add(ServletContext.class.getProtectionDomain().getCodeSource().getLocation());
-        classpath.add(LoggerFactory.class.getProtectionDomain().getCodeSource().getLocation());
+        // @formatter:off
+        List<String> classlist = Arrays.asList(
+            "jetbrick.template.JetEngine",
+            "javax.servlet.ServletContext",
+            "org.slf4j.LoggerFactory"
+        );
+        // @formatter:on
+        for (String klass : classlist) {
+            try {
+                Class<?> cls = contextClassLoader.loadClass(klass);
+                classpath.add(cls.getProtectionDomain().getCodeSource().getLocation());
+            } catch (ClassNotFoundException e) {
+            }
+        }
 
         if (classpath.size() > 0) {
             try {
