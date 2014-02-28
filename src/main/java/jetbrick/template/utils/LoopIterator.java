@@ -2,7 +2,7 @@
  * jetbrick-template
  * http://subchen.github.io/jetbrick-template/
  *
- * Copyright 2010-2013 Guoqiang Chen. All rights reserved.
+ * Copyright 2010-2014 Guoqiang Chen. All rights reserved.
  * Email: subchen@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
