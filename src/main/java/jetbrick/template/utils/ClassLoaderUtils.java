@@ -112,6 +112,18 @@ public class ClassLoaderUtils {
             }
         }
 
+        // 添加包含所有的 META-INF/MANIFEST.MF 的 jar 文件
+        try {
+            Enumeration<URL> paths = classLoader.getResources("META-INF/MANIFEST.MF");
+            while (paths.hasMoreElements()) {
+                URL url = paths.nextElement();
+                File file = URLUtils.toFileObject(url);
+                urls.add(file.toURI().toURL());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         // 删除 jdk 自带的 jar
         Iterator<URL> it = urls.iterator();
         while (it.hasNext()) {

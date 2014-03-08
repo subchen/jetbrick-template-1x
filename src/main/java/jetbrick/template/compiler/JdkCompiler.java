@@ -17,15 +17,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package jetbrick.template.compiler.jdk;
+package jetbrick.template.compiler;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import javax.tools.*;
 import javax.tools.JavaCompiler.CompilationTask;
-import jetbrick.template.compiler.*;
-import jetbrick.template.compiler.JavaCompiler;
 import jetbrick.template.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +33,13 @@ import org.slf4j.LoggerFactory;
  * 利用 JDK6 提供的 Java Compiler 进行编译，提供详细的错误输出。
  */
 public class JdkCompiler extends JavaCompiler {
-    private static final String encoding = "utf-8"; // java source encoding
-    private final javax.tools.JavaCompiler jc;
-    private final StandardJavaFileManager fileManager;
-    private final List<String> options; // 编译参数
+    final Logger log = LoggerFactory.getLogger(JdkCompiler.class);
+    private javax.tools.JavaCompiler jc;
+    private StandardJavaFileManager fileManager;
+    private List<String> options; // 编译参数
 
-    public JdkCompiler(JetTemplateClassLoader classloader, boolean debugEnabled) {
-        super(classloader, debugEnabled);
-
+    @Override
+    protected void initialize() {
         javax.tools.JavaCompiler jcc = ToolProvider.getSystemJavaCompiler();
         if (jcc == null) {
             // JDT 支持 ServiceLoader 方式载入。
@@ -57,7 +55,7 @@ public class JdkCompiler extends JavaCompiler {
 
         this.jc = jcc;
         this.fileManager = jc.getStandardFileManager(null, null, null);
-        this.options = Arrays.asList("-encoding", encoding, "-g", "-nowarn");
+        this.options = Arrays.asList("-encoding", JavaSource.JAVA_FILE_ENCODING, "-g", "-nowarn");
 
         setDefaultClasspath(fileManager);
     }
@@ -103,7 +101,6 @@ public class JdkCompiler extends JavaCompiler {
 
         // 输出编译用的 classpath
         if (debugEnabled) {
-            Logger log = LoggerFactory.getLogger(getClass());
             if (log.isInfoEnabled()) {
                 Iterable<? extends File> files = fileManager.getLocation(StandardLocation.CLASS_PATH);
                 for (File file : files) {
@@ -114,55 +111,22 @@ public class JdkCompiler extends JavaCompiler {
     }
 
     @Override
-    public Class<?> compile(String qualifiedClassName, String source) {
-        try {
-            File qualifiedJavaFile = classloader.getGeneratedJavaSourceFile(qualifiedClassName);
-            File qualifiedClassFile = classloader.getGeneratedJavaClassFile(qualifiedClassName);
-
-            // clean previous generatd files
-            qualifiedJavaFile.getParentFile().mkdirs();
-            if (qualifiedJavaFile.exists()) {
-                qualifiedJavaFile.delete();
-            }
-            if (qualifiedClassFile.exists()) {
-                qualifiedClassFile.delete();
-            }
-
-            // write source to file
-            OutputStream out = new FileOutputStream(qualifiedJavaFile);
-            try {
-                out.write(source.getBytes(encoding));
-            } finally {
-                IoUtils.closeQuietly(out);
-            }
-
-            // compile
-            generateJavaClass(qualifiedJavaFile, source);
-
-            // load class
-            return classloader.loadClass(qualifiedClassName);
-
-        } catch (Exception e) {
-            throw ExceptionUtils.uncheck(e);
-        }
-    }
-
-    private void generateJavaClass(File qualifiedJavaFile, String source) {
+    protected void generateJavaClass(JavaSource source) {
         // 编译代码
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>(); // 编译器编译中的诊断信息
-        Iterable<? extends JavaFileObject> files = fileManager.getJavaFileObjects(qualifiedJavaFile); // 要编译的所有Java文件
+        Iterable<? extends JavaFileObject> files = fileManager.getJavaFileObjects(source.getJavaFile()); // 要编译的所有Java文件
         CompilationTask task = jc.getTask(null, fileManager, diagnostics, options, null, files);
         Boolean result = task.call();
 
         // 返回编译结果
         if ((result == null) || !result.booleanValue()) {
-            String[] sourceLines = source.split("\r?\n", -1);
+            String[] sourceCodeLines = source.getSourceCode().split("\r?\n", -1);
             StringBuilder sb = new StringBuilder();
             sb.append("Compilation failed.");
             sb.append('\n');
             for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
                 sb.append(d.getMessage(Locale.ENGLISH)).append('\n');
-                sb.append(StringUtils.getPrettyError(sourceLines, (int) d.getLineNumber(), (int) d.getColumnNumber(), (int) d.getPosition(), (int) d.getPosition(), 3));
+                sb.append(StringUtils.getPrettyError(sourceCodeLines, (int) d.getLineNumber(), (int) d.getColumnNumber(), (int) d.getPosition(), (int) d.getPosition(), 3));
             }
             sb.append(diagnostics.getDiagnostics().size());
             sb.append(" error(s)\n");

@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public class JetTemplateClassLoader {
     private final Logger log = LoggerFactory.getLogger(JetTemplateClassLoader.class);
-    private final String outputdir;
+    private final File outputdir;
     private final URL[] urls;
     private final ClassLoader classloader;
     private final boolean reloadable;
@@ -55,7 +55,7 @@ public class JetTemplateClassLoader {
     }
 
     // 编译的目标路径
-    public String getOutputdir() {
+    public File getOutputdir() {
         return outputdir;
     }
 
@@ -75,12 +75,12 @@ public class JetTemplateClassLoader {
         return new URLClassLoader(urls, ClassLoaderUtils.getContextClassLoader());
     }
 
-    private static String getCanonicalClasspath(String classpath) {
-        File dir = new File(classpath);
+    private static File getCanonicalClasspath(String outputdir) {
+        File dir = new File(outputdir);
         // 必须先建立目录，否则 URLClassLoader 会失败
         if (!dir.mkdirs() && !dir.exists()) {
             throw new IllegalStateException("Can't create a directory in " + dir.getAbsolutePath());
         }
-        return PathUtils.getCanonicalPath(dir);
+        return PathUtils.getCanonicalFile(dir);
     }
 }

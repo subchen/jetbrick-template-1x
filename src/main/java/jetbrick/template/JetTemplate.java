@@ -23,6 +23,7 @@ import java.io.*;
 import java.util.Map;
 import jetbrick.template.JetConfig.CompileStrategy;
 import jetbrick.template.compiler.JavaCompiler;
+import jetbrick.template.compiler.JavaSource;
 import jetbrick.template.parser.*;
 import jetbrick.template.parser.code.Code;
 import jetbrick.template.parser.grammer.*;
@@ -152,7 +153,8 @@ public final class JetTemplate {
 
         // compile
         long ts = System.currentTimeMillis();
-        Class<?> cls = javaCompiler.compile(resource.getQualifiedClassName(), source);
+        JavaSource javaSource = new JavaSource(resource.getQualifiedClassName(), source, javaCompiler.getOutputdir());
+        Class<?> cls = javaCompiler.compile(javaSource);
         if (notPrecompileThread) {
             ts = System.currentTimeMillis() - ts;
             log.info("generateJavaClass: {}, {}ms", javaClassFile.getAbsolutePath(), ts);

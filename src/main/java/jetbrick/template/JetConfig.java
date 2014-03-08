@@ -23,6 +23,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Properties;
+import jetbrick.template.compiler.JdkCompiler;
 import jetbrick.template.resource.loader.FileSystemResourceLoader;
 import jetbrick.template.utils.ConfigSupport;
 import jetbrick.template.utils.PathUtils;
@@ -56,6 +57,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String SECURITY_MANAGER_NAMELIST = "security.manager.namelist"; // 1.2.0
     public static final String SECURITY_MANAGER_FILE = "security.manager.file"; // 1.2.0
 
+    public static final String COMPILE_TOOL = "compile.tool"; // 1.2.3
     public static final String COMPILE_STRATEGY = "compile.strategy"; // 1.2.0
     public static final String COMPILE_DEBUG = "compile.debug";
     public static final String COMPILE_PATH = "compile.path";
@@ -93,7 +95,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private Class<?> securityManager;
     private List<String> securityManagerNamelist;
     private String securityManagerFile;
-    private boolean compileAlways;
+    private Class<?> compileTool;
     private CompileStrategy compileStrategy;
     private boolean compileDebug;
     private String compilePath;
@@ -116,6 +118,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
+        config.setProperty(COMPILE_TOOL, JdkCompiler.class.getName());
         config.setProperty(COMPILE_STRATEGY, "always");
         config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
@@ -243,9 +246,8 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         return securityManagerFile;
     }
 
-    @Deprecated
-    public boolean isCompileAlways() {
-        return compileAlways;
+    public Class<?> getCompileTool() {
+        return compileTool;
     }
 
     public CompileStrategy getCompileStrategy() {
