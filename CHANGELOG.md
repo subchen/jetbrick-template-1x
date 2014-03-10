@@ -1,3 +1,11 @@
+Version 1.2.3 (2014-03-10)
+-----------------------------
+
+* [新增] #82 支持自定义的全局变量
+* [新增] #83 增加 Eclipse Java Compiler 支持
+* [修复] #80 WildFly 8.0.0 autoscan/compile error.
+* [修复] #81 resin-3.1.13 compile issue 
+
 Version 1.2.2 (2014-02-23)
 -----------------------------
 
