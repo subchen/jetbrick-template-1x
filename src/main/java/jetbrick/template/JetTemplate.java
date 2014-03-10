@@ -225,6 +225,9 @@ public final class JetTemplate {
 
     private void render(JetPageContext ctx) {
         try {
+            if (engine.getGlobalVariables() != null) {
+                ctx.getContext().setGlobalVariables(engine.getGlobalVariables());
+            }
             pageObject.render(ctx);
         } catch (Throwable e) {
             throw ExceptionUtils.uncheck(e);

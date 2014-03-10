@@ -27,6 +27,7 @@ import java.util.*;
 public class JetContext {
     private final JetContext parent;
     private final Map<String, Object> context;
+    private JetGlobalVariables globalVariables;
 
     public JetContext() {
         this(null, null);
@@ -67,7 +68,17 @@ public class JetContext {
         if (value == null && parent != null) {
             value = parent.get(name);
         }
+        if (value == null && globalVariables != null) {
+            value = globalVariables.get(this, name);
+            if (value != null) {
+                put(name, value); // resolved
+            }
+        }
         return value;
+    }
+
+    protected void setGlobalVariables(JetGlobalVariables globalVariables) {
+        this.globalVariables = globalVariables;
     }
 
     /**

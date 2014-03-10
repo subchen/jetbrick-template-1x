@@ -47,6 +47,7 @@ public class JetEngine {
     private ConcurrentTemplateCache templateCache;
     private JavaCompiler javaCompiler;
     private JetSecurityManager securityManager;
+    private JetGlobalVariables globalVariables;
 
     public static JetEngine create() {
         return new JetEngine(new JetConfig().loadClasspath(JetConfig.DEFAULT_CONFIG_FILE));
@@ -76,6 +77,7 @@ public class JetEngine {
         this.resourceCache = new ConcurrentResourceCache();
         this.templateCache = new ConcurrentTemplateCache();
         this.securityManager = createSecurityManager();
+        this.globalVariables = createGlobalVariables();
 
         if (config.getCompileStrategy() == CompileStrategy.precompile) {
             startPreCompileTask();
@@ -150,6 +152,10 @@ public class JetEngine {
 
     public JetSecurityManager getSecurityManager() {
         return securityManager;
+    }
+
+    public JetGlobalVariables getGlobalVariables() {
+        return globalVariables;
     }
 
     /**
@@ -253,6 +259,18 @@ public class JetEngine {
             JetSecurityManager manager = (JetSecurityManager) klass.newInstance();
             manager.initialize(this);
             return manager;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private JetGlobalVariables createGlobalVariables() {
+        Class<?> klass = config.getGlobalVariables();
+        if (klass == null) {
+            return null;
+        }
+        try {
+            return (JetGlobalVariables) klass.newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

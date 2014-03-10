@@ -46,6 +46,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     public static final String INPUT_ENCODING = "input.encoding";
     public static final String OUTPUT_ENCODING = "output.encoding";
 
+    public static final String GLOBAL_VARIABLES = "global.variables"; // 1.2.3
     public static final String SYNTAX_SAFECALL = "syntax.safecall"; // 1.2.2
 
     public static final String TEMPLATE_LOADER = "template.loader";
@@ -87,6 +88,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
     private List<String> importVariables;
     private String inputEncoding;
     private String outputEncoding;
+    private Class<?> globalVariables;
     private boolean syntaxSafecall;
     private Class<?> templateLoader;
     private String templatePath;
@@ -159,6 +161,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
         // log
         if (log.isInfoEnabled()) {
+            log.info("Compiler is \"{}\".", compileTool.getName());
             log.info("Load template from \"{}\" by {}.", templatePath, templateLoader);
             if (templateReloadable) {
                 log.info("Auto loading on: template will automatically reload.");
@@ -212,6 +215,10 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
     public String getOutputEncoding() {
         return outputEncoding;
+    }
+
+    public Class<?> getGlobalVariables() {
+        return globalVariables;
     }
 
     public boolean isSyntaxSafecall() {
