@@ -161,14 +161,11 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
         // log
         if (log.isInfoEnabled()) {
-            log.info("Compiler is \"{}\".", compileTool.getName());
-            log.info("Load template from \"{}\" by {}.", templatePath, templateLoader);
-            if (templateReloadable) {
-                log.info("Auto loading on: template will automatically reload.");
-            } else {
-                log.info("Auto loading off: template will NOT automatically reload.");
-            }
-            log.info("Compile strategy is \"{}\".", compileStrategy);
+            log.info("Template Compiler is {}", compileTool.getName());
+            log.info("Load template from \"{}\" by {}", templatePath, templateLoader);
+            log.info("Template Reloading is {}", templateReloadable);
+            log.info("Compile strategy is {}", compileStrategy);
+            log.info("Compile debug is {}", compileDebug);
         }
         return this;
     }
