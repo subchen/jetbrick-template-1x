@@ -34,9 +34,19 @@ import org.slf4j.LoggerFactory;
  */
 public class JdkCompiler extends JavaCompiler {
     final Logger log = LoggerFactory.getLogger(JdkCompiler.class);
+    private final boolean isJdk6;
     private javax.tools.JavaCompiler jc;
     private StandardJavaFileManager fileManager;
     private List<String> options; // 编译参数
+
+    public JdkCompiler() {
+        String version = System.getProperty("java.version");
+        if (version != null && version.contains("1.6.")) {
+            this.isJdk6 = true;
+        } else {
+            this.isJdk6 = false;
+        }
+    }
 
     @Override
     protected void initialize() {
@@ -111,12 +121,22 @@ public class JdkCompiler extends JavaCompiler {
     }
 
     @Override
-    protected synchronized void generateJavaClass(JavaSource source) {
+    protected void generateJavaClass(JavaSource source) {
         // 编译代码
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>(); // 编译器编译中的诊断信息
         Iterable<? extends JavaFileObject> files = fileManager.getJavaFileObjects(source.getJavaFile()); // 要编译的所有Java文件
         CompilationTask task = jc.getTask(null, fileManager, diagnostics, options, null, files);
-        Boolean result = task.call();
+
+        Boolean result;
+        if (isJdk6) {
+            // jdk6 的 compiler 是线程不安全的，需要手动同步
+            synchronized (this) {
+                result = task.call();
+            }
+        } else {
+            // jdk7+ 的 compiler 是线程安全的
+            result = task.call();
+        }
 
         // 返回编译结果
         if ((result == null) || !result.booleanValue()) {
