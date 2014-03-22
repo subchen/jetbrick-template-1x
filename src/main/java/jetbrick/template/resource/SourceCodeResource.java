@@ -21,6 +21,7 @@ package jetbrick.template.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicLong;
 import jetbrick.template.utils.UnsafeByteArrayInputStream;
 
 /**
@@ -31,10 +32,11 @@ import jetbrick.template.utils.UnsafeByteArrayInputStream;
  */
 public class SourceCodeResource extends Resource {
     private static final String ENCODING = "utf-8";
+    private static AtomicLong index = new AtomicLong();
     private final String source;
 
     public SourceCodeResource(String source) {
-        super("/unknown/file." + System.currentTimeMillis(), ENCODING);
+        super("/unknown/file." + index.incrementAndGet(), ENCODING);
         this.source = source;
     }
 
