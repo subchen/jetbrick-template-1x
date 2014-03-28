@@ -14,7 +14,7 @@
 	<classpathentry kind="lib" path="lib/web/xwork-core-2.3.15.3.jar"/>
 	<classpathentry kind="lib" path="lib/web/jfinal-1.5.jar"/>
 	<classpathentry kind="lib" path="lib/web/nutz-1.b.49.jar"/>
-	<classpathentry kind="lib" path="lib/web/jodd-madvoc-3.4.9.jar"/>
+	<classpathentry kind="lib" path="lib/web/jodd-madvoc-3.5.1.jar"/>
 	<classpathentry kind="lib" path="lib/compiler/ecj-4.3.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>

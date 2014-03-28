@@ -25,15 +25,15 @@ import jetbrick.template.*;
 import jetbrick.template.web.JetWebContext;
 import jetbrick.template.web.JetWebEngineLoader;
 import jodd.madvoc.ActionRequest;
-import jodd.madvoc.result.ActionResult;
+import jodd.madvoc.result.AbstractTemplateViewResult;
 
 /**
- * 与 jodd madvoc 的集成。
- * 
+ * 与 jodd madvoc 的集成。 (只支持 Jodd 3.5.1+, 3.5 之前的版本，可以用 jetx 1.2.4 版本)
+ *
  * @since 1.1.3
  * @author Guoqiang Chen
  */
-public class JetTemplateResult extends ActionResult {
+public class JetTemplateResult extends AbstractTemplateViewResult {
     private String contentType;
 
     public JetTemplateResult() {
@@ -45,22 +45,35 @@ public class JetTemplateResult extends ActionResult {
     }
 
     @Override
-    public void render(ActionRequest actionRequest, Object resultObject, String resultValue, String resultPath) throws Exception {
+    protected String locateTarget(ActionRequest actionRequest, String path) {
+        if (JetWebEngineLoader.unavailable()) {
+            JetWebEngineLoader.setServletContext(actionRequest.getHttpServletRequest().getSession().getServletContext());
+        }
+
+        JetEngine engine = JetWebEngineLoader.getJetEngine();
+        String suffix = engine.getConfig().getTemplateSuffix();
+        if (!path.endsWith(suffix)) {
+            path = path + suffix;
+        }
+        if (engine.lookupResource(path)) {
+            return path;
+        }
+        return null;
+    }
+
+    @Override
+    protected void renderView(ActionRequest actionRequest, String path) throws Exception {
         final HttpServletRequest request = actionRequest.getHttpServletRequest();
         final HttpServletResponse response = actionRequest.getHttpServletResponse();
 
-        if (JetWebEngineLoader.unavailable()) {
-            JetWebEngineLoader.setServletContext(request.getSession().getServletContext());
-        }
         JetEngine engine = JetWebEngineLoader.getJetEngine();
-
         response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
         if (contentType != null) {
             response.setContentType(contentType);
         }
 
         JetContext context = new JetWebContext(request, response);
-        JetTemplate template = engine.getTemplate(resultPath);
+        JetTemplate template = engine.getTemplate(path);
         template.render(context, response.getOutputStream());
     }
 }
