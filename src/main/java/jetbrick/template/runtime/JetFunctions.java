@@ -40,27 +40,35 @@ public final class JetFunctions {
         return UUID.randomUUID();
     }
 
-    @Deprecated
-    public static int[] range(int start, int stop) {
-        return ArrayUtils.range(start, stop, 1);
-    }
-
-    @Deprecated
-    public static int[] range(int start, int stop, int step) {
-        return ArrayUtils.range(start, stop, step);
-    }
-
     /**
      * @since 1.0.2
+     * @deprecated replaced by {@link #loop(int, int)}
      */
+    @Deprecated
     public static Iterator<Integer> iterator(int start, int stop) {
         return ArrayUtils.iterator(start, stop, 1);
     }
 
     /**
      * @since 1.0.2
+     * @deprecated replaced by {@link #loop(int, int, int)}
      */
+    @Deprecated
     public static Iterator<Integer> iterator(int start, int stop, int step) {
+        return ArrayUtils.iterator(start, stop, step);
+    }
+
+    /**
+     * @since 1.2.6
+     */
+    public static Iterator<Integer> loop(int start, int stop) {
+        return ArrayUtils.iterator(start, stop, 1);
+    }
+
+    /**
+     * @since 1.2.6
+     */
+    public static Iterator<Integer> loop(int start, int stop, int step) {
         return ArrayUtils.iterator(start, stop, step);
     }
 
