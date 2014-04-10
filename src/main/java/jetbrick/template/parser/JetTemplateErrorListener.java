@@ -23,6 +23,14 @@ import jetbrick.template.utils.StringUtils;
 import org.antlr.v4.runtime.*;
 
 public class JetTemplateErrorListener extends BaseErrorListener {
+    private static JetTemplateErrorListener instance = new JetTemplateErrorListener();
+
+    public static JetTemplateErrorListener getInstance() {
+        return instance;
+    }
+
+    private JetTemplateErrorListener() {
+    }
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {

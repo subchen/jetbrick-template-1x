@@ -174,7 +174,7 @@ public final class JetTemplate {
 
         JetTemplateParser parser = new JetTemplateParser(new CommonTokenStream(new JetTemplateLexer(is)));
         parser.removeErrorListeners(); // remove ConsoleErrorListener
-        parser.addErrorListener(new JetTemplateErrorListener());
+        parser.addErrorListener(JetTemplateErrorListener.getInstance());
         parser.setErrorHandler(new JetTemplateErrorStrategy());
 
         TemplateContext templateParseTree = parser.template();
