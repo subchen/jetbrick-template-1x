@@ -41,6 +41,7 @@ public class JetWebContext extends JetContext {
 
     public static final String CONTEXT_PATH = "ctxpath";
     public static final String WEBROOT_PATH = "webroot";
+    public static final String BASE_PATH = "basepath";
 
     private final ServletContext servletContext;
     private final HttpSession session;
@@ -54,6 +55,7 @@ public class JetWebContext extends JetContext {
         COOKIE,
         INIT_PARAMETER,
         WEBROOT_PATH,
+        BASE_PATH,
     }
     //@formatter:on
 
@@ -81,6 +83,7 @@ public class JetWebContext extends JetContext {
 
         put(CONTEXT_PATH, request.getContextPath());
         put(WEBROOT_PATH, TYPE.WEBROOT_PATH);
+        put(BASE_PATH, TYPE.BASE_PATH);
     }
 
     @Override
@@ -278,6 +281,23 @@ public class JetWebContext extends JetContext {
             sb.append(request.getContextPath());
             return sb.toString();
         }
+        case BASE_PATH: {
+            // 比 WEBROOT_PATH 后面多了一个 "/",
+            // 主要用于 <base href="${basepath}" />
+            StringBuilder sb = new StringBuilder();
+            String schema = request.getScheme();
+            int port = request.getServerPort();
+            sb.append(schema);
+            sb.append("://");
+            sb.append(request.getServerName());
+            if (!(port == 80 && "http".equals(schema)) && !(port == 443 && "https".equals(schema))) {
+                sb.append(':').append(request.getServerPort());
+            }
+            sb.append(request.getContextPath());
+            sb.append('/');
+            return sb.toString();
+        }
+
         default:
             return null;
         }
