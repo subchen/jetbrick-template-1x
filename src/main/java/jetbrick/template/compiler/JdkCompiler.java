@@ -65,7 +65,7 @@ public class JdkCompiler extends JavaCompiler {
 
         this.jc = jcc;
         this.fileManager = jc.getStandardFileManager(null, null, null);
-        this.options = Arrays.asList("-encoding", JavaSource.JAVA_FILE_ENCODING, "-g", "-nowarn");
+        this.options = Arrays.asList("-encoding", JavaSource.JAVA_FILE_ENCODING, "-g", "-nowarn", "-source", "1.6", "-target", "1.6");
 
         setDefaultClasspath(fileManager);
     }
