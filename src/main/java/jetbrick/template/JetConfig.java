@@ -161,6 +161,7 @@ public class JetConfig extends ConfigSupport<JetConfig> {
 
         // log
         if (log.isInfoEnabled()) {
+            log.info("JetEngine version is {}", JetEngine.VERSION);
             log.info("Template Compiler is {}", compileTool.getName());
             log.info("Load template from \"{}\" by {}", templatePath, templateLoader);
             log.info("Template Reloading is {}", templateReloadable);
