@@ -38,7 +38,6 @@ import jetbrick.template.utils.finder.TemplateFileFinder;
  * @author Guoqiang Chen
  */
 public class WebResourceLoader implements ResourceLoader {
-    private JetWebEngine engine;
     private ServletContext servletContext;
     private String basepath;
     private String suffix;
@@ -46,8 +45,7 @@ public class WebResourceLoader implements ResourceLoader {
 
     @Override
     public void initialize(JetEngine engine, String basepath, String encoding) {
-        this.engine = ((JetWebEngine) engine);
-        this.servletContext = this.engine.getServletContext();
+        this.servletContext = ((JetWebEngine) engine).getServletContext();
         this.basepath = PathUtils.getStandardizedTemplateRoot(basepath, false);
         this.suffix = engine.getConfig().getTemplateSuffix();
         this.encoding = encoding;
