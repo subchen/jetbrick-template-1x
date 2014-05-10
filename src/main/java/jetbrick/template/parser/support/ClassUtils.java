@@ -21,9 +21,22 @@ package jetbrick.template.parser.support;
 
 import java.util.HashSet;
 import java.util.Set;
+import jetbrick.template.utils.ClassLoaderUtils;
 
 public class ClassUtils {
     private static final Set<String> default_package_set;
+
+    /**
+     * 判断一个 Class 是否存在并且可用.
+     */
+    public static boolean available(String qualifiedClassName) {
+        try {
+            ClassLoaderUtils.loadClass(qualifiedClassName);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     /**
      * Class.isAssignableFrom() 的增强版本。 支持 null, 自动装箱,

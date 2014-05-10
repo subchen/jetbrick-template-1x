@@ -24,6 +24,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Properties;
 import jetbrick.template.compiler.JdkCompiler;
+import jetbrick.template.compiler.JdtCompiler;
+import jetbrick.template.parser.support.ClassUtils;
 import jetbrick.template.resource.loader.FileSystemResourceLoader;
 import jetbrick.template.utils.ConfigSupport;
 import jetbrick.template.utils.PathUtils;
@@ -120,7 +122,11 @@ public class JetConfig extends ConfigSupport<JetConfig> {
         config.setProperty(TEMPLATE_PATH, PathUtils.getCurrentPath());
         config.setProperty(TEMPLATE_SUFFIX, ".jetx");
         config.setProperty(TEMPLATE_RELOADABLE, "false");
-        config.setProperty(COMPILE_TOOL, JdkCompiler.class.getName());
+        if (ClassUtils.available("org.eclipse.jdt.internal.compiler.Compiler")) {
+            config.setProperty(COMPILE_TOOL, JdtCompiler.class.getName());
+        } else {
+            config.setProperty(COMPILE_TOOL, JdkCompiler.class.getName());
+        }
         config.setProperty(COMPILE_STRATEGY, "always");
         config.setProperty(COMPILE_DEBUG, "false");
         config.setProperty(COMPILE_PATH, defaultCompilePath);
