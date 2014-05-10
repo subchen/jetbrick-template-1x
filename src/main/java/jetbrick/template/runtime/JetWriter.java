@@ -43,10 +43,6 @@ public abstract class JetWriter {
         print(String.valueOf(x));
     }
 
-    public void print(char x) throws IOException {
-        print(String.valueOf(x));
-    }
-
     public void print(short x) throws IOException {
         print(String.valueOf(x));
     }
@@ -66,6 +62,26 @@ public abstract class JetWriter {
     public void print(double x) throws IOException {
         print(String.valueOf(x));
     }
+
+    public void print(Boolean x) throws IOException {
+        if (x != null) {
+            print(x.booleanValue() ? "true" : "false");
+        }
+    }
+
+    public void print(Number x) throws IOException {
+        if (x != null) {
+            print(x.toString());
+        }
+    }
+
+    public void print(Character x) throws IOException {
+        if (x != null) {
+            print(x.charValue());
+        }
+    }
+
+    public abstract void print(char x) throws IOException;
 
     public abstract void print(byte x[]) throws IOException;
 
@@ -180,6 +196,11 @@ public abstract class JetWriter {
         }
 
         @Override
+        public void print(char x) throws IOException {
+            os.write(x);
+        }
+
+        @Override
         public void print(byte x[]) throws IOException {
             if (x != null) {
                 os.write(new String(x, encoding));
@@ -234,6 +255,11 @@ public abstract class JetWriter {
         @Override
         public void print(String text, byte[] bytes) throws IOException {
             os.write(bytes);
+        }
+
+        @Override
+        public void print(char x) throws IOException {
+            os.write(x);
         }
 
         @Override
