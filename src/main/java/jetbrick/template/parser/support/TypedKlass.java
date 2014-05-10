@@ -25,7 +25,7 @@ import jetbrick.template.JetContext;
 import jetbrick.template.runtime.JetForStatus;
 import jetbrick.template.runtime.JetWriter;
 
-/*
+/**
  * 泛型类描述
  * String -> {klass: String.class, types: []}
  * List<String> -> {klass: List.class, types: [{klass: String.class, types: []}]}
