@@ -8,16 +8,6 @@
     <property name="maven-staging-repository-id" value="sonatype-nexus-staging" />
     <property name="maven-staging-repository-url" value="https://oss.sonatype.org/service/local/staging/deploy/maven2/" />
  
-    <target name="maven.deploy" description="deploy snapshot version to Maven snapshot repository">
-        <artifact:mvn>
-            <arg value="org.apache.maven.plugins:maven-deploy-plugin:2.8:deploy-file" />
-            <arg value="-Durl=${maven-snapshots-repository-url}" />
-            <arg value="-DrepositoryId=${maven-snapshots-repository-id}" />
-            <arg value="-DpomFile=pom.xml" />
-            <arg value="-Dfile=${dist.jar}" />
-        </artifact:mvn>
-    </target>
- 
     <!-- before this, update project version (both build.xml and pom.xml) from SNAPSHOT to RELEASE -->
     <target name="maven.stage" description="deploy release version to Maven staging repository">
         <!-- sign and deploy the main artifact -->

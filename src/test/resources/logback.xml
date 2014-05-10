@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level \(%F:%L\) - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="jetbrick" level="DEBUG" />
+
+	<root level="INFO">
+		<appender-ref ref="stdout" />
+	</root>
+
+</configuration>

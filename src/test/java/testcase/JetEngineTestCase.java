@@ -23,6 +23,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 import jetbrick.template.*;
+import jetbrick.template.compiler.JdtCompiler;
 import jetbrick.template.resource.loader.ClasspathResourceLoader;
 import jetbrick.template.utils.*;
 
@@ -39,6 +40,7 @@ public class JetEngineTestCase {
         config.put(JetConfig.TEMPLATE_LOADER, ClasspathResourceLoader.class.getName());
         config.put(JetConfig.TEMPLATE_PATH, "/");
         //config.put(JetConfig.COMPILE_ALWAYS, "false");
+        config.put(JetConfig.COMPILE_TOOL, JdtCompiler.class.getName());
         config.put(JetConfig.COMPILE_DEBUG, "true");
         config.put(JetConfig.TRIM_DIRECTIVE_COMMENTS, "true");
         return JetEngine.create(config);
@@ -61,7 +63,7 @@ public class JetEngineTestCase {
 
     private static void testSuccessfully() throws IOException {
         URL url = ClassLoaderUtils.getContextClassLoader().getResource("template");
-        File path = new File(url.getFile());
+        File path = URLUtils.toFileObject(url);
 
         for (File file : path.listFiles()) {
             if (file.getName().endsWith(".jetx")) {

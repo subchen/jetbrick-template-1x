@@ -1,4 +1,0 @@
-#set (List<String> items = ["a","b","c","d"])
-#for (int x : items)
-    ${x}
-#end

@@ -50,6 +50,7 @@ public class JarResource extends Resource {
 
     @Override
     public InputStream getInputStream() throws IOException {
+        @SuppressWarnings("resource")
         JarFile jarFile = new JarFile(jar);
         JarEntry jarEntry = jarFile.getJarEntry(entry);
         if (jarEntry == null) return null;
