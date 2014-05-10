@@ -107,6 +107,9 @@ public class VariableResolver {
 
     public void addMethodClass(String klassName) {
         Class<?> klass = resolveClass(klassName);
+        if (klass == null) {
+            throw new IllegalStateException("Cannot resolve class: " + klassName);
+        }
         addMethodClass(klass);
     }
 
@@ -142,6 +145,9 @@ public class VariableResolver {
 
     public void addFunctionClass(String klassName) {
         Class<?> klass = resolveClass(klassName);
+        if (klass == null) {
+            throw new IllegalStateException("Cannot resolve class: " + klassName);
+        }
         addFunctionClass(klass);
     }
 
@@ -174,6 +180,9 @@ public class VariableResolver {
 
     public void addTagClass(String klassName) {
         Class<?> klass = resolveClass(klassName);
+        if (klass == null) {
+            throw new IllegalStateException("Cannot resolve class: " + klassName);
+        }
         addTagClass(klass);
     }
 
