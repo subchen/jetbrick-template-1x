@@ -980,6 +980,16 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         StringBuilder sb = new StringBuilder(64);
         if (tool_method != null) {
             // tool method
+            if (isSafeCall) { // 安全调用，防止 NullPointException
+                sb.append('(');
+                sb.append(code.toString());
+                sb.append("==null)?(");
+                sb.append(resultKlass.getSource());
+                sb.append(")null:");
+                if (boxWhenSafeCall) {
+                    sb.append(resultKlass.getSource()).append(".valueOf(");
+                }
+            }
             sb.append(ClassUtils.getShortClassName(tool_method.getDeclaringClass()));
             sb.append('.');
             sb.append(name);
@@ -1001,16 +1011,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 if (boxWhenSafeCall) {
                     sb.append(resultKlass.getSource()).append(".valueOf(");
                 }
-                sb.append(code.toString());
-                sb.append('.');
-                sb.append(name);
-                sb.append('(');
-            } else {
-                sb.append(code.toString());
-                sb.append('.');
-                sb.append(name);
-                sb.append('(');
             }
+            sb.append(code.toString());
+            sb.append('.');
+            sb.append(name);
+            sb.append('(');
         }
         if (segmentListCode != null && segmentListCode.size() > 0) {
             sb.append(segmentListCode.toString());

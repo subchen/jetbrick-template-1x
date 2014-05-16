@@ -1,0 +1,2 @@
+#define(String notFound)
+${notFound?.asDefault("xxx")}
