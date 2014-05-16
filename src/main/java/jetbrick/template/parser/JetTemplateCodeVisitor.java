@@ -820,13 +820,27 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (method.getParameterTypes().length == 0) {
                 // getXXX() or isXXX()
                 if (isSafeCall) { // 安全调用，防止 NullPointException
+                    boolean boxWhenSafeCall = false;
+                    if (resultKlass.isPrimitive()) {
+                        boxWhenSafeCall = true;
+                        resultKlass = resultKlass.asBoxedTypedKlass();
+                    }
                     sb.append("((");
                     sb.append(code.toString());
-                    sb.append("==null)?null:");
+                    sb.append("==null)?(");
+                    sb.append(resultKlass.getSource());
+                    sb.append(")null:");
+                    if (boxWhenSafeCall) {
+                        sb.append(resultKlass.getSource()).append(".valueOf(");
+                    }
                     sb.append(code.toString());
                     sb.append('.');
                     sb.append(method.getName());
-                    sb.append("())");
+                    sb.append("()");
+                    if (boxWhenSafeCall) {
+                        sb.append(')');
+                    }
+                    sb.append(')');
                 } else {
                     sb.append(code.toString());
                     sb.append('.');
@@ -836,13 +850,27 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             } else {
                 // get(String)
                 if (isSafeCall) { // 安全调用，防止 NullPointException
+                    boolean boxWhenSafeCall = false;
+                    if (resultKlass.isPrimitive()) {
+                        boxWhenSafeCall = true;
+                        resultKlass = resultKlass.asBoxedTypedKlass();
+                    }
                     sb.append("((");
                     sb.append(code.toString());
-                    sb.append("==null)?null:");
+                    sb.append("==null)?(");
+                    sb.append(resultKlass.getSource());
+                    sb.append(")null:");
+                    if (boxWhenSafeCall) {
+                        sb.append(resultKlass.getSource()).append(".valueOf(");
+                    }
                     sb.append(code.toString());
                     sb.append(".get(\"");
                     sb.append(name);
-                    sb.append("\"))");
+                    sb.append("\")");
+                    if (boxWhenSafeCall) {
+                        sb.append(')');
+                    }
+                    sb.append(')');
                 } else {
                     sb.append(code.toString());
                     sb.append(".get(\"");
@@ -861,12 +889,25 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 resultKlass = TypedKlass.create(Integer.TYPE);
             }
             if (isSafeCall) { // 安全调用，防止 NullPointException
+                boolean boxWhenSafeCall = false;
+                if (resultKlass.isPrimitive()) {
+                    boxWhenSafeCall = true;
+                    resultKlass = resultKlass.asBoxedTypedKlass();
+                }
                 sb.append("((");
                 sb.append(code.toString());
-                sb.append("==null)?null:");
+                sb.append("==null)?(");
+                sb.append(resultKlass.getSource());
+                sb.append(")null:");
+                if (boxWhenSafeCall) {
+                    sb.append(resultKlass.getSource()).append(".valueOf(");
+                }
                 sb.append(code.toString());
                 sb.append('.');
                 sb.append(name);
+                if (boxWhenSafeCall) {
+                    sb.append(')');
+                }
                 sb.append(')');
             } else {
                 sb.append(code.toString());
@@ -875,9 +916,6 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         }
 
-        if (isSafeCall) {
-            resultKlass = resultKlass.asBoxedTypedKlass();
-        }
         return new SegmentCode(resultKlass, sb.toString(), ctx);
     }
 
@@ -898,7 +936,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Method bean_method = resolver.resolveMethod(beanClass, name, parameterTypes);
         Method tool_method = (bean_method != null) ? null : resolver.resolveToolMethod(beanClass, name, parameterTypes);
         boolean tool_advanced = false;
-        if (tool_method == null) {
+        if (bean_method == null && tool_method == null) {
             tool_method = resolver.resolveToolMethod_advanced(beanClass, name, parameterTypes);
             tool_advanced = true;
         }
@@ -926,6 +964,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
 
         boolean isSafeCall = globalSafeCall || "?.".equals(ctx.getChild(1).getText());
 
+        // 得到方法的返回类型
+        Method method = (bean_method == null) ? tool_method : bean_method;
+        if (securityManager != null) {
+            securityManager.checkMemberAccess(method);
+        }
+
+        TypedKlass resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
+        boolean boxWhenSafeCall = resultKlass.isPrimitive();
+        if (isSafeCall) {
+            resultKlass = resultKlass.asBoxedTypedKlass();
+        }
+
         // 生成code
         StringBuilder sb = new StringBuilder(64);
         if (tool_method != null) {
@@ -945,7 +995,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (isSafeCall) { // 安全调用，防止 NullPointException
                 sb.append('(');
                 sb.append(code.toString());
-                sb.append("==null)?null:");
+                sb.append("==null)?(");
+                sb.append(resultKlass.getSource());
+                sb.append(")null:");
+                if (boxWhenSafeCall) {
+                    sb.append(resultKlass.getSource()).append(".valueOf(");
+                }
                 sb.append(code.toString());
                 sb.append('.');
                 sb.append(name);
@@ -963,19 +1018,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         sb.append(')');
 
         if (isSafeCall) { // 为了安全起见，用()包起来
+            if (boxWhenSafeCall) {
+                sb.append(')');
+            }
             sb.insert(0, '(').append(')');
         }
 
-        // 得到方法的返回类型
-        Method method = (bean_method == null) ? tool_method : bean_method;
-        if (securityManager != null) {
-            securityManager.checkMemberAccess(method);
-        }
-
-        TypedKlass resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
-        if (isSafeCall) {
-            resultKlass = resultKlass.asBoxedTypedKlass();
-        }
         return new SegmentCode(resultKlass, sb.toString(), ctx);
     }
 
@@ -1142,25 +1190,36 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (!ClassUtils.isAssignable(Integer.TYPE, rhs.getKlass())) {
                 throw reportError("Type mismatch: cannot convert from " + rhs.getKlassName() + " to int.", lhs.getNode());
             }
+
+            TypedKlass resultKlass = TypedKlass.create(lhsKlass.getComponentType(), lhs.getTypeArgs());
+            boolean boxWhenSafeCall = resultKlass.isPrimitive();
+            if (isSafeCall) {
+                resultKlass = resultKlass.asBoxedTypedKlass();
+            }
+
             StringBuilder sb = new StringBuilder();
             if (isSafeCall) {
                 sb.append('(');
                 sb.append(lhs.toString());
-                sb.append("==null?null:");
+                sb.append("==null?(");
+                sb.append(resultKlass.getSource());
+                sb.append(")null:");
+                if (boxWhenSafeCall) {
+                    sb.append(resultKlass.getSource()).append(".valueOf(");
+                }
                 sb.append(lhs.toString());
                 sb.append('[');
                 sb.append(rhs.toString());
-                sb.append("])");
+                sb.append(']');
+                if (boxWhenSafeCall) {
+                    sb.append(')');
+                }
+                sb.append(')');
             } else {
                 sb.append(lhs.toString());
                 sb.append('[');
                 sb.append(rhs.toString());
                 sb.append(']');
-            }
-
-            TypedKlass resultKlass = TypedKlass.create(lhsKlass.getComponentType(), lhs.getTypeArgs());
-            if (isSafeCall) {
-                resultKlass = resultKlass.asBoxedTypedKlass();
             }
             return new SegmentCode(resultKlass, sb.toString(), ctx);
         } else {
@@ -1192,25 +1251,34 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (resultKlass == null) {
                 resultKlass = TypedKlass.Object;
             }
+            boolean boxWhenSafeCall = resultKlass.isPrimitive();
+            if (isSafeCall) {
+                resultKlass = resultKlass.asBoxedTypedKlass();
+            }
 
             StringBuilder sb = new StringBuilder();
             if (isSafeCall) {
                 sb.append('(');
                 sb.append(lhs.toString());
-                sb.append("==null?null:");
+                sb.append("==null?(");
+                sb.append(resultKlass.getSource());
+                sb.append(")null:");
+                if (boxWhenSafeCall) {
+                    sb.append(resultKlass.getSource()).append(".valueOf(");
+                }
                 sb.append(lhs.toString());
                 sb.append(".get(");
                 sb.append(rhs.toString());
-                sb.append("))");
+                sb.append(')');
+                if (boxWhenSafeCall) {
+                    sb.append(')');
+                }
+                sb.append(')');
             } else {
                 sb.append(lhs.toString());
                 sb.append(".get(");
                 sb.append(rhs.toString());
                 sb.append(')');
-            }
-
-            if (isSafeCall) {
-                resultKlass = resultKlass.asBoxedTypedKlass();
             }
             return new SegmentCode(resultKlass, sb.toString(), ctx);
         }
