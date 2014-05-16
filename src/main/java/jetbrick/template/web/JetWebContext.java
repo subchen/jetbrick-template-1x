@@ -39,9 +39,11 @@ public class JetWebContext extends JetContext {
     public static final String PARAMETER = "parameter";
     public static final String PARAMETER_VALUES = "parameterValues";
 
-    public static final String CONTEXT_PATH = "ctxpath";
-    public static final String WEBROOT_PATH = "webroot";
-    public static final String BASE_PATH = "basepath";
+    public static final String CONTEXT_PATH_LEGACY = "ctxpath";
+    public static final String WEBROOT_PATH_LEGACY = "webroot";
+    public static final String CONTEXT_PATH = "CONTEXT_PATH";
+    public static final String WEBROOT_PATH = "WEBROOT_PATH";
+    public static final String BASE_PATH = "BASE_PATH";
 
     private final ServletContext servletContext;
     private final HttpSession session;
@@ -81,7 +83,9 @@ public class JetWebContext extends JetContext {
         put(PARAMETER, TYPE.PARAMETER);
         put(PARAMETER_VALUES, TYPE.PARAMETER_VALUES);
 
+        put(CONTEXT_PATH_LEGACY, request.getContextPath());
         put(CONTEXT_PATH, request.getContextPath());
+        put(WEBROOT_PATH_LEGACY, TYPE.WEBROOT_PATH);
         put(WEBROOT_PATH, TYPE.WEBROOT_PATH);
         put(BASE_PATH, TYPE.BASE_PATH);
     }
@@ -283,7 +287,7 @@ public class JetWebContext extends JetContext {
         }
         case BASE_PATH: {
             // 比 WEBROOT_PATH 后面多了一个 "/",
-            // 主要用于 <base href="${basepath}" />
+            // 主要用于 <base href="${BASE_PATH}" />
             StringBuilder sb = new StringBuilder();
             String schema = request.getScheme();
             int port = request.getServerPort();
