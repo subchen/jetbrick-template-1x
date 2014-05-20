@@ -121,6 +121,7 @@ public class JetWebContext extends JetContext {
         return servletContext.getAttribute(name);
     }
 
+    @SuppressWarnings("unchecked")
     private Object createImplicitWebObject(TYPE type) {
         switch (type) {
         case REQUEST_SCOPE: {
