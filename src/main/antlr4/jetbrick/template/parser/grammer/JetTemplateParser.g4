@@ -23,6 +23,12 @@ options {
     tokenVocab = JetTemplateLexer; // use tokens from JetTemplateLexer.g4
 }
 
+/*
+@header {
+package jetbrick.template.parser.grammer;
+}
+*/
+
 // -------- rule ---------------------------------------
 template    :   block
             ;

@@ -19,6 +19,12 @@
  */
 lexer grammar JetTemplateLexer;
 
+/*
+@header {
+package jetbrick.template.parser.grammer;
+}
+*/
+
 // *******************************************************************
 // ------- DEFAULT mode for Plain Text -------------------------------
 COMMENT_LINE            : '#--' .*? '--#'                 -> skip ;

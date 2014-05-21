@@ -13,7 +13,6 @@ set PATH=C:\dev\git-1.8.1\bin;%PATH%
 :: switch pwd
 cd /d %~dp0
 
-call ant -buildfile build.xml
-call ant -buildfile maven-deploy.xml maven.stage
+call ant -buildfile build.xml jar
 
 pause &
