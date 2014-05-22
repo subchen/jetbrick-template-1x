@@ -79,8 +79,7 @@
     </target>
 
     <target name="compile.grammer" depends="download-libs">
-        <!--
-        <property name="antlr.version" value="4.2.2" />    
+        <property name="antlr.version" value="4.2.2" />
         <property name="antlr.jar" value="${build.maven.lib.dir}/antlr4-${antlr.version}-complete.jar" />
         <property name="grammer.dir" value="${build.dir}/grammer/jetbrick/template/parser/grammer" />
 
@@ -93,15 +92,19 @@
         </copy>
 
         <mkdir dir="${grammer.dir}" />
-        <java jar="${antlr.jar}" fork="yes" dir="${grammer.dir}">
-            <arg value="${basedir}/src/main/antlr4/jetbrick/template/parser/grammer/JetTemplateLexer.g4" />
+        <java jar="${antlr.jar}" fork="yes" dir="${basedir}/src/main/antlr4/">
+            <arg value="jetbrick/template/parser/grammer/JetTemplateLexer.g4" />
+            <arg value="-package" />
+            <arg value="jetbrick.template.parser.grammer" />
             <arg value="-o" />
             <arg value="${grammer.dir}" />
         </java>
-        <java jar="${antlr.jar}" fork="yes" dir="${grammer.dir}">
+        <java jar="${antlr.jar}" fork="yes" dir="${basedir}/src/main/antlr4/">
+            <arg value="jetbrick/template/parser/grammer/JetTemplateParser.g4" />
+            <arg value="-package" />
+            <arg value="jetbrick.template.parser.grammer" />
             <arg value="-no-listener" />
             <arg value="-visitor" />
-            <arg value="${basedir}/src/main/antlr4/jetbrick/template/parser/grammer/JetTemplateParser.g4" />
             <arg value="-o" />
             <arg value="${grammer.dir}" />
         </java>
@@ -109,10 +112,11 @@
         <delete file="${grammer.dir}/JetTemplateParser.tokens" />
         <delete file="${grammer.dir}/JetTemplateParserBaseVisitor.java" />
 
-        -->
-        <artifact:mvn pom="${pom.xml}" mavenHome="c:/dev/apache-maven-3.1.1">
+        <!--
+        <artifact:mvn pom="${pom.xml}" mavenHome="c:/dev/apache-maven-3.1.1" fork="true">
             <arg value="generate-sources" />
         </artifact:mvn>
+        -->
     </target>
 
     <target name="compile" depends="compile.grammer">

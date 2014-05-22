@@ -13,6 +13,6 @@ set PATH=C:\dev\git-1.8.1\bin;%PATH%
 :: switch pwd
 cd /d %~dp0
 
-call ant -buildfile build.xml jar
+call ant -buildfile build.xml deploy
 
 pause &
