@@ -59,6 +59,7 @@
     <path id="sources.resources">
         <fileset dir="${basedir}/src/main/java" />
         <fileset dir="${basedir}/src/main/resources" />
+        <fileset dir="${build.dir}/grammer" />
     </path>
 
     <patternset id="metainf.resources">
