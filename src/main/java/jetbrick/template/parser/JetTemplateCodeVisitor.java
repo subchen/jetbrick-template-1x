@@ -998,7 +998,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (tool_advanced) {
                 sb.append(",$ctx");
             }
-            if (segmentListCode != null && segmentListCode.size() > 0) {
+            if (segmentListCode.size() > 0) {
                 sb.append(',');
             }
         } else {
@@ -1017,7 +1017,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             sb.append(name);
             sb.append('(');
         }
-        if (segmentListCode != null && segmentListCode.size() > 0) {
+        if (segmentListCode.size() > 0) {
             sb.append(segmentListCode.toString());
         }
         sb.append(')');
@@ -1063,7 +1063,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
                 StringBuilder sb = new StringBuilder(64);
                 sb.append("$macro_").append(name);
                 sb.append("($ctx");
-                if (segmentListCode != null && segmentListCode.size() > 0) {
+                if (segmentListCode.size() > 0) {
                     sb.append(',').append(segmentListCode.toString());
                 }
                 sb.append(')');
@@ -1094,7 +1094,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (advanced) {
             sb.append("$ctx");
         }
-        if (segmentListCode != null && segmentListCode.size() > 0) {
+        if (segmentListCode.size() > 0) {
             if (advanced) sb.append(',');
             sb.append(segmentListCode.toString());
         }
@@ -1314,7 +1314,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         // 生成代码
         StringBuilder source = new StringBuilder(32);
         source.append("(new ").append(code.toString()).append('(');
-        if (segmentListCode != null && segmentListCode.size() > 0) {
+        if (segmentListCode.size() > 0) {
             source.append(segmentListCode.toString());
         }
         source.append("))");
