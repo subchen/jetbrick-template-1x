@@ -1123,7 +1123,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             securityManager.checkMemberAccess(field);
         }
 
-        String source = typeName + '.' + name;
+        String source = ClassUtils.getShortClassName(field.getDeclaringClass()) + '.' + name;
         TypedKlass resultKlass = TypedKlassUtils.getFieldTypedKlass(field);
         return new SegmentCode(resultKlass, source, ctx);
     }
