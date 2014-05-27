@@ -87,7 +87,7 @@ public class VariableResolver {
     public void addImportClass(String klassName) {
         try {
             Class<?> klass = ClassLoaderUtils.loadClass(klassName);
-            if (importedClassMap.put(klass.getSimpleName(), klass) != null) {
+            if (importedClassMap.put(klass.getSimpleName(), klass) == null) {
                 log.info("import class: " + klass.getName());
             }
         } catch (ClassNotFoundException e) {
@@ -100,7 +100,7 @@ public class VariableResolver {
         if (klass == null || klass == TypedKlass.NULL) {
             throw new RuntimeException("ClassNotFoundException: " + klassName);
         }
-        if (variableMap.put(name, klass) != null) {
+        if (variableMap.put(name, klass) == null) {
             log.info("add variable: {} {}", klass.getSource(), name);
         }
     }
