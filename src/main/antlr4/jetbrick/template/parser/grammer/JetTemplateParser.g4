@@ -148,12 +148,12 @@ expression  :   '(' expression ')'                                           # e
             |   static_type_name '.' IDENTIFIER  '(' expression_list? ')'    # expr_static_method_invocation
             |   expression ('?')? '[' expression ']'                         # expr_array_get
             |   expression ('++'|'--')                                       # expr_math_unary_suffix
-            |   ('+' <assoc=right> |'-' <assoc=right>)  expression           # expr_math_unary_prefix
-            |   ('++'|'--')       expression                                 # expr_math_unary_prefix
-            |   '~' <assoc=right> expression                                 # expr_math_unary_prefix
-            |   '!' <assoc=right> expression                                 # expr_compare_not
-            |   '(' type ')'      expression                                 # expr_class_cast
-            |   'new' type '(' expression_list? ')'                          # expr_new_object
+            |   ('+' |'-' )     expression                                   # expr_math_unary_prefix
+            |   ('++'|'--')     expression                                   # expr_math_unary_prefix
+            |   '~'             expression                                   # expr_math_unary_prefix
+            |   '!'             expression                                   # expr_compare_not
+            |   '(' type ')'    expression                                   # expr_class_cast
+            |   'new' type '('  expression_list? ')'                         # expr_new_object
             |   'new' type ('[' expression ']')+                             # expr_new_array
             |   expression ('*'|'/'|'%')  expression                         # expr_math_binary_basic
             |   expression ('+'|'-')      expression                         # expr_math_binary_basic
@@ -162,11 +162,11 @@ expression  :   '(' expression ')'                                           # e
             |   expression OP_INSTANCEOF type                                # expr_instanceof
             |   expression ('=='|'!=') expression                            # expr_compare_equality
             |   expression '&'  expression                                   # expr_math_binary_bitwise
-            |   expression '^' <assoc=right> expression                      # expr_math_binary_bitwise
+            |   <assoc=right> expression '^' expression                      # expr_math_binary_bitwise
             |   expression '|'  expression                                   # expr_math_binary_bitwise
             |   expression '&&' expression                                   # expr_compare_condition
             |   expression '||' expression                                   # expr_compare_condition
-            |   expression '?' <assoc=right> expression ':' expression       # expr_conditional_ternary
+            |   <assoc=right> expression '?' expression ':' expression       # expr_conditional_ternary
             ;
 
 constant    :   STRING_DOUBLE
