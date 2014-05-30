@@ -207,9 +207,10 @@
         </jar>
     </target>
 
-    <target name="install" depends="jar">
+    <target name="install" depends="jar, sources.jar">
         <artifact:install file="${dist.jar}">
             <pom refid="pom" />
+            <attach file="${dist.sources.jar}" type="jar" classifier="sources"/>
         </artifact:install>
     </target>
 
