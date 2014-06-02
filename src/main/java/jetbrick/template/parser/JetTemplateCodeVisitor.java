@@ -816,7 +816,18 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             if (securityManager != null) {
                 securityManager.checkMemberAccess(method);
             }
-            resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
+
+            // special code for Map.get()
+            // https://github.com/subchen/jetbrick-template/issues/100
+            TypedKlass typedKlass = code.getTypedKlass();
+            if ("get".equals(method.getName()) && member.getDeclaringClass() == Map.class) {
+                if (typedKlass.getTypeArgs().length >=2) {
+                    resultKlass = typedKlass.getTypeArgs()[1];
+                }
+            }
+            if (resultKlass == null) {
+                resultKlass = TypedKlassUtils.getMethodReturnTypedKlass(method);
+            }
             if (method.getParameterTypes().length == 0) {
                 // getXXX() or isXXX()
                 if (isSafeCall) { // 安全调用，防止 NullPointException
