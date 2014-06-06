@@ -172,7 +172,11 @@ public final class JetTemplate {
         ANTLRInputStream is = new ANTLRInputStream(source, source.length);
         is.name = resource.getAbsolutePath(); // set source file name, it will be displayed in error report.
 
-        JetTemplateParser parser = new JetTemplateParser(new CommonTokenStream(new JetTemplateLexer(is)));
+        JetTemplateLexer lexer = new JetTemplateLexer(is);
+        lexer.removeErrorListeners(); // remove ConsoleErrorListener
+        lexer.addErrorListener(JetTemplateErrorListener.getInstance());
+
+        JetTemplateParser parser = new JetTemplateParser(new CommonTokenStream(lexer));
         parser.removeErrorListeners(); // remove ConsoleErrorListener
         parser.addErrorListener(JetTemplateErrorListener.getInstance());
         parser.setErrorHandler(new JetTemplateErrorStrategy());

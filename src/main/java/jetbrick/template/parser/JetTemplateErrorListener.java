@@ -34,16 +34,28 @@ public class JetTemplateErrorListener extends BaseErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-        CommonTokenStream tokens = (CommonTokenStream) recognizer.getInputStream();
-        String input = tokens.getTokenSource().getInputStream().toString();
+        CharStream stream;
+        if (recognizer instanceof Parser) {
+            stream = ((Parser) recognizer).getInputStream().getTokenSource().getInputStream();
+        } else if (recognizer instanceof Lexer) {
+            stream = ((Lexer) recognizer).getInputStream();
+        } else {
+            throw new IllegalStateException();
+        }
+
+        String input = stream.toString();
+        String filename = stream.getSourceName();
+
         String[] sourceLines = input.split("\r?\n", -1);
         Token offendingToken = (Token) offendingSymbol;
 
         StringBuilder sb = new StringBuilder(128);
-        sb.append("Template parse failed.\n");
-        sb.append(recognizer.getInputStream().getSourceName());
-        sb.append(':');
+        sb.append("Template: ");
+        sb.append(filename);
+        sb.append(": ");
         sb.append(line);
+        sb.append(',');
+        sb.append(charPositionInLine);
         sb.append("\nmessage: ");
         sb.append(msg);
         sb.append('\n');
