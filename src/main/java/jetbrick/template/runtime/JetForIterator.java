@@ -122,7 +122,7 @@ public final class JetForIterator<T> implements Iterator<T>, JetForStatus {
 
     @Override
     public boolean isOdd() {
-        return index % 2 == 1;
+        return index % 2 != 0;
     }
 
     @Override
