@@ -30,7 +30,7 @@ package jetbrick.template.parser.grammer;
 */
 
 // -------- rule ---------------------------------------
-template    :   block
+template    :   block EOF
             ;
 
 block       :   (text | value | directive)*

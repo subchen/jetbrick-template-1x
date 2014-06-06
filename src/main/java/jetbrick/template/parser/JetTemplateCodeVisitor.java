@@ -127,11 +127,11 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         this.textCache = new HashMap<String, TextCode>(32);
         this.forStack = new ArrayDeque<String>(8);
 
-        // 专门处理是否存在未完成的解析
-        Token token = parser.getCurrentToken();
-        if (token.getType() != Token.EOF) {
-            throw reportError("Invalid " + token.getText() + " directive in here.", token);
-        }
+        // 专门处理是否存在未完成的解析 (1.2.8 在 parser.g4 中添加 EOF，此处代码已经无用)
+        //Token token = parser.getCurrentToken();
+        //if (token.getType() != Token.EOF) {
+        //    throw reportError("Invalid " + token.getText() + " directive in here.", token);
+        //}
     }
 
     @Override
