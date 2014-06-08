@@ -44,7 +44,7 @@ public final class JetForIterator<T> implements Iterator<T>, JetForStatus {
                 iterator = (Iterator<?>) items;
                 size = ((LoopIterator) items).getSize();
             } else {
-                List<?> list = asList(((Iterable<?>) items).iterator());
+                List<?> list = asList((Iterator<?>) items);
                 iterator = list.iterator();
                 size = list.size();
             }
