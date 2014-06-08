@@ -40,18 +40,22 @@ public final class JetForIterator<T> implements Iterator<T>, JetForStatus {
             iterator = EmptyIterator.INSTANCE;
             size = 0;
         } else if (items instanceof Iterator) {
-            iterator = (Iterator<?>) items;
             if (items instanceof LoopIterator) {
+                iterator = (Iterator<?>) items;
                 size = ((LoopIterator) items).getSize();
             } else {
-                size = -1;
+                List<?> list = asList(((Iterable<?>) items).iterator());
+                iterator = list.iterator();
+                size = list.size();
             }
         } else if (items instanceof Iterable) {
-            iterator = ((Iterable<?>) items).iterator();
             if (items instanceof Collection) {
+                iterator = ((Iterable<?>) items).iterator();
                 size = ((Collection<?>) items).size();
             } else {
-                size = -1;
+                List<?> list = asList(((Iterable<?>) items).iterator());
+                iterator = list.iterator();
+                size = list.size();
             }
         } else if (items instanceof Map) {
             iterator = ((Map<?, ?>) items).entrySet().iterator();
@@ -64,15 +68,23 @@ public final class JetForIterator<T> implements Iterator<T>, JetForStatus {
             iterator = new ArrayIterator(items);
             size = Array.getLength(items);
         } else if ((items instanceof Class) && ((Class<?>) items).isEnum()) {
-            List<?> itemlist = Arrays.asList(((Class<?>) items).getEnumConstants());
-            iterator = itemlist.iterator();
-            size = itemlist.size();
+            List<?> list = Arrays.asList(((Class<?>) items).getEnumConstants());
+            iterator = list.iterator();
+            size = list.size();
         } else {
             iterator = Collections.singleton(items).iterator();
             size = 1;
         }
 
         this.index = 0;
+    }
+
+    private List<?> asList(Iterator<?> it) {
+        List<Object> list = new ArrayList<Object>();
+        while (it.hasNext()) {
+            list.add(it.next());
+        }
+        return list;
     }
 
     @Override
