@@ -237,6 +237,10 @@ public class VariableResolver {
         // 只对类似 String 或者 Map.Entry 这样的才尝试进行包名补齐
         int lpos = klassName.indexOf('.');
         if (lpos < 0 || lpos == klassName.lastIndexOf('.')) {
+            if (lpos > 0) {
+                // 内部类
+                klassName = klassName.replace('.', '$');
+            }
             for (String pkg : importedPackageList) {
                 try {
                     klass = ClassLoaderUtils.loadClass(pkg + "." + klassName);
