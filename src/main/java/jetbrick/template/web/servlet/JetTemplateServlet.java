@@ -57,10 +57,11 @@ public class JetTemplateServlet extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         JetEngine engine = JetWebEngineLoader.getJetEngine();
 
+        String charsetEncoding = engine.getConfig().getOutputEncoding();
         if (response.getContentType() == null) {
-            response.setContentType("text/html");
+            response.setContentType("text/html; charset=" + charsetEncoding);
         }
-        response.setCharacterEncoding(engine.getConfig().getOutputEncoding());
+        response.setCharacterEncoding(charsetEncoding);
 
         String uri = request.getServletPath();
         String pathInfo = request.getPathInfo();
