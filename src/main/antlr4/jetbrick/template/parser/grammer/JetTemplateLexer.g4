@@ -147,9 +147,9 @@ fragment INT            : '0' | [1-9] [0-9]*               ;
 fragment FRAC           : [0-9]+                           ;
 fragment EXP            : [Ee] [+\-]? INT                  ;
 
-STRING_DOUBLE           : '"'  (ESC|.)*? '"'               ;
-STRING_SINGLE           : '\'' (ESC|.)*? '\''              ;
+STRING_DOUBLE           : '"'  (ESC|OTHERS)*? '"'          ;
+STRING_SINGLE           : '\'' (ESC|OTHERS)*? '\''         ;
+fragment OTHERS         : ~('\\' | '\r' | '\n')            ;
 fragment ESC            : '\\' ([btnfr"'\\]|UNICODE)       ;
 fragment UNICODE        : 'u' HEX HEX HEX HEX              ;
 fragment HEX            : [0-9a-fA-F]                      ;
-
