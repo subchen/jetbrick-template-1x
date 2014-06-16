@@ -237,7 +237,7 @@ public final class JetTemplate {
             // JSP use response.getWriter() to ignore all io exceptions.
             // I use response.getOutputStream() and only ignore ClientAbortException.
             if ("org.apache.catalina.connector.ClientAbortException".equals(e.getClass().getName())) {
-                log.info(e.toString());
+                log.warn(e.toString());
             } else {
                 throw ExceptionUtils.uncheck(e);
             }
