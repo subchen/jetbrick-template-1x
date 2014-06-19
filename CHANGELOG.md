@@ -1,9 +1,18 @@
+Version 1.2.8 (2014-06-19)
+-----------------------------
+
+* [增强] #104 for.size 对 iterator 的支持
+* [修复] #102 macro递归调用解析异常
+* [修复] #103 Mac环境PathUtilsTest单元测试失败
+* [修复] 捕获 Tomcat Server 中的 ClientAbortException
+* [修复] Lexer 中的非法字符串
+
 Version 1.2.7 (2014-06-05)
 -----------------------------
 
+* [修复] #98 import.classes 相关 log 没有正确输出
 * [修复] #99 @Permission.view_schoolOrg 静态字段编译错误
 * [修复] #100 Map 的泛型类型推导问题
-* [修复] #98 import.classes 相关 log 没有正确输出
 
 Version 1.2.6 (2014-05-18)
 -----------------------------
