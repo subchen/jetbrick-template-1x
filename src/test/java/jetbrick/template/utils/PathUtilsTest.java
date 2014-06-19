@@ -12,10 +12,10 @@ public class PathUtilsTest {
             Assert.fail();
         } catch (IllegalArgumentException e) {
         }
-        Assert.assertEquals(PathUtils.getStandardizedName("/path/file.ext"), "/path/file.ext");
-        Assert.assertEquals(PathUtils.getStandardizedName("\\path\\file.ext"), "/path/file.ext");
-        Assert.assertEquals(PathUtils.getStandardizedName("/path/../file.ext"), "/file.ext");
-        Assert.assertEquals(PathUtils.getStandardizedName("path\\.\\file.ext"), "/path/file.ext");
+        Assert.assertEquals("/path/file.ext", PathUtils.getStandardizedName("/path/file.ext"));
+        Assert.assertEquals("/path/file.ext", PathUtils.getStandardizedName("\\path\\file.ext"));
+        Assert.assertEquals("/file.ext", PathUtils.getStandardizedName("/path/../file.ext"));
+        Assert.assertEquals("/path/file.ext", PathUtils.getStandardizedName("path\\.\\file.ext"));
         try {
             PathUtils.getStandardizedName("../../file");
             Assert.fail();
@@ -30,10 +30,16 @@ public class PathUtilsTest {
             Assert.fail();
         } catch (IllegalArgumentException e) {
         }
-        Assert.assertEquals(PathUtils.getStandardizedTemplateRoot("path/to", true), "path/to");
-        Assert.assertEquals(PathUtils.getStandardizedTemplateRoot("path/to/", false), "/path/to");
-        Assert.assertEquals(PathUtils.getStandardizedTemplateRoot("\\path\\to", true), "/path/to");
-        Assert.assertEquals(PathUtils.getStandardizedTemplateRoot("\\path\\to/", false), "/path/to");
+
+        boolean IS_WINDOW = System.getProperty("os.name").toUpperCase().indexOf("WINDOWS") >= 0;
+        if (IS_WINDOW) {
+            Assert.assertEquals("path/to", PathUtils.getStandardizedTemplateRoot("path/to", true));
+        } else {
+            Assert.assertEquals("/path/to", PathUtils.getStandardizedTemplateRoot("path/to", true));
+        }
+        Assert.assertEquals("/path/to", PathUtils.getStandardizedTemplateRoot("path/to/", false));
+        Assert.assertEquals("/path/to", PathUtils.getStandardizedTemplateRoot("\\path\\to", true));
+        Assert.assertEquals("/path/to", PathUtils.getStandardizedTemplateRoot("\\path\\to/", false));
     }
 
     @Test
