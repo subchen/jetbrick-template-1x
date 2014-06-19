@@ -668,9 +668,7 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
             }
         }
 
-        scopeCode.setBodyCode(ctx.block().accept(this)); // add body content
-        scopeCode = scopeCode.pop();
-
+        // 需要先定义 macro，这样可以支持 macro 的递归调用 (issue 102)
         if (macroMap == null) {
             macroMap = new HashMap<String, MacroCode>(8);
         }
@@ -678,8 +676,12 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         if (old != null) {
             throw reportError("Duplicated macro defination " + name, ctx);
         }
-
         tcc.addMacro(macroCode);
+
+        // 访问 macro body
+        scopeCode.setBodyCode(ctx.block().accept(this)); // add body content
+        scopeCode = scopeCode.pop();
+
         return Code.EMPTY;
     }
 
