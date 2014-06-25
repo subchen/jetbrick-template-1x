@@ -97,8 +97,14 @@ public class ClassUtils {
                 } else {
                     return klass.getSimpleName();
                 }
+            } else {
+                if (klass.isMemberClass()) {
+                    // 内部类
+                    return klass.getEnclosingClass().getName() + "." + klass.getSimpleName();
+                } else {
+                    return klass.getName();
+                }
             }
-            return klass.getName();
         }
     }
 
