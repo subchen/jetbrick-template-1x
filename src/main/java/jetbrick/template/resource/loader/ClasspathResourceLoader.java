@@ -51,19 +51,25 @@ public class ClasspathResourceLoader implements ResourceLoader {
         URL url = ClassLoaderUtils.getContextClassLoader().getResource(pathname);
         if (url == null) return null;
 
+        String fileUrl = url.getPath();
+        try {
+            fileUrl = URLDecoder.decode(fileUrl, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+        }
+        
         if (FILE_PROTOCOL.equals(url.getProtocol())) {
-            File file = PathUtils.getCanonicalFile(new File(url.getFile()));
+            File file = PathUtils.getCanonicalFile(new File(fileUrl));
             return new FileSystemResource(name, file, encoding);
         } else if (JAR_PROTOCOL.equals(url.getProtocol())) {
-            String file = url.getFile();
-            if (file.startsWith(FILE_PROTOCOL_PREFIX)) {
-                file = file.substring(FILE_PROTOCOL_PREFIX.length());
+            if (fileUrl.startsWith(FILE_PROTOCOL_PREFIX)) {
+                fileUrl = fileUrl.substring(FILE_PROTOCOL_PREFIX.length());
             }
-            int separator = file.indexOf(JAR_FILE_SEPARATOR);
-            File jar = PathUtils.getCanonicalFile(new File(file.substring(0, separator)));
-            String entry = file.substring(separator + JAR_FILE_SEPARATOR.length());
+            int separator = fileUrl.indexOf(JAR_FILE_SEPARATOR);
+            File jar = PathUtils.getCanonicalFile(new File(fileUrl.substring(0, separator)));
+            String entry = fileUrl.substring(separator + JAR_FILE_SEPARATOR.length());
             return new JarResource(name, jar, entry, encoding);
         }
+
         throw new IllegalStateException("cannot load from url: " + url);
     }
 
