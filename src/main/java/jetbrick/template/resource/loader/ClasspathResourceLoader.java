@@ -20,7 +20,9 @@
 package jetbrick.template.resource.loader;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.List;
 import jetbrick.template.JetEngine;
 import jetbrick.template.resource.*;
@@ -56,7 +58,7 @@ public class ClasspathResourceLoader implements ResourceLoader {
             fileUrl = URLDecoder.decode(fileUrl, "utf-8");
         } catch (UnsupportedEncodingException e) {
         }
-        
+
         if (FILE_PROTOCOL.equals(url.getProtocol())) {
             File file = PathUtils.getCanonicalFile(new File(fileUrl));
             return new FileSystemResource(name, file, encoding);
