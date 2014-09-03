@@ -25,6 +25,7 @@ import jetbrick.template.JetTemplate;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.web.JetWebContext;
 import jetbrick.template.web.JetWebEngineLoader;
+import com.jfinal.core.JFinal;
 import com.jfinal.render.Render;
 
 public class JetTemplateRender extends Render {
@@ -37,7 +38,7 @@ public class JetTemplateRender extends Render {
     @Override
     public void render() {
         if (JetWebEngineLoader.unavailable()) {
-            JetWebEngineLoader.setServletContext(request.getSession().getServletContext());
+            JetWebEngineLoader.setServletContext(JFinal.me().getServletContext());
         }
 
         JetContext context = new JetWebContext(request, response);
