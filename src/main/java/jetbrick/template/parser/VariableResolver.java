@@ -306,10 +306,13 @@ public class VariableResolver {
             if (Map.class.isAssignableFrom(beanClass)) {
                 return beanClass.getMethod("get", Object.class);
             }
-            // get(String) for JetContext
-            if (JetContext.class.isAssignableFrom(beanClass)) {
+
+            // get(String) for JetContext, JFinal Model, ...
+            try {
                 return beanClass.getMethod("get", String.class);
+            } catch (NoSuchMethodException e) {
             }
+
         } catch (Exception e) {
             throw ExceptionUtils.uncheck(e);
         }
