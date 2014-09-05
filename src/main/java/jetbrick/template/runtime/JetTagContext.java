@@ -37,7 +37,7 @@ public abstract class JetTagContext implements JetContextAware {
         try {
             render(ctx.getContext(), JetWriter.create(out, encoding));
         } catch (Throwable e) {
-            throw ExceptionUtils.uncheck(e);
+            handleException(e);
         }
         return out.toString();
     }
@@ -46,6 +46,14 @@ public abstract class JetTagContext implements JetContextAware {
         try {
             render(ctx.getContext(), ctx.getWriter());
         } catch (Throwable e) {
+            handleException(e);
+        }
+    }
+
+    private void handleException(Throwable e) {
+        if ("org.apache.catalina.connector.ClientAbortException".equals(e.getClass().getName())) {
+            // log.warn(e.toString());
+        } else {
             throw ExceptionUtils.uncheck(e);
         }
     }
