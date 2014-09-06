@@ -8,7 +8,7 @@
     <groupId>com.github.subchen</groupId>
     <artifactId>jetbrick-template</artifactId>
     <packaging>jar</packaging>
-    <version>1.2.11-SNAPSHOT</version>
+    <version>1.2.11</version>
 
     <name>jetbrick-template</name>
     <description>Next generation template engine for Java.</description>

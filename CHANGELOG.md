@@ -1,7 +1,7 @@
-Version 1.2.11  (2014-09-05)
+Version 1.2.11  (2014-09-06)
 -----------------------------
 
-* [修复] #107 可否增加对jfinal的Model的get()方法？
+* [增强] #107 可否增加对jfinal的Model的get()方法？
 * [修复] #108 servletContext 对象获取改进建议(JFinal 集成)
 * [修复] #111 使用jetbrick每次启动时都报错：ClientAbortException 但功能不影响
 
