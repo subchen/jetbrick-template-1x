@@ -33,6 +33,7 @@ import jetbrick.template.utils.finder.TemplateFileFinder;
 public class ClasspathResourceLoader implements ResourceLoader {
     private static final String FILE_PROTOCOL = "file";
     private static final String JAR_PROTOCOL = "jar";
+    private static final String ZIP_PROTOCOL = "zip";
     private static final String FILE_PROTOCOL_PREFIX = "file:";
     private static final String JAR_FILE_SEPARATOR = JarResource.JAR_FILE_SEPARATOR;
 
@@ -62,7 +63,7 @@ public class ClasspathResourceLoader implements ResourceLoader {
         if (FILE_PROTOCOL.equals(url.getProtocol())) {
             File file = PathUtils.getCanonicalFile(new File(fileUrl));
             return new FileSystemResource(name, file, encoding);
-        } else if (JAR_PROTOCOL.equals(url.getProtocol())) {
+        } else if (JAR_PROTOCOL.equals(url.getProtocol()) || ZIP_PROTOCOL.equals(url.getProtocol())) {
             if (fileUrl.startsWith(FILE_PROTOCOL_PREFIX)) {
                 fileUrl = fileUrl.substring(FILE_PROTOCOL_PREFIX.length());
             }
