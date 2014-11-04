@@ -20,8 +20,7 @@
 package jetbrick.template.web.jfinal;
 
 import java.io.IOException;
-import jetbrick.template.JetContext;
-import jetbrick.template.JetTemplate;
+import jetbrick.template.*;
 import jetbrick.template.utils.ExceptionUtils;
 import jetbrick.template.web.JetWebContext;
 import jetbrick.template.web.JetWebEngineLoader;
@@ -37,12 +36,19 @@ public class JetTemplateRender extends Render {
 
     @Override
     public void render() {
-        if (JetWebEngineLoader.unavailable()) {
+        JetEngine engine = JetWebEngineLoader.getJetEngine();
+        if (engine == null) {
             JetWebEngineLoader.setServletContext(JFinal.me().getServletContext());
         }
 
+        String charsetEncoding = engine.getConfig().getOutputEncoding();
+        response.setCharacterEncoding(charsetEncoding);
+        if (response.getContentType() == null) {
+            response.setContentType("text/html; charset=" + charsetEncoding);
+        }
+
         JetContext context = new JetWebContext(request, response);
-        JetTemplate template = JetWebEngineLoader.getJetEngine().getTemplate(view);
+        JetTemplate template = engine.getTemplate(view);
         try {
             template.render(context, response.getOutputStream());
         } catch (IOException e) {
