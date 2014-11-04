@@ -1,3 +1,9 @@
+Version 1.2.12  (2014-11-04)
+-----------------------------
+
+* [修复] #112 WebLogic10.3.x下 ClasspathResourceLoader 无法加载资源
+* [修复] #114 JFinal 中 content type 显示为 text/plain
+
 Version 1.2.11  (2014-09-06)
 -----------------------------
 

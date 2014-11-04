@@ -94,13 +94,14 @@ jetbrick-template 将模板编译成 Java ByteCode 运行，并采用强类型�
 
 * Author: Guoqiang Chen, Shanghai, China
 * Email: subchen&#64;gmail.com
-* WebSite: http://subchen.github.io/
+* WebURL: http://subchen.github.io/
 * Blog: http://my.oschina.net/sub/blog
 
 
 开源许可 License
 ===================
 
+```
 jetbrick-template  
 http://subchen.github.io/jetbrick-template/
 
@@ -118,3 +119,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+```
