@@ -4,7 +4,7 @@
 `jetbrick-template 2.0` 已经 released，`jetbrick-template 1.x` 将不再提供新功能，只负责 bug fixes. 
 
 * jetbrick-template 2.0 docs: http://subchen.github.io/jetbrick-template/2x/
-* jetbrick-template 2.0 github: https://github.com/jetbrick-template-2x
+* jetbrick-template 2.0 github: https://github.com/subchen/jetbrick-template-2x
 
 
 概述 Overview
