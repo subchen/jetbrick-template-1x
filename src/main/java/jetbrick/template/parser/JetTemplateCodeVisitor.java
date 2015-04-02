@@ -19,12 +19,32 @@
  */
 package jetbrick.template.parser;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.lang.model.SourceVersion;
-import jetbrick.template.*;
-import jetbrick.template.parser.code.*;
-import jetbrick.template.parser.grammer.*;
+import jetbrick.template.JetContext;
+import jetbrick.template.JetEngine;
+import jetbrick.template.JetSecurityManager;
+import jetbrick.template.parser.code.BlockCode;
+import jetbrick.template.parser.code.Code;
+import jetbrick.template.parser.code.DefineExpressionCode;
+import jetbrick.template.parser.code.ForExpressionCode;
+import jetbrick.template.parser.code.MacroCode;
+import jetbrick.template.parser.code.ScopeCode;
+import jetbrick.template.parser.code.SegmentCode;
+import jetbrick.template.parser.code.SegmentListCode;
+import jetbrick.template.parser.code.TagCode;
+import jetbrick.template.parser.code.TemplateClassCode;
+import jetbrick.template.parser.code.TextCode;
+import jetbrick.template.parser.grammer.JetTemplateParser;
 import jetbrick.template.parser.grammer.JetTemplateParser.BlockContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Break_directiveContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.ConstantContext;
@@ -83,14 +103,21 @@ import jetbrick.template.parser.grammer.JetTemplateParser.Type_array_suffixConte
 import jetbrick.template.parser.grammer.JetTemplateParser.Type_listContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.Type_nameContext;
 import jetbrick.template.parser.grammer.JetTemplateParser.ValueContext;
-import jetbrick.template.parser.support.*;
+import jetbrick.template.parser.grammer.JetTemplateParserVisitor;
+import jetbrick.template.parser.support.ClassUtils;
+import jetbrick.template.parser.support.NumberClassUtils;
+import jetbrick.template.parser.support.PromotionUtils;
+import jetbrick.template.parser.support.TypedKlass;
+import jetbrick.template.parser.support.TypedKlassUtils;
 import jetbrick.template.resource.Resource;
 import jetbrick.template.runtime.JetTagContext;
 import jetbrick.template.utils.PathUtils;
 import jetbrick.template.utils.StringEscapeUtils;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.*;
+import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 // Visitor 模式访问器，用来生成 Java 代码
 public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> implements JetTemplateParserVisitor<Code> {
@@ -467,14 +494,21 @@ public class JetTemplateCodeVisitor extends AbstractParseTreeVisitor<Code> imple
         Code for_else_block = (else_directive == null) ? null : else_directive.accept(this);
 
         // 生成代码
+        String id_foritem = getUid("foritem");
+        String typeName = for_expr_code.getKlassName();
+        String itemName = for_expr_code.getName();
+
+        code.addLine("Object " + id_foritem + " = context.get(\"" + itemName + "\"); // save it");
         code.addLine("JetForIterator " + id_for + " = new JetForIterator(" + for_expr_code.toString() + ");");
         code.addLine("while (" + id_for + ".hasNext()) { // line: " + ctx.getStart().getLine());
 
         // class item = (class) it.next() ...
-        String typeName = for_expr_code.getKlassName();
-        code.addLine("  " + typeName + " " + for_expr_code.getName() + " = (" + typeName + ") " + id_for + ".next();");
+        code.addLine("  " + typeName + " " + itemName + " = (" + typeName + ") " + id_for + ".next();");
+        code.addLine("  context.put(\"" + itemName + "\", " + itemName + ");");
         code.addChild(for_block_code);
         code.addLine("}");
+        code.addLine("context.put(\"" + itemName + "\", " + id_foritem + "); // reset it");
+
 
         // for else ...
         if (for_else_block != null) {
