@@ -21,7 +21,7 @@ public class GlobalVariablesTestCase {
         JetTemplate template = engine.createTemplate("${copyright} - ${today.format('yyyy')}");
         UnsafeCharArrayWriter out = new UnsafeCharArrayWriter();
         template.render(new JetContext(), out);
-        Assert.assertEquals(out.toString(), "copyright@2000-2010 - 2014");
+        Assert.assertEquals(out.toString(), "copyright@2000-2010 - 2015");
     }
 
     static class GlobalVariables implements JetGlobalVariables {
